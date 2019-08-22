@@ -1,0 +1,31 @@
+debug: true
+disabledWorlds:
+  - "world_nether"
+  - "world_the_end"
+tiers:
+  0:
+    default:
+      COBBLESTONE: 100
+    vip:
+      COBBLESTONE: 90
+      COAL_ORE: 10
+  1:
+    default:
+      COBBLESTONE: 70
+      COAL_ORE: 20
+      IRON_ORE: 10
+    vip:
+      COBBLESTONE: 50
+      COAL_ORE: 30
+      IRON_ORE: 20
+  2:
+    default:
+      COBBLESTONE: 40
+      COAL_ORE: 30
+      IRON_ORE: 20
+      GOLD_ORE: 10
+    vip:
+      COBBLESTONE: 30
+      COAL_ORE: 30
+      IRON_ORE: 20
+      GOLD_ORE: 20
