@@ -131,6 +131,7 @@ public class MainCommand implements CommandExecutor{
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGE_SUCCES.toString(p));
 				return true;
 			}else if(args[1].equalsIgnoreCase("givetier")) {
+				if(!pm.hasPermission(sender, "customcobblegen.admin.givetier", true)) return false;
 				if(args.length < 5){
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin givetier (Player) (Class) (Level)");
 					return false;
@@ -165,6 +166,7 @@ public class MainCommand implements CommandExecutor{
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_GIVEN.toString());
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_GOTTEN.toString());
 			}else if(args[1].equalsIgnoreCase("forcebuy")) {
+				if(!pm.hasPermission(sender, "customcobblegen.admin.forcebuy", true)) return false;
 				if(args.length < 5){
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin forcebuy (Player) (Class) (Level)");
 					return false;
@@ -200,6 +202,7 @@ public class MainCommand implements CommandExecutor{
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.FORCE_PURCHASED.toString(p));
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
 			}else {
+				if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));
 				return false;
 			}
