@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 
@@ -22,9 +23,15 @@ public class PlayerEvents implements Listener {
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
 		Player p = e.getPlayer();
-		if(!tm.purchasedTiersContainsPlayer(p)) tm.givePlayerStartPurchases(p);
+		if(!tm.selectedTierContainsPlayer(p) && !tm.purchasedTiersContainsPlayer(p)) tm.loadPlayerData(p);
 		if(!tm.selectedTierContainsPlayer(p)) tm.givePlayerStartSelect(p);
+		if(!tm.purchasedTiersContainsPlayer(p)) tm.givePlayerStartPurchases(p);
 	}
 	
+	@EventHandler
+	public void onPlayerLeave(PlayerQuitEvent e) {
+		Player p = e.getPlayer();
+		tm.savePlayerData(p);
+	}
 	
 }

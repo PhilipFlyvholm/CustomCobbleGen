@@ -93,7 +93,7 @@ public class MainCommand implements CommandExecutor{
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.RELOAD_SUCCESS.toString().replaceAll("%time%", String.valueOf(time3)));
 			}else if(args[1].equalsIgnoreCase("forcesave")) {
 				if(!pm.hasPermission(sender, "customcobblegen.admin.forcesave", true)) return false;
-				tm.savePlayerData();
+				tm.saveAllPlayerData();
 				if(sender instanceof Player) {
 					Player p = (Player) sender;
 					plugin.log(p.getName() + " force saved the player data");

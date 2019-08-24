@@ -93,8 +93,8 @@ public class TierManager {
 	}
 	
 	public void addPlayer(Player p, Tier selectedTier, List<Tier> purchasedTiers){
-		this.addPlayer(p, selectedTier);
-		this.addPlayer(p, purchasedTiers);
+		if(selectedTier != null) this.addPlayer(p, selectedTier);
+		if(purchasedTiers != null && !purchasedTiers.isEmpty()) this.addPlayer(p, purchasedTiers);
 	}
 	
 	public void setPlayerSelectedTier(Player p, Tier tier){
@@ -127,47 +127,76 @@ public class TierManager {
 		return i;
 	}
 	
-	public void loadPlayerData(){
+	public void loadAllPlayerData() {
 		selectedTier = new HashMap<Player, Tier>();
 		purchasedTiers = new HashMap<Player, List<Tier>>();
 		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players");
 		for(String uuid : playerSection.getKeys(false)){
 			Player p = Bukkit.getPlayer(UUID.fromString(uuid));
-			if(p == null) continue;
-			Tier tier;
-			if(playerSection.contains(uuid + ".selected")) {
-				int tierLevel = playerSection.getInt(uuid + ".selected.level");
-				String tierClass = playerSection.getString(uuid + ".selected.class");
-				tier = this.getTierByLevel(tierClass, tierLevel);
-			}else{
-				tier = this.getTierByLevel("DEFAULT", 0);
-			}
-			if(tier == null) continue;
-			List<Tier> purchasedTiers = new ArrayList<Tier>();
-			if(playerSection.contains(uuid + ".purchased")) {
-
-				ConfigurationSection purchasedSection = playerSection.getConfigurationSection(uuid + ".purchased");
-				for(String purchasedClass : purchasedSection.getKeys(false)){
-					List<Integer> purchasedLevels = purchasedSection.getIntegerList(purchasedClass);
-					for(int purchasedLevel : purchasedLevels){
-						Tier purchasedTier = this.getTierByLevel(purchasedClass, purchasedLevel);
-						purchasedTiers.add(purchasedTier);
-					}
-				}
-			}
-			this.addPlayer(p, tier, purchasedTiers);
+			if(p == null || !p.isOnline()) continue; //Offline player
+			this.loadPlayerData(p);
 		}
 	}
 	
-	public void savePlayerData(){
+	public void loadPlayerData(Player p){
+		if(this.selectedTierContainsPlayer(p)) this.selectedTier.remove(p);
+		if(this.purchasedTiersContainsPlayer(p)) this.purchasedTiers.remove(p);
+		if(p == null) return;
+		plugin.log("Getting " + p.getName() + "'s info");
+		Tier tier;
+		if(!plugin.getPlayerConfig().contains("players." + p.getUniqueId().toString())) return; //New player
+		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players." + p.getUniqueId().toString());
+		if(playerSection.contains("selected")) {
+			plugin.debug("Found section");
+			int tierLevel = playerSection.getInt("selected.level");
+			String tierClass = playerSection.getString("selected.class");
+			tier = this.getTierByLevel(tierClass, tierLevel);
+			plugin.debug(tier);
+		}else{
+			tier = this.getTierByLevel("DEFAULT", 0);
+		}
+		List<Tier> purchasedTiers = new ArrayList<Tier>();
+		if(playerSection.contains("purchased")) {
+				ConfigurationSection purchasedSection = playerSection.getConfigurationSection("purchased");
+			for(String purchasedClass : purchasedSection.getKeys(false)){
+				List<Integer> purchasedLevels = purchasedSection.getIntegerList(purchasedClass);
+				for(int purchasedLevel : purchasedLevels){
+					Tier purchasedTier = this.getTierByLevel(purchasedClass, purchasedLevel);
+					purchasedTiers.add(purchasedTier);
+				}
+			}
+		}
+		this.addPlayer(p, tier, purchasedTiers);
+	}
+	
+	public void saveAllPlayerData(){
 		for(Player p : this.getSelectedTierList().keySet()){
+			this.saveSelectedTierPlayerData(p);
+		}
+		for(Player p : this.getPurchasedTiers().keySet()) {
+			this.savePurchasedTiersPlayerData(p);
+		}
+		plugin.savePlayerConfig();
+	}
+	
+	public void savePlayerData(Player p) {
+		this.savePurchasedTiersPlayerData(p);
+		this.saveSelectedTierPlayerData(p);
+	}
+	
+	public void saveSelectedTierPlayerData(Player p) {
+		if(this.selectedTierContainsPlayer(p)) {
 			Tier tier = getSelectedTier(p);
 			String uuid = p.getUniqueId().toString();
 			plugin.debug("Saving selected tier for " + uuid + ". Currently selected level " + tier.getLevel() + " in class " + tier.getTierClass());
 			plugin.getPlayerConfig().set("players." + uuid + ".selected.class", tier.getTierClass());
 			plugin.getPlayerConfig().set("players." + uuid + ".selected.level", tier.getLevel());
 		}
-		for(Player p : this.getPurchasedTiers().keySet()) {
+	}
+	
+	public void savePurchasedTiersPlayerData(Player p) {
+		
+		if(this.purchasedTiersContainsPlayer(p)) {
 			String uuid = p.getUniqueId().toString();
 			List<Tier> purchasedTiers = this.getPurchasedTiers().get(p);
 			for(Tier purchasedTier : purchasedTiers){
@@ -178,7 +207,6 @@ public class TierManager {
 				plugin.getPlayerConfig().set("players." + uuid + ".purchased." + purchasedTier.getTierClass(), purchasedLevels);
 			}
 		}
-		plugin.savePlayerConfig();
 	}
 	
 	public boolean canPlayerBuyTierWithMoney(Player p, Tier tier) {
@@ -268,7 +296,7 @@ public class TierManager {
 	}
 	
 	public void unload() {
-		this.savePlayerData();
+		this.saveAllPlayerData();
 		purchasedTiers = null;
 		selectedTier = null;
 		tiers = null;
@@ -278,7 +306,7 @@ public class TierManager {
 		setPurchasedTiers(new HashMap<Player, List<Tier>>());
 		tiers = new HashMap<String, List<Tier>>();
 		this.loadTiers();
-		this.loadPlayerData();
+		this.loadAllPlayerData();
 	}
 	
 	public void reload() {
