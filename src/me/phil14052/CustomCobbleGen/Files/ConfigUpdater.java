@@ -37,14 +37,14 @@ public class ConfigUpdater extends YamlConfiguration {
 			//Default tier 0
 			config.addDefault("tiers.default." + 0 + ".name", "Default");
 			config.addDefault("tiers.default." + 0 + ".icon", "COBBLESTONE");
-			config.addDefault("tiers.default." + 0 + ".price", 0);
+			config.addDefault("tiers.default." + 0 + ".price.money", 0);
 			config.addDefault("tiers.default." + 0 + ".contains.COBBLESTONE", 90);
 			config.addDefault("tiers.default." + 0 + ".contains.COAL_ORE", 10);
 			
 			//Default tier 1
 			config.addDefault("tiers.default." + 1 + ".name", "Basic");
 			config.addDefault("tiers.default." + 1 + ".icon", "COAL_BLOCK");
-			config.addDefault("tiers.default." + 1 + ".price", 1000);
+			config.addDefault("tiers.default." + 1 + ".price.money", 1000);
 			config.addDefault("tiers.default." + 1 + ".contains.COBBLESTONE", 70);
 			config.addDefault("tiers.default." + 1 + ".contains.COAL_ORE", 20);
 			config.addDefault("tiers.default." + 1 + ".contains.IRON_ORE", 10);
@@ -52,7 +52,7 @@ public class ConfigUpdater extends YamlConfiguration {
 			//Default tier 2
 			config.addDefault("tiers.default." + 2 + ".name", "Advanced");
 			config.addDefault("tiers.default." + 2 + ".icon", "IRON_BLOCK");
-			config.addDefault("tiers.default." + 2 + ".price", 2000);
+			config.addDefault("tiers.default." + 2 + ".price.money", 2000);
 			config.addDefault("tiers.default." + 2 + ".contains.COBBLESTONE", 50);
 			config.addDefault("tiers.default." + 2 + ".contains.COAL_ORE", 30);
 			config.addDefault("tiers.default." + 2 + ".contains.IRON_ORE", 20);
@@ -60,7 +60,8 @@ public class ConfigUpdater extends YamlConfiguration {
 			//VIP tier 0
 			config.addDefault("tiers.vip." + 0 + ".name", "Basic VIP");
 			config.addDefault("tiers.vip." + 0 + ".icon", "COBBLESTONE");
-			config.addDefault("tiers.vip." + 0 + ".price", 0);
+			config.addDefault("tiers.vip." + 0 + ".price.money", 0);
+			config.addDefault("tiers.vip." + 0 + ".price.xp", 5);
 			config.addDefault("tiers.vip." + 0 + ".contains.COBBLESTONE", 90);
 			config.addDefault("tiers.vip." + 0 + ".contains.COAL_ORE", 5);
 			config.addDefault("tiers.vip." + 0 + ".contains.IRON_ORE", 5);
@@ -68,7 +69,7 @@ public class ConfigUpdater extends YamlConfiguration {
 			//VIP tier 1
 			config.addDefault("tiers.vip." + 1 + ".name", "Advanced VIP");
 			config.addDefault("tiers.vip." + 1 + ".icon", "COAL_BLOCK");
-			config.addDefault("tiers.vip." + 1 + ".price", 500);
+			config.addDefault("tiers.vip." + 1 + ".price.money", 500);
 			config.addDefault("tiers.vip." + 1 + ".contains.COBBLESTONE", 60);
 			config.addDefault("tiers.vip." + 1 + ".contains.COAL_ORE", 20);
 			config.addDefault("tiers.vip." + 1 + ".contains.IRON_ORE", 20);
@@ -76,7 +77,7 @@ public class ConfigUpdater extends YamlConfiguration {
 			//VIP tier 2
 			config.addDefault("tiers.vip." + 2 + ".name", "Pro VIP");
 			config.addDefault("tiers.vip." + 2 + ".icon", "IRON_BLOCK");
-			config.addDefault("tiers.vip." + 2 + ".price", 1000);
+			config.addDefault("tiers.vip." + 2 + ".price.money", 1000);
 			config.addDefault("tiers.vip." + 2 + ".contains.COBBLESTONE", 25);
 			config.addDefault("tiers.vip." + 2 + ".contains.COAL_ORE", 35);
 			config.addDefault("tiers.vip." + 2 + ".contains.IRON_ORE", 30);

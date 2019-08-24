@@ -62,9 +62,11 @@ public class TierManager {
 					}
 					results.put(resultMaterial, tierSection.getInt("contains." + resultMaterialString));
 				}
-				int price = 0;
-				if(tierSection.contains("price")) price = tierSection.getInt("price");
-				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, price);
+				int priceMoney = 0;
+				int priceXp = 0;
+				if(tierSection.contains("price.money")) priceMoney = tierSection.getInt("price.money");
+				if(tierSection.contains("price.xp")) priceXp = tierSection.getInt("price.xp");
+				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, priceMoney, priceXp);
 				try {
 					//If already defined override
 					tierLevelsList.set(tierLevel, tier);
@@ -179,9 +181,20 @@ public class TierManager {
 		plugin.savePlayerConfig();
 	}
 	
+	public boolean canPlayerBuyTierWithMoney(Player p, Tier tier) {
+		if(econManager.isConnectedToVault() && tier.hasMoneyPrice() && !econManager.canAfford(p, tier.getPriceMoney())) return false;
+		return true;
+	}
+	
+	public boolean canPlayerBuyTierWithXp(Player p, Tier tier) {
+		if(!tier.hasXpPrice()) return true;
+		if(p.getLevel() >= tier.getPriceXp()) return true;
+		return false;
+	}
 	
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
-		if(econManager.isConnectedToVault() && !econManager.canAfford(p, tier.getPrice())) return false;
+		if(!canPlayerBuyTierWithMoney(p, tier)) return false;
+		if(!canPlayerBuyTierWithXp(p,tier)) return false;
 		return true;
 	}
 	
@@ -193,8 +206,11 @@ public class TierManager {
 		//Check if player can afford the tier and check if the have bought the previous level
 		if(!forceBuy && !canPlayerBuyTier(p, tier)) return false;
 		if(!forceBuy && !hasPlayerPurchasedPreviousLevel(p, tier)) return false;
-		econManager.takeMoney(p, tier.getPrice());
-		
+		if(econManager.isConnectedToVault() && tier.hasMoneyPrice()) econManager.takeMoney(p, tier.getPriceMoney());
+		if(tier.hasXpPrice()) {
+			int xpPriceInLevels = tier.getPriceXp();
+			p.setLevel(p.getLevel()-xpPriceInLevels);
+		}
 		//Buy the tier
 		if(this.hasPlayerPurchasedLevel(p, tier)) return false;
 		this.getPlayersPurchasedTiers(p).add(tier);
@@ -223,8 +239,9 @@ public class TierManager {
 		if(nextTier.getLevel() <= 0) return true;
 		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(p, nextTier.getTierClass());
 		if(purchasedTiersByClass.size() <= 0) return false;
-		Tier prevTier = purchasedTiersByClass.get(purchasedTiersByClass.size()-1);
-		if((nextTier.getLevel() -1 ) == prevTier.getLevel()) return true;
+		for(Tier tier : purchasedTiersByClass) {
+			if((nextTier.getLevel() -1 ) == tier.getLevel()) return true;
+		}
 		return false;
 		
 	}

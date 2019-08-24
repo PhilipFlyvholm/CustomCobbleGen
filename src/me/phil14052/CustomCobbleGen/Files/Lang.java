@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
  
 /**
@@ -33,25 +34,35 @@ public enum Lang {
     NO_PERMS("no-permissions", "&cYou don't have permission for that!"),
     RELOAD_SUCCESS("reload-success", "&aReloaded the plugin in %time% seconds."),
     FORCE_SAVE_SUCCESS("force-save-success", "&aSuccessfully force saved the player data"),
-    PLAYER_PLUGIN_HELP("player.plugin-help", "ARRAYLIST: &8&l&m--------------------- ,   , &3{plugin_name} - &8Help"
-    		+ " , &3%suggest_command_/clearchat%&8 - Main command"
-    		+ " , &3%suggest_command_/clearchat help% &8- Shows this"
-    		+ " , &3%suggest_command_/clearchat gui% &8- Shows a clearchat menu"
-    		+ " , &3%suggest_command_/clearchat global%&3  [-a,-s]&8 - Main command"
-    		+ " , &3%suggest_command_/clearchat personal%&3 [-m]&8 - Main command"
-    		+ " , &3%suggest_command_/clearchat mutechat global%&8 - Main command"
-    		+ " , &3%suggest_command_/clearchat mutechat personal%&3 [player]&8 - Main command"
-    		+ " , &3%suggest_command_/clearchat reload%&8 - Reload the config and lang file."
-    		+ " ,  "
+    PLAYER_PLUGIN_HELP("player.plugin-help", "ARRAYLIST: &8&l&m--------------------- ,   , &3{CustomCobbleGen} - &8Help"
+    		+ " , &3/%command%&8 - Show the GUI"
+    		+ " , &3/%command% help&8 - Shows the help menu"
+    		+ " , &3/%command% tier&8 - Shows the currently selected tier"
+    		+ " , &3/%command% admin&8 - Shows list of admin commands"
     		+ " , &8&l&m---------------------"),
     GUI_PREFIX("gui.prefix", "&3&lCustomCobbleGen menu"),
-    GUI_HOME_TITLE("gui.home.title", "&6Home"),
-    GUI_NO_PERMISSION_LORE("gui.no-permission.lore", "&cYou do not have the right permissions to use this gesture"),
-    GUI_NO_PERMISSION_TITLE("gui.no-permission.title", "&cNo permission"),
     NO_TIERS_DEFINED("no-tiers-defined", "&cThere are no tiers defined in the config"),
     MONEY_FORMAT("money-format", "###,###,###,###,###.##"),
     TIER_CHANGED("tier-changed", "You have now selected the %selected_tier_name% tier"),
-    TIER_PURCHASED("tier-purchased", "You have now purchased the %selected_tier_name% tier");
+    TIER_PURCHASED("tier-purchased", "You have now purchased the %selected_tier_name% tier"),
+    PLAYER_ALREADY_OWNS_TIER("player-already-owns-tier", "The player already owns this tier"),
+    TIER_GIVEN("tier-given", "Tier has been given to the player"),
+    TIER_GOTTEN("tier-gotten", "You have unlocked a new tier"),
+    FORCE_PURCHASED("force-purchased", "You have now force bought %selected_tier_name% for %player_name%"),
+    ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, forcesave, settier, givetier, forcebuy]"),
+    GUI_BUY("gui.buy", "&aClick to buy"),
+    GUI_CAN_NOT_AFFORD("gui.can-not-afford", "&cCan't afford"),
+    GUI_SELECTED("gui.selected", "&aSelected"),
+    GUI_SELECT("gui.select", "&aClick to select"),
+    GUI_LOCKED_PERMISSION("gui.locked.missing-permission", "&cLocked - Missing permissions"),
+    GUI_LOCKED_PREV("gui.locked.prev-unowned", "&cLocked - Buy the previous level first"),
+    GUI_PRICE_MONEY_AFFORD("gui.price.money.afford", "&a$%tier_price_money%"),
+    GUI_PRICE_MONEY_EXPENSIVE("gui.price.money.expensive", "&c$%tier_price_money%"),
+    GUI_PRICE_XP_AFFORD("gui.price.xp.afford", "&a%tier_price_xp% exp levels"),
+    GUI_PRICE_XP_EXPENSIVE("gui.price.xp.expensive", "&c%tier_price_xp% exp levels"),
+    GUI_ITEM_NAME("gui.item.name", "&6&l%tier_name%"),
+    GUI_ITEM_LORE_TITLE("gui.item.lore.title", "&8&lThis tier will give the following results"),
+    GUI_ITEM_LORE_RESULT("gui.item.lore.result", "&8%result_name%: &o%result_percentage%");
     
     
     private String path;
@@ -92,8 +103,21 @@ public enum Lang {
     		if(tier != null) {
         		string = string.replaceAll("%selected_tier_level%", tier.getLevel() + "");
         		string = string.replaceAll("%selected_tier_class%", tier.getTierClass() + "");	
-        		string = string.replaceAll("%selected_tier_name%", tier.getName() + "");	
+        		string = string.replaceAll("%selected_tier_name%", tier.getName() + "");		
+        		string = string.replaceAll("%selected_tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getPriceMoney()) + "");		
+        		string = string.replaceAll("%selected_tier_price_xp%", tier.getPriceXp() + "");	
     		}
+    	}
+        return string;
+    }
+    public String toString(Tier tier) {
+    	String string = this.toString();
+    	if(tier != null) {
+        	string = string.replaceAll("%tier_level%", tier.getLevel() + "");
+        	string = string.replaceAll("%tier_name%", tier.getName() + "");
+        	string = string.replaceAll("%tier_class%", tier.getTierClass() + "");
+        	string = string.replaceAll("%tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getPriceMoney()) + "");
+        	string = string.replaceAll("%tier_price_xp%", tier.getPriceXp() + "");
     	}
         return string;
     }

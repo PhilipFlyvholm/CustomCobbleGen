@@ -8,6 +8,7 @@ package me.phil14052.CustomCobbleGen;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -27,9 +28,11 @@ import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Files.LangFileUpdater;
 import me.phil14052.CustomCobbleGen.Files.PlayerFileUpdater;
 import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
+import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
 
 public class CustomCobbleGen extends JavaPlugin {
 	private static CustomCobbleGen plugin;
@@ -68,6 +71,16 @@ public class CustomCobbleGen extends JavaPlugin {
 		plugin.getCommand("cobblegen").setExecutor(new MainCommand());
 		plugin.debug("Commands loaded&2 \u2713");
 		registerGlow();
+        Metrics metrics = new Metrics(this);
+        Metrics.SingleLineChart chart = new Metrics.SingleLineChart("generators", new Callable<Integer>() {
+        	
+			@Override
+			public Integer call() throws Exception {
+				return BlockManager.getInstance().getKnownGenLocations().size();
+			}
+        	
+        });
+        metrics.addCustomChart(chart);
 		plugin.debug("CustomCobbleGen is now enabled&2 \u2713");
 		double time2 = System.currentTimeMillis();
 		double time3 = (time2-time)/1000;

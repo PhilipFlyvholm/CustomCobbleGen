@@ -14,7 +14,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
@@ -33,7 +32,7 @@ public class GUIManager {
 		private Map<String, List<Tier>> tiers = tm.getTiers();
 		int tiersSize = tm.getTiersSize();
 		int guiSize = getGUISize(tiers, false);
-		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString() + Lang.GUI_HOME_TITLE.toString());	
+		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
 		private Player player;
 		private boolean failedLoad = false;
 		
@@ -73,25 +72,28 @@ public class GUIManager {
 					if(selectedTier != null && selectedTier.getLevel() == tier.getLevel() && selectedTier.getTierClass().equalsIgnoreCase(tier.getTierClass())) {
 						GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
 						itemMeta.addEnchant(glow, 1, true);
-						lore.add("§aSelected");
+						lore.add(Lang.GUI_SELECTED.toString());
 					}else if(tm.hasPlayerPurchasedLevel(p, tier)){
-						lore.add("§aClick to select");
+						lore.add(Lang.GUI_SELECT.toString());
 					}else if(!tierClass.equalsIgnoreCase("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tierClass, false)){
 						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(Material.BARRIER);
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
-						lore.add("§cLocked - Missing permissions");
+						lore.add(Lang.GUI_LOCKED_PERMISSION.toString());
 					}else if(!tm.hasPlayerPurchasedPreviousLevel(p, tier)){
 						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(Material.BARRIER);
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
-						lore.add("§cLocked - Buy previous level first");
-						lore.add("§c$" +  EconomyManager.getInstance().formatMoney(tier.getPrice())); 
+						lore.add(Lang.GUI_LOCKED_PREV.toString());
+						if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_EXPENSIVE.toString(tier)); 
+						if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_EXPENSIVE.toString(tier)); 
 					}else {
 						if(tm.canPlayerBuyTier(p, tier)) {
-							lore.add("§aClick to buy");
-							lore.add("§a$" +  EconomyManager.getInstance().formatMoney(tier.getPrice())); 
+							lore.add(Lang.GUI_BUY.toString());
+							if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_AFFORD.toString(tier)); 
+							if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_AFFORD.toString(tier)); 
 						}else {
-							lore.add("§cCan't afford");
-							lore.add("§c$" +  EconomyManager.getInstance().formatMoney(tier.getPrice())); 
+							lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
+							if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_EXPENSIVE.toString(tier)); 
+							if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_EXPENSIVE.toString(tier));  
 						}
 					}
 
