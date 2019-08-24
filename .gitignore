@@ -72,3 +72,5 @@ local.properties
 .sts4-cache/
 
 # End of https://www.gitignore.io/api/eclipse
+.classpath
+.settings/org.eclipse.jdt.core.prefs
