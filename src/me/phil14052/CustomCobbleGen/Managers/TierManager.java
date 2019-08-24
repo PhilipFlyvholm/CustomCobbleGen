@@ -142,16 +142,13 @@ public class TierManager {
 		if(this.selectedTierContainsPlayer(p)) this.selectedTier.remove(p);
 		if(this.purchasedTiersContainsPlayer(p)) this.purchasedTiers.remove(p);
 		if(p == null) return;
-		plugin.log("Getting " + p.getName() + "'s info");
 		Tier tier;
 		if(!plugin.getPlayerConfig().contains("players." + p.getUniqueId().toString())) return; //New player
 		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players." + p.getUniqueId().toString());
 		if(playerSection.contains("selected")) {
-			plugin.debug("Found section");
 			int tierLevel = playerSection.getInt("selected.level");
 			String tierClass = playerSection.getString("selected.class");
 			tier = this.getTierByLevel(tierClass, tierLevel);
-			plugin.debug(tier);
 		}else{
 			tier = this.getTierByLevel("DEFAULT", 0);
 		}
