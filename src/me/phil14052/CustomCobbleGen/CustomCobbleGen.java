@@ -32,6 +32,7 @@ import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
+import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
 
 public class CustomCobbleGen extends JavaPlugin {
@@ -41,6 +42,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	private File playerConfigFile;
 	private TierManager tierManager;
 	private EconomyManager econManager;
+	public boolean isUsingPlaceholderAPI = false;
 	
 	@Override
 	public void onEnable(){
@@ -65,6 +67,11 @@ public class CustomCobbleGen extends JavaPlugin {
 			this.debug("Economy is now setup");	
 		}else {
 			this.debug("Economy is not setup");
+		}
+		this.isUsingPlaceholderAPI = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
+		if(this.isUsingPlaceholderAPI) {
+			new TierPlaceholderExpansion(this).register();
+			plugin.debug("Found PlaceholderAPI and registed placeholders&2 \u2713");
 		}
 		registerEvents();
 		plugin.debug("Events loaded&2 \u2713");

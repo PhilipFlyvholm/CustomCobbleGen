@@ -4,7 +4,7 @@ version: 1.0
 author: phil14052
 description: Adds the ability to change the cobblestone generator
 api-version: 1.14
-softdepend: [Vault]
+softdepend: [Vault, PlaceholderAPI]
 commands:
   cobblegen:
     description: CustomCobbleGen Plugin Main Command

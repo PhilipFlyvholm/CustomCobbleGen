@@ -7,6 +7,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+import me.clip.placeholderapi.PlaceholderAPI;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
@@ -98,6 +100,9 @@ public enum Lang {
     public String toString(Player p) {
     	String string = this.toString();
     	if(p != null && p.isOnline()) {
+    		if(CustomCobbleGen.getInstance().isUsingPlaceholderAPI) {
+    			string = PlaceholderAPI.setPlaceholders(p, string);
+    		}
     		string = string.replaceAll("%player_name%", p.getName());
     		Tier tier = tm.getSelectedTier(p);
     		if(tier != null) {
