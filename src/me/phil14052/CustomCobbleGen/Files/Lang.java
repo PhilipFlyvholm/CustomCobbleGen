@@ -64,7 +64,11 @@ public enum Lang {
     GUI_PRICE_XP_EXPENSIVE("gui.price.xp.expensive", "&c%tier_price_xp% exp levels"),
     GUI_ITEM_NAME("gui.item.name", "&6&l%tier_name%"),
     GUI_ITEM_LORE_TITLE("gui.item.lore.title", "&8&lThis tier will give the following results"),
-    GUI_ITEM_LORE_RESULT("gui.item.lore.result", "&8%result_name%: &o%result_percentage%");
+    GUI_ITEM_LORE_RESULT("gui.item.lore.result", "&8%result_name%: &o%result_percentage%"),
+    GUI_CONFIRM_CANCEL("gui.confirm.cancel.name", "&cCancel"),
+    GUI_CONFIRM_CANCEL_LORE("gui.confirm.cancel.lore", "&8Click to cancel the purchase"),
+    GUI_CONFIRM_BUY("gui.confirm.buy.name", "&aBuy"),
+    GUI_CONFIRM_BUY_LORE("gui.confirm.buy.lore", "&8Click to confirm the purchase");
     
     
     private String path;

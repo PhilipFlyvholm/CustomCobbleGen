@@ -115,11 +115,15 @@ public class GUIManager {
 							}else {
 								//Player has not purchased the level. Now check if the player can buy the level
 								if(tm.canPlayerBuyTier(p, tier)) {
-									if(tm.purchaseTier(p, tier)) {
-										tm.setPlayerSelectedTier(p, tier);
-										p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
-										p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
-										p.closeInventory();
+									if(plugin.getConfig().getBoolean("options.gui.confirmpurchases")) {
+										new ConfirmGUI(p, tier).open();	
+									}else {
+										if(tm.purchaseTier(p, tier)) {
+											tm.setPlayerSelectedTier(p, tier);
+											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
+											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
+											p.closeInventory();
+										}
 									}
 								}
 							}
@@ -141,6 +145,65 @@ public class GUIManager {
 		}
 		public void open(){
 			if(failedLoad) return;
+			Inventory inventory = ch.getInventory();
+			player.openInventory(inventory);
+		}
+		
+	}
+	
+	public class ConfirmGUI {
+		int tiersSize = tm.getTiersSize();
+		int guiSize = 3*9;
+		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
+		private Player player;
+		
+		public ConfirmGUI(Player p, Tier tier){
+			player = p;
+			ItemStack cancelItem = new ItemStack(Material.RED_DYE);
+			ItemMeta cancelItemMeta = cancelItem.getItemMeta();
+			cancelItemMeta.setDisplayName(Lang.GUI_CONFIRM_CANCEL.toString());
+			List<String> cancelLore = new ArrayList<String>();
+			cancelLore.add(Lang.GUI_CONFIRM_CANCEL_LORE.toString());
+			cancelItemMeta.setLore(cancelLore);
+			cancelItem.setItemMeta(cancelItemMeta);
+			
+			Icon cancelIcon = new Icon(cancelItem);
+			cancelIcon.addClickAction(new ClickAction() {
+				@Override
+				public void execute(Player p) {
+					p.closeInventory();
+					new MainGUI(p).open();
+					return;
+				}
+			});
+			
+			ItemStack buyItem = new ItemStack(Material.LIME_DYE);
+			ItemMeta buyItemMeta = buyItem.getItemMeta();
+			buyItemMeta.setDisplayName(Lang.GUI_CONFIRM_BUY.toString());
+			List<String> buyLore = new ArrayList<String>();
+			buyLore.add(Lang.GUI_CONFIRM_BUY_LORE.toString());
+			buyItemMeta.setLore(buyLore);
+			buyItem.setItemMeta(buyItemMeta);
+			
+			Icon buyIcon = new Icon(buyItem);
+			buyIcon.addClickAction(new ClickAction() {
+				@Override
+				public void execute(Player p) {
+					if(tm.purchaseTier(p, tier)) {
+						tm.setPlayerSelectedTier(p, tier);
+						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
+						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
+						p.closeInventory();
+					}
+					return;
+				}
+			});
+			
+			ch.setIcon(12, cancelIcon);
+			ch.setIcon(13, new Icon(tier.getIcon()));
+			ch.setIcon(14, buyIcon);
+		}
+		public void open(){
 			Inventory inventory = ch.getInventory();
 			player.openInventory(inventory);
 		}
