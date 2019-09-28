@@ -51,16 +51,16 @@ public class TierManager {
 				String name = tierSection.getString("name");
 				Material iconMaterial = Material.matchMaterial(tierSection.getString("icon").toUpperCase());
 				if(iconMaterial == null) iconMaterial = Material.COBBLESTONE;
-				Map<Material, Integer> results = new HashMap<Material, Integer>();
+				Map<Material, Double> results = new HashMap<Material, Double>();
 				for(String resultMaterialString : tierSection.getConfigurationSection("contains").getKeys(false)){
 					Material resultMaterial = Material.matchMaterial(resultMaterialString.toUpperCase());
 					if(resultMaterial == null) {
-						plugin.log("§c§lUser Error: The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name");
+						plugin.log("Â§cÂ§lUser Error: The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name");
 						resultMaterial = Material.COBBLESTONE;
 						levelNeedsUserChange = true;
 						classNeedsUserChange = true;
 					}
-					results.put(resultMaterial, tierSection.getInt("contains." + resultMaterialString));
+					results.put(resultMaterial, tierSection.getDouble("contains." + resultMaterialString));
 				}
 				int priceMoney = 0;
 				int priceXp = 0;
@@ -74,12 +74,12 @@ public class TierManager {
 					//If not defined then add
 					tierLevelsList.add(tier);
 				}
-				if(!levelNeedsUserChange) plugin.debug("§aSuccessfully loaded level " + tierLevel + " under class " + tierClass);
-				else plugin.debug("§cUser error in level " + tierLevel + " under class " + tierClass);
+				if(!levelNeedsUserChange) plugin.debug("Â§aSuccessfully loaded level " + tierLevel + " under class " + tierClass);
+				else plugin.debug("Â§cUser error in level " + tierLevel + " under class " + tierClass);
 			}
 			tiers.put(tierClass.toUpperCase(), tierLevelsList);
-			if(!classNeedsUserChange)plugin.debug("§aSuccessfully loaded class " + tierClass);
-			else plugin.debug("§cUser error in class " + tierClass);
+			if(!classNeedsUserChange)plugin.debug("Â§aSuccessfully loaded class " + tierClass);
+			else plugin.debug("Â§cUser error in class " + tierClass);
 		}
 	}
 	

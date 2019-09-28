@@ -19,12 +19,12 @@ public class Tier {
 	private String name;
 	private String tierClass = "";
 	private ItemStack icon;
-	private Map<Material, Integer> results;
+	private Map<Material, Double> results;
 	private int level;
 	private int priceMoney = 0;
 	private int priceXp = 0;
 	
-	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Integer> results, int priceMoney, int priceXp){
+	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, int priceMoney, int priceXp){
 		this.name = name;
 		this.tierClass = tierClass;
 		this.level = level;
@@ -61,10 +61,10 @@ public class Tier {
 	public void setIcon(ItemStack icon) {
 		this.icon = icon;
 	}
-	public Map<Material, Integer> getResults() {
+	public Map<Material, Double> getResults() {
 		return results;
 	}
-	public void setResults(Map<Material, Integer> results) {
+	public void setResults(Map<Material, Double> results) {
 		this.results = results;
 	}
 
@@ -78,9 +78,9 @@ public class Tier {
 	
 	public Material getRandomResult(){
 		double r = Math.random()*100;
-		int prev = 0;
+		double prev = 0;
 		for(Material m : this.getResults().keySet()){
-			int chance = this.getResults().get(m) + prev;
+			double chance = this.getResults().get(m) + prev;
 			if(r > prev && r <= chance) return m;
 			else prev = chance;
 			continue;
