@@ -35,7 +35,7 @@ public class Tier {
 		lore.add(Lang.GUI_ITEM_LORE_TITLE.toString(this));
 		for(Material result : results.keySet()){
 			String resultName = StringUtils.toCamelCase(result.name());
-			String percentage = results.get(result).toString() + "%";
+			String percentage = results.get(result) % 1 == 0 ? ((int) Math.round(results.get(result))) + "%" : ((double) results.get(result)) + "%";
 			String resultString = Lang.GUI_ITEM_LORE_RESULT.toString(this);
 			resultString = resultString.replaceAll("%result_name%", resultName);
 			resultString = resultString.replaceAll("%result_percentage%", percentage);
@@ -119,6 +119,7 @@ public class Tier {
 	public void setPriceXp(int priceXp) {
 		this.priceXp = priceXp;
 	}
+	
 	
 	
 }

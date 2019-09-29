@@ -68,7 +68,9 @@ public class GUIManager {
 					ItemStack item = tier.getIcon().clone();
 					ItemMeta itemMeta = item.getItemMeta();
 					List<String> lore = itemMeta.getLore();
-					lore.add("§a ");
+					String emptyString = "&a ";
+					emptyString = emptyString.replaceAll("&", "§");
+					lore.add(emptyString);
 					if(selectedTier != null && selectedTier.getLevel() == tier.getLevel() && selectedTier.getTierClass().equalsIgnoreCase(tier.getTierClass())) {
 						GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
 						itemMeta.addEnchant(glow, 1, true);
