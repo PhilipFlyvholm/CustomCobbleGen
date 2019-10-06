@@ -54,6 +54,7 @@ public class ConfigUpdater extends YamlConfiguration {
 			config.addDefault("tiers.default." + 2 + ".name", "Advanced");
 			config.addDefault("tiers.default." + 2 + ".icon", "IRON_BLOCK");
 			config.addDefault("tiers.default." + 2 + ".price.money", 2000);
+			config.addDefault("tiers.default." + 2 + ".price.items.COBBLESTONE", 64);
 			config.addDefault("tiers.default." + 2 + ".contains.COBBLESTONE", 50);
 			config.addDefault("tiers.default." + 2 + ".contains.COAL_ORE", 30);
 			config.addDefault("tiers.default." + 2 + ".contains.IRON_ORE", 20);

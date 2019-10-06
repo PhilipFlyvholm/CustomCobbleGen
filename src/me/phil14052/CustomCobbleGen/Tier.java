@@ -5,15 +5,21 @@
 package me.phil14052.CustomCobbleGen;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
+import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
+import me.phil14052.CustomCobbleGen.Requirements.Requirement;
+import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
+import me.phil14052.CustomCobbleGen.Requirements.XpRequirement;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 public class Tier {
 
 	private String name;
@@ -21,13 +27,24 @@ public class Tier {
 	private ItemStack icon;
 	private Map<Material, Double> results;
 	private int level;
-	private int priceMoney = 0;
-	private int priceXp = 0;
+	private List<Requirement> requirements;
 	
-	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, int priceMoney, int priceXp){
+	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, int priceMoney, int priceXp, HashMap<Material, Integer> priceItems){
 		this.name = name;
 		this.tierClass = tierClass;
 		this.level = level;
+
+		this.requirements = new ArrayList<Requirement>();
+		if(priceMoney > 0) {
+			requirements.add(new MoneyRequirement(priceMoney));
+		}
+		if(priceXp > 0) {
+			requirements.add(new XpRequirement(priceXp));
+		}
+		if(priceItems != null && priceItems.size() > 0) {
+			requirements.add(new ItemsRequirement(priceItems));
+		}
+		
 		ItemStack icon = new ItemStack(iconMaterial);
 		ItemMeta im = icon.getItemMeta();
 		im.setDisplayName(Lang.GUI_ITEM_NAME.toString(this));
@@ -45,8 +62,6 @@ public class Tier {
 		icon.setItemMeta(im);
 		this.icon = icon;
 		this.results = results;
-		this.setPriceMoney(priceMoney);
-		this.setPriceXp(priceXp);
 	}
 	
 	public String getName() {
@@ -95,9 +110,19 @@ public class Tier {
 	public void setLevel(int level) {
 		this.level = level;
 	}
-
+	public boolean hasRequirements() {
+		return this.getRequirements() != null;
+	}
+	
 	public int getPriceMoney() {
-		return priceMoney;
+		
+		if(!this.hasRequirements()) return 0;
+		for(Requirement r : this.requirements) {
+			if(r.getRequirementType().equals(RequirementType.MONEY)) {
+				return ((MoneyRequirement) r).getMoneyNeeded();
+			}
+		}
+		return 0;
 	}
 
 	public boolean hasMoneyPrice() {
@@ -105,11 +130,14 @@ public class Tier {
 	}
 	
 	public void setPriceMoney(int priceMoney) {
-		this.priceMoney = priceMoney;
+		if(!this.hasRequirements()) return;
+		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.MONEY) ((MoneyRequirement) r).setMoneyNeeded(priceMoney);
 	}
 
 	public int getPriceXp() {
-		return priceXp;
+		if(!this.hasRequirements()) return 0;
+		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.XP) return ((XpRequirement) r).getXPNeeded();
+		return 0;
 	}
 
 	public boolean hasXpPrice() {
@@ -117,10 +145,28 @@ public class Tier {
 	}
 
 	public void setPriceXp(int priceXp) {
-		this.priceXp = priceXp;
+		if(!this.hasRequirements()) return;
+		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.XP) ((XpRequirement) r).setXPNeeded(priceXp);
 	}
 	
+	public HashMap<Material, Integer> getPriceItems() {
+		if(!this.hasRequirements()) return null;
+		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.ITEMS) return ((ItemsRequirement) r).getItemsNeeded();
+		return null;
+	}
+
+	public boolean hasItemsPrice() {
+		return this.getPriceItems() != null;
+	}
+
+	public void setPriceItems(HashMap<Material, Integer> priceItems) {
+		if(!this.hasRequirements()) return;
+		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.ITEMS) ((ItemsRequirement) r).setItemsNeeded(priceItems);
+	}
 	
+	public List<Requirement> getRequirements(){
+		return this.requirements;
+	}
 	
 }
 

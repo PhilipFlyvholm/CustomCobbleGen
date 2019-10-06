@@ -9,15 +9,19 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 public class TierManager {
@@ -64,9 +68,18 @@ public class TierManager {
 				}
 				int priceMoney = 0;
 				int priceXp = 0;
+				HashMap<Material, Integer> priceItems = null;
 				if(tierSection.contains("price.money")) priceMoney = tierSection.getInt("price.money");
 				if(tierSection.contains("price.xp")) priceXp = tierSection.getInt("price.xp");
-				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, priceMoney, priceXp);
+				if(tierSection.contains("price.items")) {
+					priceItems = new HashMap<Material, Integer>();
+					for(String itemMaterial : tierSection.getConfigurationSection("price.items").getKeys(false)) {
+						Material m = Material.getMaterial(itemMaterial.toUpperCase());
+						if(m == null) continue;
+						priceItems.put(m, tierSection.getInt("price.items." + itemMaterial));
+					}
+				}
+				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, priceMoney, priceXp, priceItems);
 				try {
 					//If already defined override
 					tierLevelsList.set(tierLevel, tier);
@@ -206,20 +219,11 @@ public class TierManager {
 		}
 	}
 	
-	public boolean canPlayerBuyTierWithMoney(Player p, Tier tier) {
-		if(econManager.isConnectedToVault() && tier.hasMoneyPrice() && !econManager.canAfford(p, tier.getPriceMoney())) return false;
-		return true;
-	}
-	
-	public boolean canPlayerBuyTierWithXp(Player p, Tier tier) {
-		if(!tier.hasXpPrice()) return true;
-		if(p.getLevel() >= tier.getPriceXp()) return true;
-		return false;
-	}
 	
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
-		if(!canPlayerBuyTierWithMoney(p, tier)) return false;
-		if(!canPlayerBuyTierWithXp(p,tier)) return false;
+		for(Requirement r : tier.getRequirements()) {
+			if(!r.furfillsRequirement(p)) return false;
+		}
 		return true;
 	}
 	
@@ -235,6 +239,14 @@ public class TierManager {
 		if(tier.hasXpPrice()) {
 			int xpPriceInLevels = tier.getPriceXp();
 			p.setLevel(p.getLevel()-xpPriceInLevels);
+		}
+		if(tier.hasItemsPrice()) {
+			HashMap<Material, Integer> items = tier.getPriceItems();
+			PlayerInventory inv = p.getInventory();
+			for(Entry<Material, Integer> m : items.entrySet()) {
+				ItemStack is = new ItemStack(m.getKey(), m.getValue());
+				inv.removeItem(is);
+			}
 		}
 		//Buy the tier
 		if(this.hasPlayerPurchasedLevel(p, tier)) return false;

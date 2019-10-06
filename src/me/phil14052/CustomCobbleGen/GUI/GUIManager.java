@@ -3,6 +3,7 @@ package me.phil14052.CustomCobbleGen.GUI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -18,6 +19,7 @@ import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
 import me.phil14052.CustomCobbleGen.Utils.ItemLib;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 public class GUIManager {
 
@@ -58,7 +60,6 @@ public class GUIManager {
 					if(currentRow == rows) {
 						int firstItemInRow = ((currentRow-1)*9)+1;
 						int itemsInRow = classTiers.size()-firstItemInRow;
-						plugin.debug(tierClass, j, firstItemInRow, itemsInRow);
 						if(j == firstItemInRow) {
 							int emptySpacesAtStart = (int) Math.ceil(((double)4.5-(itemsInRow/2)));
 							i = (i+emptySpacesAtStart)-1;
@@ -69,7 +70,7 @@ public class GUIManager {
 					ItemMeta itemMeta = item.getItemMeta();
 					List<String> lore = itemMeta.getLore();
 					String emptyString = "&a ";
-					emptyString = emptyString.replaceAll("&", "ง");
+					emptyString = emptyString.replaceAll("&", "ยง");
 					lore.add(emptyString);
 					if(selectedTier != null && selectedTier.getLevel() == tier.getLevel() && selectedTier.getTierClass().equalsIgnoreCase(tier.getTierClass())) {
 						GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
@@ -84,18 +85,37 @@ public class GUIManager {
 					}else if(!tm.hasPlayerPurchasedPreviousLevel(p, tier)){
 						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(Material.BARRIER);
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
+					
 						lore.add(Lang.GUI_LOCKED_PREV.toString());
 						if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_EXPENSIVE.toString(tier)); 
 						if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_EXPENSIVE.toString(tier)); 
+						if(tier.hasItemsPrice()) {
+							lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_TOP.toString(tier));
+							 for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
+								 lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
+							 }
+						}
 					}else {
 						if(tm.canPlayerBuyTier(p, tier)) {
 							lore.add(Lang.GUI_BUY.toString());
 							if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_AFFORD.toString(tier)); 
-							if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_AFFORD.toString(tier)); 
+							if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_AFFORD.toString(tier));
+							if(tier.hasItemsPrice()) {
+								lore.add(Lang.GUI_PRICE_ITEMS_AFFORD_TOP.toString(tier));
+								 for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
+									 lore.add(Lang.GUI_PRICE_ITEMS_AFFORD_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
+								 }
+							}
 						}else {
 							lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
 							if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_EXPENSIVE.toString(tier)); 
-							if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_EXPENSIVE.toString(tier));  
+							if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_EXPENSIVE.toString(tier)); 
+							if(tier.hasItemsPrice()) {
+								lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_TOP.toString(tier));
+								 for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
+									 lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
+								 }
+							}
 						}
 					}
 

@@ -62,6 +62,10 @@ public enum Lang {
     GUI_PRICE_MONEY_EXPENSIVE("gui.price.money.expensive", "&c$%tier_price_money%"),
     GUI_PRICE_XP_AFFORD("gui.price.xp.afford", "&a%tier_price_xp% exp levels"),
     GUI_PRICE_XP_EXPENSIVE("gui.price.xp.expensive", "&c%tier_price_xp% exp levels"),
+    GUI_PRICE_ITEMS_AFFORD_TOP("gui.price.items.top.afford", "&aItems needed:"),
+    GUI_PRICE_ITEMS_EXPENSIVE_TOP("gui.price.items.top.expensive", "&cItems needed:"),
+    GUI_PRICE_ITEMS_AFFORD_LIST("gui.price.items.list.afford", "&a%s1 x %s2"),
+    GUI_PRICE_ITEMS_EXPENSIVE_LIST("gui.price.items.list.expensive", "&c%s1 x %s2"),
     GUI_ITEM_NAME("gui.item.name", "&6&l%tier_name%"),
     GUI_ITEM_LORE_TITLE("gui.item.lore.title", "&8&lThis tier will give the following results"),
     GUI_ITEM_LORE_RESULT("gui.item.lore.result", "&8%result_name%: &o%result_percentage%"),
@@ -125,10 +129,22 @@ public enum Lang {
         	string = string.replaceAll("%tier_level%", tier.getLevel() + "");
         	string = string.replaceAll("%tier_name%", tier.getName() + "");
         	string = string.replaceAll("%tier_class%", tier.getTierClass() + "");
-        	string = string.replaceAll("%tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getPriceMoney()) + "");
-        	string = string.replaceAll("%tier_price_xp%", tier.getPriceXp() + "");
+        	string = string.replaceAll("%tier_price_money%", tier.hasMoneyPrice() ? EconomyManager.getInstance().formatMoney(tier.getPriceMoney()) + "" : "0");
+        	string = string.replaceAll("%tier_price_xp%", tier.hasXpPrice() ?tier.getPriceXp() + "" : "0");
     	}
         return string;
+    }
+    
+    public String toString(String... strings) {
+    	String string = this.toString();
+    	int i = 0;
+    	for(String s : strings) {
+
+        	CustomCobbleGen.getInstance().debug(s);
+    		i++;
+    		string = string.replaceFirst("%s" + i, s);
+    	}
+    	return string;
     }
     
     public List<String> toStringList(){
