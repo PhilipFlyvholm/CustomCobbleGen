@@ -15,9 +15,9 @@ You can also have different tier classes, which can be used to give players with
 - Disable worlds
 - Confirm buy GUI
 - Placeholder API support
+- Money, XP and Items requirements for buying tiers
 
 ### Future features:
-- Payment with Items instead of money
 - The ability to only have ranked tiers
 - Island level requirements
 
