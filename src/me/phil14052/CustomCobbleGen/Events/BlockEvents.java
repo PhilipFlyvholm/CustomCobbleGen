@@ -4,6 +4,7 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
+import me.phil14052.CustomCobbleGen.Managers.GenBlock;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -25,7 +26,7 @@ public class BlockEvents implements Listener{
 	private TierManager tm = TierManager.getInstance();
 	private BlockManager bm = BlockManager.getInstance();
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
-	
+
 	@EventHandler
 	public void onBlockFlow(BlockFromToEvent e){
 		Block b = e.getBlock();
@@ -42,7 +43,12 @@ public class BlockEvents implements Listener{
 						//it is a Known gen location
 						if(!bm.getGenBreaks().containsKey(l)) return; //A player has not prev broken a block here
 						//A player has prev broken a block here
-						Player p = bm.getGenBreaks().get(l); //Get the player who broke the blocks tier
+						GenBlock gb = bm.getGenBreaks().get(l); //Get the GenBlock in this location
+						if (gb.hasExpired()) {
+							bm.removeKnownGenLocation(l);
+							return;
+						}
+						Player p = gb.getPlayer(); //Get the player who broke the blocks tier
 						Tier tier = tm.getSelectedTier(p); // ^
 
 						if(tier != null) {
@@ -74,7 +80,6 @@ public class BlockEvents implements Listener{
 		}
 	}
 	
-	
 	public boolean isWorldDisabled(World world) {
 		return plugin.getConfig().getList("options.disabled.worlds").contains(world.getName());
 	}
@@ -100,6 +105,4 @@ public class BlockEvents implements Listener{
 		
 		return false;
 	}
-	
-	
 }
