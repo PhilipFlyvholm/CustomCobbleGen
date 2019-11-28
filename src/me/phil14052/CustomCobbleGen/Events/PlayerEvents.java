@@ -25,6 +25,7 @@ public class PlayerEvents implements Listener {
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
 		Player p = e.getPlayer();
+		// If the player has previously used the plugin, then load the player info.
 		if(!tm.selectedTierContainsPlayer(p) && !tm.purchasedTiersContainsPlayer(p)) tm.loadPlayerData(p);
 		if(!tm.selectedTierContainsPlayer(p)) tm.givePlayerStartSelect(p);
 		if(!tm.purchasedTiersContainsPlayer(p)) tm.givePlayerStartPurchases(p);
@@ -33,6 +34,7 @@ public class PlayerEvents implements Listener {
 	@EventHandler
 	public void onPlayerLeave(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
+		// Cleanup
 		tm.savePlayerData(p);
 		bm.cleanupExpiredLocations();
 	}

@@ -50,35 +50,46 @@ public class CustomCobbleGen extends JavaPlugin {
 		plugin = this;
 		tierManager = TierManager.getInstance();
 		plugin.log("Enabling CustomCobbleGen plugin");
+		// Setup config
 		new ConfigUpdater();
 		saveConfig();
 		this.debug("The config is now setup");
+		// Setup lang file
 		lang = new Files(this, "lang.yml");
 		new LangFileUpdater(plugin);
 		Lang.setFile(lang);
 		this.debug("Lang is now setup");
+		// Setup player configs
 		playerConfig = null;
 		playerConfigFile = null;
 		new PlayerFileUpdater(plugin);
+		// Setup tiers
 		tierManager.load();
 		this.debug("Players is now setup");
+		// Connect to vault
 		econManager = EconomyManager.getInstance();
 		if(econManager.setupEconomy()) {
 			this.debug("Economy is now setup");	
 		}else {
 			this.debug("Economy is not setup");
 		}
+		// Connect to PlaceholderAPI
 		this.isUsingPlaceholderAPI = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
 		if(this.isUsingPlaceholderAPI) {
 			new TierPlaceholderExpansion(this).register();
 			plugin.debug("Found PlaceholderAPI and registed placeholders&2 \u2713");
 		}
+	 
 		registerEvents();
 		plugin.debug("Events loaded&2 \u2713");
 		plugin.getCommand("cobblegen").setExecutor(new MainCommand());
 		plugin.debug("Commands loaded&2 \u2713");
+		
+		// Register a enchantment without effects to give items a glow effect
 		registerGlow();
-        Metrics metrics = new Metrics(this);
+        
+		// Connect to BStats
+		Metrics metrics = new Metrics(this);
         Metrics.SingleLineChart chart = new Metrics.SingleLineChart("generators", new Callable<Integer>() {
         	
 			@Override
@@ -88,6 +99,7 @@ public class CustomCobbleGen extends JavaPlugin {
         	
         });
         metrics.addCustomChart(chart);
+        
 		plugin.debug("CustomCobbleGen is now enabled&2 \u2713");
 		double time2 = System.currentTimeMillis();
 		double time3 = (time2-time)/1000;
@@ -95,6 +107,8 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	@Override
 	public void onDisable(){
+		// Unload everything
+		
 		tierManager.unload();
 		this.savePlayerConfig();
 		tierManager = null;
@@ -116,7 +130,7 @@ public class CustomCobbleGen extends JavaPlugin {
 			
 		}
 	}
-	 //Return the arena config
+	 //Return the player config
     public FileConfiguration getPlayerConfig() {
  
         if(this.playerConfigFile == null) this.reloadPlayerConfig();
@@ -125,7 +139,7 @@ public class CustomCobbleGen extends JavaPlugin {
  
     }
  
-    //Save the arena config
+    //Save the player config
     public void savePlayerConfig() {
  
         if(this.playerConfig == null || this.playerConfigFile == null) return;
@@ -139,6 +153,8 @@ public class CustomCobbleGen extends JavaPlugin {
     }
 	
     public void registerGlow() {
+    	// Creates a enchantment with no effect, but gives a glow effect on items.
+    	
     	if(Enchantment.getByKey(new NamespacedKey(this, "GlowEnchant")) != null) return;
         try {
             Field f = Enchantment.class.getDeclaredField("acceptingNew");

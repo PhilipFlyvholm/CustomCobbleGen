@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -64,7 +66,10 @@ public class BlockManager {
 
 	public void cleanupExpiredLocations() {
 		// Remove all expired GenBlock entries
-		for (Map.Entry<Location, GenBlock> entry : genBreaks.entrySet()) {
+		if(genBreaks == null || genBreaks.entrySet() == null) return;
+		Set<Entry<Location, GenBlock>> entrySet = genBreaks.entrySet();
+		if(entrySet.size() <= 0) return;
+		for (Map.Entry<Location, GenBlock> entry : entrySet) {
 			GenBlock gb = entry.getValue();
 			if (gb.hasExpired()) {
 				removeKnownGenLocation(gb.getLocation());

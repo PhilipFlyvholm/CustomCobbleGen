@@ -1,9 +1,9 @@
 package me.phil14052.CustomCobbleGen.Managers;
 
+import java.time.Instant;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import java.time.Instant;
-import java.time.Period;
 
 public class GenBlock {
     private Location location;
