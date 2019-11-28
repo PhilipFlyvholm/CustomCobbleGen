@@ -4,6 +4,7 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,6 +20,7 @@ import me.phil14052.CustomCobbleGen.Managers.TierManager;
 public class PlayerEvents implements Listener {
 
 	private TierManager tm = TierManager.getInstance();
+	private BlockManager bm = BlockManager.getInstance();
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
@@ -32,6 +34,7 @@ public class PlayerEvents implements Listener {
 	public void onPlayerLeave(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
 		tm.savePlayerData(p);
+		bm.cleanupExpiredLocations();
 	}
 	
 }

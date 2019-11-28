@@ -16,13 +16,12 @@ public class BlockManager {
 
 	private static BlockManager instance = null;
 	private List<Location> knownGenLocations = new ArrayList<Location>();
-	private Map<Location, Player> genBreaks = new HashMap<Location, Player>();
-	
+	private Map<Location, GenBlock> genBreaks = new HashMap<Location, GenBlock>();
+
 	public static BlockManager getInstance() {
 		if(instance == null) instance = new BlockManager();
 		return instance;
 	}
-
 
 	public List<Location> getKnownGenLocations() {
 		return knownGenLocations;
@@ -39,6 +38,7 @@ public class BlockManager {
 	
 	public void removeKnownGenLocation(Location l) {
 		if(this.isGenLocationKnown(l)) this.getKnownGenLocations().remove(l);
+		if(this.genBreaks.containsKey(l)) this.genBreaks.remove(l);
 	}
 	
 	public void setKnownGenLocations(List<Location> knownGenLocations) {
@@ -48,16 +48,27 @@ public class BlockManager {
 	public void setPlayerForLocation(Player p, Location l) {
 		this.addKnownGenLocation(l);
 		if(this.getGenBreaks().containsKey(l)) this.getGenBreaks().remove(l);
-		this.getGenBreaks().put(l, p);
+
+		// Create a new GenBlock object to track the player+timestamp and add it to the genBreaks map
+		GenBlock gb = new GenBlock(l, p);
+		this.getGenBreaks().put(l, gb);
 	}
 	
-	public Map<Location, Player> getGenBreaks() {
+	public Map<Location, GenBlock> getGenBreaks() {
 		return genBreaks;
 	}
 
-
-	public void setGenBreaks(Map<Location, Player> genBreaks) {
+	public void setGenBreaks(Map<Location, GenBlock> genBreaks) {
 		this.genBreaks = genBreaks;
 	}
-	
+
+	public void cleanupExpiredLocations() {
+		// Remove all expired GenBlock entries
+		for (Map.Entry<Location, GenBlock> entry : genBreaks.entrySet()) {
+			GenBlock gb = entry.getValue();
+			if (gb.hasExpired()) {
+				removeKnownGenLocation(gb.getLocation());
+			}
+		}
+	}
 }
