@@ -62,6 +62,8 @@ public enum Lang {
     GUI_PRICE_MONEY_EXPENSIVE("gui.price.money.expensive", "&c$%tier_price_money%"),
     GUI_PRICE_XP_AFFORD("gui.price.xp.afford", "&a%tier_price_xp% exp levels"),
     GUI_PRICE_XP_EXPENSIVE("gui.price.xp.expensive", "&c%tier_price_xp% exp levels"),
+    GUI_PRICE_LEVEL_ACHIEVED("gui.price.level.achieved", "&aLevel %tier_price_level% island"),
+    GUI_PRICE_LEVEL_NOT_ACHIEVED("gui.price.level.not-achieved", "&cLevel %tier_price_level% island"),
     GUI_PRICE_ITEMS_AFFORD_TOP("gui.price.items.top.afford", "&aItems needed:"),
     GUI_PRICE_ITEMS_EXPENSIVE_TOP("gui.price.items.top.expensive", "&cItems needed:"),
     GUI_PRICE_ITEMS_AFFORD_LIST("gui.price.items.list.afford", "&a%s1 x %s2"),
@@ -131,6 +133,7 @@ public enum Lang {
         	string = string.replaceAll("%tier_class%", tier.getTierClass() + "");
         	string = string.replaceAll("%tier_price_money%", tier.hasMoneyPrice() ? EconomyManager.getInstance().formatMoney(tier.getPriceMoney()) + "" : "0");
         	string = string.replaceAll("%tier_price_xp%", tier.hasXpPrice() ?tier.getPriceXp() + "" : "0");
+        	string = string.replaceAll("%tier_price_level%", tier.getLevelRequirement() + "");
     	}
         return string;
     }

@@ -1,10 +1,10 @@
 name: CustomCobbleGen
 main: me.phil14052.CustomCobbleGen.CustomCobbleGen
-version: 1.2.1
+version: 1.2.2
 author: phil14052
 description: Adds the ability to change the cobblestone generator
 api-version: 1.14
-softdepend: [Vault, PlaceholderAPI]
+softdepend: [Vault, PlaceholderAPI, BentoBox]
 commands:
   cobblegen:
     description: CustomCobbleGen Plugin Main Command

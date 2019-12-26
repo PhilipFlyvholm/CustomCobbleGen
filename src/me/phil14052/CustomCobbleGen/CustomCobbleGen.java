@@ -28,6 +28,7 @@ import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Files.LangFileUpdater;
 import me.phil14052.CustomCobbleGen.Files.PlayerFileUpdater;
 import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
+import me.phil14052.CustomCobbleGen.Hooks.HookType;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
@@ -43,6 +44,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	private TierManager tierManager;
 	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
+	public HookType islandPluginHooked = null;
 	
 	@Override
 	public void onEnable(){
@@ -66,19 +68,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		// Setup tiers
 		tierManager.load();
 		this.debug("Players is now setup");
-		// Connect to vault
-		econManager = EconomyManager.getInstance();
-		if(econManager.setupEconomy()) {
-			this.debug("Economy is now setup");	
-		}else {
-			this.debug("Economy is not setup");
-		}
-		// Connect to PlaceholderAPI
-		this.isUsingPlaceholderAPI = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
-		if(this.isUsingPlaceholderAPI) {
-			new TierPlaceholderExpansion(this).register();
-			plugin.debug("Found PlaceholderAPI and registed placeholders&2 \u2713");
-		}
+		this.setupHooks();
 	 
 		registerEvents();
 		plugin.debug("Events loaded&2 \u2713");
@@ -113,6 +103,48 @@ public class CustomCobbleGen extends JavaPlugin {
 		this.savePlayerConfig();
 		tierManager = null;
 		plugin = null;
+	}
+	
+	public void setupHooks() {
+		this.connectToPlaceholderAPI();
+		this.connectToVault();
+		this.connectToIslandPlugin();
+	}
+	
+	public void connectToIslandPlugin() {
+		PluginManager pm = Bukkit.getPluginManager();
+		if(pm.getPlugin("BentoBox") != null) {
+			this.islandPluginHooked = HookType.BENTOBOX;
+			plugin.debug("Found BentoBox&2 \u2713");
+		}else if(pm.getPlugin("uSkyBlock") != null) {
+			this.islandPluginHooked = HookType.USKYBLOCK;
+			plugin.debug("Found uSkyBlock&2 \u2713");
+		}
+	}
+	
+	
+	
+	public void connectToPlaceholderAPI() {
+		// Connect to PlaceholderAPI
+		this.isUsingPlaceholderAPI = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
+		if(this.isUsingPlaceholderAPI) {
+			new TierPlaceholderExpansion(this).register();
+			plugin.debug("Found PlaceholderAPI and registed placeholders&2 \u2713");
+		}
+	}
+	
+	public void connectToVault() {
+		// Connect to vault
+		econManager = EconomyManager.getInstance();
+		if(econManager.setupEconomy()) {
+			this.debug("Economy is now setup");	
+		}else {
+			this.debug("Economy is not setup");
+		}
+	}
+	
+	public boolean isConnectedToIslandPlugin() {
+		return this.islandPluginHooked != null;
 	}
 	
 	public void reloadPlugin() {

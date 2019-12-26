@@ -95,6 +95,7 @@ public class GUIManager {
 								 lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
 							 }
 						}
+						if(tier.hasLevelRequirement()) lore.add(Lang.GUI_PRICE_LEVEL_NOT_ACHIEVED.toString(tier));
 					}else {
 						if(tm.canPlayerBuyTier(p, tier)) {
 							lore.add(Lang.GUI_BUY.toString());
@@ -106,6 +107,8 @@ public class GUIManager {
 									 lore.add(Lang.GUI_PRICE_ITEMS_AFFORD_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
 								 }
 							}
+
+							if(tier.hasLevelRequirement()) lore.add(Lang.GUI_PRICE_LEVEL_ACHIEVED.toString(tier));
 						}else {
 							lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
 							if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_EXPENSIVE.toString(tier)); 
@@ -116,6 +119,8 @@ public class GUIManager {
 									 lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
 								 }
 							}
+
+							if(tier.hasLevelRequirement()) lore.add(Lang.GUI_PRICE_LEVEL_NOT_ACHIEVED.toString(tier));
 						}
 					}
 

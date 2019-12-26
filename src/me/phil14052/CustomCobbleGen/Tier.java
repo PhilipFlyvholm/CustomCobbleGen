@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
+import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
@@ -29,7 +30,7 @@ public class Tier {
 	private int level;
 	private List<Requirement> requirements;
 	
-	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, int priceMoney, int priceXp, HashMap<Material, Integer> priceItems){
+	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, int priceMoney, int priceXp, HashMap<Material, Integer> priceItems, int levelRequirement){
 		this.name = name;
 		this.tierClass = tierClass;
 		this.level = level;
@@ -43,6 +44,9 @@ public class Tier {
 		}
 		if(priceItems != null && priceItems.size() > 0) {
 			requirements.add(new ItemsRequirement(priceItems));
+		}
+		if(levelRequirement > 0) {
+			requirements.add(new LevelRequirement(levelRequirement));
 		}
 		
 		ItemStack icon = new ItemStack(iconMaterial);
@@ -114,6 +118,21 @@ public class Tier {
 		return this.getRequirements() != null;
 	}
 	
+	
+	public int getLevelRequirement() {
+		if(!this.hasRequirements()) return 0;
+		for(Requirement r : this.requirements) {
+			if(r.getRequirementType().equals(RequirementType.LEVEL)) {
+				return ((LevelRequirement) r).getRequirementValue();
+			}
+		}
+		return 0;
+	}
+
+	public boolean hasLevelRequirement() {
+		return this.getLevelRequirement() > 0;
+	}
+	
 	public int getPriceMoney() {
 		
 		if(!this.hasRequirements()) return 0;
@@ -125,6 +144,7 @@ public class Tier {
 		return 0;
 	}
 
+	
 	public boolean hasMoneyPrice() {
 		return this.getPriceMoney() > 0;
 	}

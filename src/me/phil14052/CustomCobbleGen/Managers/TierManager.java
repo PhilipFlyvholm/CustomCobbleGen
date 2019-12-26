@@ -68,6 +68,7 @@ public class TierManager {
 				}
 				int priceMoney = 0;
 				int priceXp = 0;
+				int levelRequirement = 0;
 				HashMap<Material, Integer> priceItems = null;
 				if(tierSection.contains("price.money")) priceMoney = tierSection.getInt("price.money");
 				if(tierSection.contains("price.xp")) priceXp = tierSection.getInt("price.xp");
@@ -79,7 +80,8 @@ public class TierManager {
 						priceItems.put(m, tierSection.getInt("price.items." + itemMaterial));
 					}
 				}
-				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, priceMoney, priceXp, priceItems);
+				if(tierSection.contains("price.level")) levelRequirement = tierSection.getInt("price.level");
+				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, priceMoney, priceXp, priceItems, levelRequirement);
 				try {
 					//If already defined override
 					tierLevelsList.set(tierLevel, tier);
