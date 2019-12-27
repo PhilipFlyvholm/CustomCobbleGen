@@ -1,9 +1,64 @@
+# Git
+*.orig
+!.gitignore
+/.settings/        
+ 
+ # Windows
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
 
-# Created by https://www.gitignore.io/api/eclipse
-# Edit at https://www.gitignore.io/?templates=eclipse
+ # Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
-### Eclipse ###
+ # MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+ # Java
+*.class
+*.log
+*.ctxt
+.mtj.tmp/
+*.jar
+*.war
+*.nar
+*.ear
+hs_err_pid*
+
+ # Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+ # Intellij
+*.iml
+*.java___jb_tmp___
+.idea/*
+*.ipr
+*.iws
+/out/
+.idea_modules/
+
+ # Eclipse
+*.pydevproject
 .metadata
+.gradle
 bin/
 tmp/
 *.tmp
@@ -13,66 +68,20 @@ tmp/
 local.properties
 .settings/
 .loadpath
-.recommenders
-
-# External tool builders
+.project
 .externalToolBuilders/
-
-# Locally stored "Eclipse launch configurations"
 *.launch
-
-# PyDev specific (Python IDE for Eclipse)
-*.pydevproject
-
-# CDT-specific (C/C++ Development Tooling)
 .cproject
-
-# CDT- autotools
-.autotools
-
-# Java annotation processor (APT)
-.factorypath
-
-# PDT-specific (PHP Development Tools)
+.classpath
 .buildpath
-
-# sbteclipse plugin
 .target
 
-# Tern plugin
-.tern-project
-
-# TeXlipse plugin
-.texlipse
-
-# STS (Spring Tool Suite)
-.springBeans
-
-# Code Recommenders
-.recommenders/
-
-# Annotation Processing
-.apt_generated/
-
-# Scala IDE specific (Scala & Java development for Eclipse)
-.cache-main
-.scala_dependencies
-.worksheet
-
-### Eclipse Patch ###
-# Eclipse Core
-.project
-
-# JDT-specific (Eclipse Java Development Tools)
-.classpath
-
-# Annotation Processing
-.apt_generated
-
-.sts4-cache/
-
-# End of https://www.gitignore.io/api/eclipse
-.classpath
-.settings/org.eclipse.jdt.core.prefs
-.classpath
-.settings/org.eclipse.jdt.core.prefs
+ # NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+.nb-gradle/

@@ -4,9 +4,13 @@
  */
 package me.phil14052.CustomCobbleGen.Requirements;
 
+import java.util.List;
+
 import org.bukkit.entity.Player;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Hooks.IslandLevelHook;
 
 /**
@@ -45,4 +49,22 @@ public class LevelRequirement implements Requirement {
 		return this.levelNeeded;
 	}
 
+	@Override
+	public List<String> addAvailableString(Tier tier, List<String> lore) {
+		lore.add(Lang.GUI_PRICE_LEVEL_ACHIEVED.toString(tier));
+		return lore;
+	}
+
+	@Override
+	public List<String> addUnavailableString(Tier tier, List<String> lore) {
+		lore.add(Lang.GUI_PRICE_LEVEL_NOT_ACHIEVED.toString(tier));
+		return lore;
+	}
+
+	@Override
+	public void onPurchase(Player p) {
+		//Does not do anything on purchase
+		return;
+	}
+	
 }

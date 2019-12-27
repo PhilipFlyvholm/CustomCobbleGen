@@ -12,6 +12,7 @@ import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
  
 /**
 * An enum for requesting strings from the language file.
@@ -62,8 +63,8 @@ public enum Lang {
     GUI_PRICE_MONEY_EXPENSIVE("gui.price.money.expensive", "&c$%tier_price_money%"),
     GUI_PRICE_XP_AFFORD("gui.price.xp.afford", "&a%tier_price_xp% exp levels"),
     GUI_PRICE_XP_EXPENSIVE("gui.price.xp.expensive", "&c%tier_price_xp% exp levels"),
-    GUI_PRICE_LEVEL_ACHIEVED("gui.price.level.achieved", "&aLevel %tier_price_level% island"),
-    GUI_PRICE_LEVEL_NOT_ACHIEVED("gui.price.level.not-achieved", "&cLevel %tier_price_level% island"),
+    GUI_PRICE_LEVEL_ACHIEVED("gui.price.level.achieved", "&aLevel %tier_price_level% island required"),
+    GUI_PRICE_LEVEL_NOT_ACHIEVED("gui.price.level.not-achieved", "&cLevel %tier_price_level% island required"),
     GUI_PRICE_ITEMS_AFFORD_TOP("gui.price.items.top.afford", "&aItems needed:"),
     GUI_PRICE_ITEMS_EXPENSIVE_TOP("gui.price.items.top.expensive", "&cItems needed:"),
     GUI_PRICE_ITEMS_AFFORD_LIST("gui.price.items.list.afford", "&a%s1 x %s2"),
@@ -119,8 +120,8 @@ public enum Lang {
         		string = string.replaceAll("%selected_tier_level%", tier.getLevel() + "");
         		string = string.replaceAll("%selected_tier_class%", tier.getTierClass() + "");	
         		string = string.replaceAll("%selected_tier_name%", tier.getName() + "");		
-        		string = string.replaceAll("%selected_tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getPriceMoney()) + "");		
-        		string = string.replaceAll("%selected_tier_price_xp%", tier.getPriceXp() + "");	
+        		string = string.replaceAll("%selected_tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "");		
+        		string = string.replaceAll("%selected_tier_price_xp%", tier.getRequirementValue(RequirementType.XP) + "");	
     		}
     	}
         return string;
@@ -131,9 +132,9 @@ public enum Lang {
         	string = string.replaceAll("%tier_level%", tier.getLevel() + "");
         	string = string.replaceAll("%tier_name%", tier.getName() + "");
         	string = string.replaceAll("%tier_class%", tier.getTierClass() + "");
-        	string = string.replaceAll("%tier_price_money%", tier.hasMoneyPrice() ? EconomyManager.getInstance().formatMoney(tier.getPriceMoney()) + "" : "0");
-        	string = string.replaceAll("%tier_price_xp%", tier.hasXpPrice() ?tier.getPriceXp() + "" : "0");
-        	string = string.replaceAll("%tier_price_level%", tier.getLevelRequirement() + "");
+        	string = string.replaceAll("%tier_price_money%", tier.hasRequirement(RequirementType.MONEY) ? EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "" : "0?");
+        	string = string.replaceAll("%tier_price_xp%", tier.hasRequirement(RequirementType.XP) ? tier.getRequirementValue(RequirementType.XP) + "" : "0");
+        	string = string.replaceAll("%tier_price_level%", tier.hasRequirement(RequirementType.LEVEL) ? tier.getRequirementValue(RequirementType.LEVEL) + "" : "0");
     	}
         return string;
     }
@@ -142,8 +143,6 @@ public enum Lang {
     	String string = this.toString();
     	int i = 0;
     	for(String s : strings) {
-
-        	CustomCobbleGen.getInstance().debug(s);
     		i++;
     		string = string.replaceFirst("%s" + i, s);
     	}

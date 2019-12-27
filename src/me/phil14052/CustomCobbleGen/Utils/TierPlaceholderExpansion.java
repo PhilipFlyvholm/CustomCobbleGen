@@ -4,12 +4,16 @@
  */
 package me.phil14052.CustomCobbleGen.Utils;
 
+import java.util.Map.Entry;
+
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
 
 /**
  * This class will be registered through the register-method in the 
@@ -125,22 +129,39 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
             return tier.getTierClass() + "";
         }
 
-        // %customcobblegen_selected_tier_class%
+        // %customcobblegen_selected_tier_name%
         if(identifier.equals("selected_tier_name")){
         	if(tier == null) return "";
             return tier.getName() + "";
         }
 
-        // %customcobblegen_selected_tier_class%
+        // %customcobblegen_selected_tier_price_money%
         if(identifier.equals("selected_tier_price_money")){
         	if(tier == null) return "0";
-            return tier.getPriceMoney() + "";
+            return tier.getRequirementValue(RequirementType.MONEY) + "";
         }
         
-        // %customcobblegen_selected_tier_class%
+        // %customcobblegen_selected_tier_price_xp%
         if(identifier.equals("selected_tier_price_xp")){
         	if(tier == null) return "0";
-            return tier.getPriceXp() + "";
+            return tier.getRequirementValue(RequirementType.XP) + "";
+        }
+        // %customcobblegen_selected_tier_price_level%
+        if(identifier.equals("selected_tier_price_level")){
+        	if(tier == null) return "0";
+            return tier.getRequirementValue(RequirementType.LEVEL) + "";
+        }
+        // %customcobblegen_selected_tier_price_items%
+        if(identifier.equals("selected_tier_price_items")){
+        	if(tier == null) return "0";
+        	StringBuilder sb = new StringBuilder();
+        	boolean first = true;
+        	for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
+        		if(!first) sb.append(", ");
+        		else first = false;
+        		sb.append(entry.getValue() + "x" + entry.getKey().name()); 
+        	}
+            return sb.toString();
         }
         // We return null if an invalid placeholder (f.e. %someplugin_placeholder3%) 
         // was provided

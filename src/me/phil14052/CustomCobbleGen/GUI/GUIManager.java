@@ -3,8 +3,8 @@ package me.phil14052.CustomCobbleGen.GUI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -17,9 +17,9 @@ import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
 import me.phil14052.CustomCobbleGen.Utils.ItemLib;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 public class GUIManager {
 
@@ -70,7 +70,7 @@ public class GUIManager {
 					ItemMeta itemMeta = item.getItemMeta();
 					List<String> lore = itemMeta.getLore();
 					String emptyString = "&a ";
-					emptyString = emptyString.replaceAll("&", "§");
+					emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
 					lore.add(emptyString);
 					if(selectedTier != null && selectedTier.getLevel() == tier.getLevel() && selectedTier.getTierClass().equalsIgnoreCase(tier.getTierClass())) {
 						GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
@@ -87,40 +87,25 @@ public class GUIManager {
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
 					
 						lore.add(Lang.GUI_LOCKED_PREV.toString());
-						if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_EXPENSIVE.toString(tier)); 
-						if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_EXPENSIVE.toString(tier)); 
-						if(tier.hasItemsPrice()) {
-							lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_TOP.toString(tier));
-							 for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
-								 lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
-							 }
+
+						for(Requirement r : tier.getRequirements()) {
+							if(!tier.hasRequirement(r.getRequirementType())) continue;
+							lore = r.addUnavailableString(tier, lore);
 						}
-						if(tier.hasLevelRequirement()) lore.add(Lang.GUI_PRICE_LEVEL_NOT_ACHIEVED.toString(tier));
 					}else {
 						if(tm.canPlayerBuyTier(p, tier)) {
 							lore.add(Lang.GUI_BUY.toString());
-							if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_AFFORD.toString(tier)); 
-							if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_AFFORD.toString(tier));
-							if(tier.hasItemsPrice()) {
-								lore.add(Lang.GUI_PRICE_ITEMS_AFFORD_TOP.toString(tier));
-								 for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
-									 lore.add(Lang.GUI_PRICE_ITEMS_AFFORD_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
-								 }
+							for(Requirement r : tier.getRequirements()) {
+								if(!tier.hasRequirement(r.getRequirementType())) continue;
+								lore = r.addAvailableString(tier, lore);
 							}
-
-							if(tier.hasLevelRequirement()) lore.add(Lang.GUI_PRICE_LEVEL_ACHIEVED.toString(tier));
 						}else {
 							lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
-							if(tier.hasMoneyPrice()) lore.add(Lang.GUI_PRICE_MONEY_EXPENSIVE.toString(tier)); 
-							if(tier.hasXpPrice()) lore.add(Lang.GUI_PRICE_XP_EXPENSIVE.toString(tier)); 
-							if(tier.hasItemsPrice()) {
-								lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_TOP.toString(tier));
-								 for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
-									 lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
-								 }
-							}
 
-							if(tier.hasLevelRequirement()) lore.add(Lang.GUI_PRICE_LEVEL_NOT_ACHIEVED.toString(tier));
+							for(Requirement r : tier.getRequirements()) {
+								if(!tier.hasRequirement(r.getRequirementType())) continue;
+								lore = r.addUnavailableString(tier, lore);
+							}
 						}
 					}
 

@@ -15,11 +15,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
-import me.phil14052.CustomCobbleGen.Requirements.XpRequirement;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 public class Tier {
 
@@ -30,25 +27,12 @@ public class Tier {
 	private int level;
 	private List<Requirement> requirements;
 	
-	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, int priceMoney, int priceXp, HashMap<Material, Integer> priceItems, int levelRequirement){
+	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements){
 		this.name = name;
 		this.tierClass = tierClass;
 		this.level = level;
 
-		this.requirements = new ArrayList<Requirement>();
-		if(priceMoney > 0) {
-			requirements.add(new MoneyRequirement(priceMoney));
-		}
-		if(priceXp > 0) {
-			requirements.add(new XpRequirement(priceXp));
-		}
-		if(priceItems != null && priceItems.size() > 0) {
-			requirements.add(new ItemsRequirement(priceItems));
-		}
-		if(levelRequirement > 0) {
-			requirements.add(new LevelRequirement(levelRequirement));
-		}
-		
+		this.requirements = requirements;
 		ItemStack icon = new ItemStack(iconMaterial);
 		ItemMeta im = icon.getItemMeta();
 		im.setDisplayName(Lang.GUI_ITEM_NAME.toString(this));
@@ -118,65 +102,25 @@ public class Tier {
 		return this.getRequirements() != null;
 	}
 	
-	
-	public int getLevelRequirement() {
+	public int getRequirementValue(RequirementType type) {
 		if(!this.hasRequirements()) return 0;
 		for(Requirement r : this.requirements) {
-			if(r.getRequirementType().equals(RequirementType.LEVEL)) {
-				return ((LevelRequirement) r).getRequirementValue();
+			if(r.getRequirementType().equals(type)) {
+				return r.getRequirementValue();
 			}
 		}
 		return 0;
 	}
-
-	public boolean hasLevelRequirement() {
-		return this.getLevelRequirement() > 0;
-	}
 	
-	public int getPriceMoney() {
-		
-		if(!this.hasRequirements()) return 0;
-		for(Requirement r : this.requirements) {
-			if(r.getRequirementType().equals(RequirementType.MONEY)) {
-				return ((MoneyRequirement) r).getMoneyNeeded();
-			}
-		}
-		return 0;
-	}
-
-	
-	public boolean hasMoneyPrice() {
-		return this.getPriceMoney() > 0;
-	}
-	
-	public void setPriceMoney(int priceMoney) {
-		if(!this.hasRequirements()) return;
-		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.MONEY) ((MoneyRequirement) r).setMoneyNeeded(priceMoney);
-	}
-
-	public int getPriceXp() {
-		if(!this.hasRequirements()) return 0;
-		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.XP) return ((XpRequirement) r).getXPNeeded();
-		return 0;
-	}
-
-	public boolean hasXpPrice() {
-		return this.getPriceXp() > 0;
-	}
-
-	public void setPriceXp(int priceXp) {
-		if(!this.hasRequirements()) return;
-		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.XP) ((XpRequirement) r).setXPNeeded(priceXp);
+	public boolean hasRequirement(RequirementType type) {
+		boolean hasRequirement = this.getRequirementValue(type) > 0;
+		return hasRequirement;
 	}
 	
 	public HashMap<Material, Integer> getPriceItems() {
 		if(!this.hasRequirements()) return null;
 		for(Requirement r : this.requirements) if(r.getRequirementType() == RequirementType.ITEMS) return ((ItemsRequirement) r).getItemsNeeded();
 		return null;
-	}
-
-	public boolean hasItemsPrice() {
-		return this.getPriceItems() != null;
 	}
 
 	public void setPriceItems(HashMap<Material, Integer> priceItems) {

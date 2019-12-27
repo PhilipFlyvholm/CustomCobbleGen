@@ -34,6 +34,14 @@ public class BentoboxHook implements IslandLevelHook{
 
 	@Override
 	public int getIslandLevel(Player p) {
+//		TODO: Get the API version to work, instead of using reflections. The API currently only returns 0L...
+//		
+//		UUID uuid = p.getUniqueId();
+//		Long result = (Long) new AddonRequestBuilder().addon("Level").label("island-level")
+//			    .addMetaData(p.getLocation().getWorld().getName(), uuid)
+//			    .request();
+//		return Math.toIntExact(result);
+		
 		UUID uuid = p.getUniqueId();
 		int level[] = new int[]{0};
 	
@@ -49,4 +57,5 @@ public class BentoboxHook implements IslandLevelHook{
 		});
 		return level[0];
 	}
+	
 }

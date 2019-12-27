@@ -1,12 +1,17 @@
 package me.phil14052.CustomCobbleGen.Requirements;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+
+import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 public class ItemsRequirement implements Requirement{
 	
@@ -43,8 +48,36 @@ public class ItemsRequirement implements Requirement{
 
 	@Override
 	public int getRequirementValue() {
-		// TODO Auto-generated method stub
-		return 0;
+		return this.getItemsNeeded().size();
+	}
+
+	@Override
+	public List<String> addAvailableString(Tier tier, List<String> lore) {
+		lore.add(Lang.GUI_PRICE_ITEMS_AFFORD_TOP.toString(tier));
+		 for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
+			 lore.add(Lang.GUI_PRICE_ITEMS_AFFORD_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
+		 }
+		return lore;
+	}
+
+	@Override
+	public List<String> addUnavailableString(Tier tier, List<String> lore) {
+		lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_TOP.toString(tier));
+		 for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
+			 lore.add(Lang.GUI_PRICE_ITEMS_EXPENSIVE_LIST.toString(StringUtils.toCamelCase(entry.getKey().toString()), entry.getValue() + ""));
+		 }
+		return lore;
+	}
+
+	@Override
+	public void onPurchase(Player p) {
+		HashMap<Material, Integer> items = this.getItemsNeeded();
+		PlayerInventory inv = p.getInventory();
+		for(Entry<Material, Integer> m : items.entrySet()) {
+			ItemStack is = new ItemStack(m.getKey(), m.getValue());
+			inv.removeItem(is);
+		}
+		return;
 	}
 
 	

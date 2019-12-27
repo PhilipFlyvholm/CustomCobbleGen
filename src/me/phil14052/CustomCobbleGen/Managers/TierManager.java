@@ -9,19 +9,20 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
+import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
+import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
+import me.phil14052.CustomCobbleGen.Requirements.XpRequirement;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 public class TierManager {
@@ -31,11 +32,9 @@ public class TierManager {
 	private static TierManager instance = null;
 	private CustomCobbleGen plugin = null;
 	private Map<String, List<Tier>> tiers;
-	private EconomyManager econManager;
 	
 	public TierManager(){
 		plugin = CustomCobbleGen.getInstance();
-		econManager = EconomyManager.getInstance();
 		setSelectedTier(new HashMap<Player, Tier>());
 		setPurchasedTiers(new HashMap<Player, List<Tier>>());
 	}
@@ -59,29 +58,48 @@ public class TierManager {
 				for(String resultMaterialString : tierSection.getConfigurationSection("contains").getKeys(false)){
 					Material resultMaterial = Material.matchMaterial(resultMaterialString.toUpperCase());
 					if(resultMaterial == null) {
-						plugin.log("§c§lUser Error: The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name");
+						plugin.log("&c&lUser Error: The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name");
 						resultMaterial = Material.COBBLESTONE;
 						levelNeedsUserChange = true;
 						classNeedsUserChange = true;
 					}
 					results.put(resultMaterial, tierSection.getDouble("contains." + resultMaterialString));
 				}
-				int priceMoney = 0;
-				int priceXp = 0;
-				int levelRequirement = 0;
-				HashMap<Material, Integer> priceItems = null;
-				if(tierSection.contains("price.money")) priceMoney = tierSection.getInt("price.money");
-				if(tierSection.contains("price.xp")) priceXp = tierSection.getInt("price.xp");
+				List<Requirement> requirements = new ArrayList<Requirement>();
+				
+				if(tierSection.contains("price.money")) {
+					int priceMoney = tierSection.getInt("price.money");
+					if(priceMoney > 0) {
+						requirements.add(new MoneyRequirement(priceMoney));
+					}
+				}
+				if(tierSection.contains("price.xp")) {
+					int priceXp = tierSection.getInt("price.xp");
+
+					if(priceXp > 0) {
+						requirements.add(new XpRequirement(priceXp));
+					}
+				}
 				if(tierSection.contains("price.items")) {
-					priceItems = new HashMap<Material, Integer>();
+					HashMap<Material, Integer> priceItems = new HashMap<Material, Integer>();
 					for(String itemMaterial : tierSection.getConfigurationSection("price.items").getKeys(false)) {
 						Material m = Material.getMaterial(itemMaterial.toUpperCase());
 						if(m == null) continue;
 						priceItems.put(m, tierSection.getInt("price.items." + itemMaterial));
 					}
+
+					if(priceItems != null && priceItems.size() > 0) {
+						requirements.add(new ItemsRequirement(priceItems));
+					}
 				}
-				if(tierSection.contains("price.level")) levelRequirement = tierSection.getInt("price.level");
-				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, priceMoney, priceXp, priceItems, levelRequirement);
+				if(tierSection.contains("price.level")) {
+					int levelRequirement = tierSection.getInt("price.level");
+
+					if(levelRequirement > 0) {
+						requirements.add(new LevelRequirement(levelRequirement));
+					}
+				}
+				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements);
 				try {
 					//If already defined override
 					tierLevelsList.set(tierLevel, tier);
@@ -89,12 +107,12 @@ public class TierManager {
 					//If not defined then add
 					tierLevelsList.add(tier);
 				}
-				if(!levelNeedsUserChange) plugin.debug("§aSuccessfully loaded level " + tierLevel + " under class " + tierClass);
-				else plugin.debug("§cUser error in level " + tierLevel + " under class " + tierClass);
+				if(!levelNeedsUserChange) plugin.debug("&aSuccessfully loaded level " + tierLevel + " under class " + tierClass);
+				else plugin.debug("&cUser error in level " + tierLevel + " under class " + tierClass);
 			}
 			tiers.put(tierClass.toUpperCase(), tierLevelsList);
-			if(!classNeedsUserChange)plugin.debug("§aSuccessfully loaded class " + tierClass);
-			else plugin.debug("§cUser error in class " + tierClass);
+			if(!classNeedsUserChange)plugin.debug("&aSuccessfully loaded class " + tierClass);
+			else plugin.debug("&cUser error in class " + tierClass);
 		}
 	}
 	
@@ -237,18 +255,8 @@ public class TierManager {
 		//Check if player can afford the tier and check if the have bought the previous level
 		if(!forceBuy && !canPlayerBuyTier(p, tier)) return false;
 		if(!forceBuy && !hasPlayerPurchasedPreviousLevel(p, tier)) return false;
-		if(econManager.isConnectedToVault() && tier.hasMoneyPrice()) econManager.takeMoney(p, tier.getPriceMoney());
-		if(tier.hasXpPrice()) {
-			int xpPriceInLevels = tier.getPriceXp();
-			p.setLevel(p.getLevel()-xpPriceInLevels);
-		}
-		if(tier.hasItemsPrice()) {
-			HashMap<Material, Integer> items = tier.getPriceItems();
-			PlayerInventory inv = p.getInventory();
-			for(Entry<Material, Integer> m : items.entrySet()) {
-				ItemStack is = new ItemStack(m.getKey(), m.getValue());
-				inv.removeItem(is);
-			}
+		for(Requirement r : tier.getRequirements()) {
+			r.onPurchase(p);
 		}
 		//Buy the tier
 		if(this.hasPlayerPurchasedLevel(p, tier)) return false;
