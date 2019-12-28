@@ -241,6 +241,7 @@ public class TierManager {
 	
 	
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
+		if(new PermissionManager().hasPermisson(p, "customcobblegen.generator." + tier.getTierClass(), false) == false) return false;
 		for(Requirement r : tier.getRequirements()) {
 			if(!r.furfillsRequirement(p)) return false;
 		}
