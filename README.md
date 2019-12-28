@@ -1,4 +1,4 @@
-![alt text](https://www.spigotmc.org/attachments/headerv2-jpg.476352/g)
+![alt text](https://www.spigotmc.org/attachments/headerv2-jpg.476352/)
 # CustomCobbleGen
 This is a Spigot plugin that changes cobblestone generators in Minecraft
 ## 
