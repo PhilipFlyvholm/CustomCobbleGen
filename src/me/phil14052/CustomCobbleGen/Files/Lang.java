@@ -37,7 +37,7 @@ public enum Lang {
     NO_PERMS("no-permissions", "&cYou don't have permission for that!"),
     RELOAD_SUCCESS("reload-success", "&aReloaded the plugin in %time% seconds."),
     FORCE_SAVE_SUCCESS("force-save-success", "&aSuccessfully force saved the player data"),
-    PLAYER_PLUGIN_HELP("player.plugin-help", "ARRAYLIST: &8&l&m--------------------- ,   , &3{CustomCobbleGen} - &8Help"
+    PLAYER_PLUGIN_HELP("player.plugin-help", "ARRAYLIST: &8&l&m--------------------- ,   , &3CustomCobbleGen - &8Help"
     		+ " , &3/%command%&8 - Show the GUI"
     		+ " , &3/%command% help&8 - Shows the help menu"
     		+ " , &3/%command% tier&8 - Shows the currently selected tier"
