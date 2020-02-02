@@ -113,8 +113,8 @@ public class BlockEvents implements Listener{
 					sign = null;
 				}
 			}
-				
 		}
+
 		if(sign == null) {
 			e.setLine(0, Lang.SIGN_NOT_VALID_0.toString());
 			e.setLine(1, Lang.SIGN_NOT_VALID_1.toString());

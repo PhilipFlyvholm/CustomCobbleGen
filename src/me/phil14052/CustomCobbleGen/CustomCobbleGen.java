@@ -23,6 +23,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.phil14052.CustomCobbleGen.Commands.MainCommand;
+import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
 import me.phil14052.CustomCobbleGen.Events.BlockEvents;
 import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
 import me.phil14052.CustomCobbleGen.Files.ConfigUpdater;
@@ -89,6 +90,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		registerEvents();
 		plugin.debug("Events loaded&2 \u2713");
 		plugin.getCommand("cobblegen").setExecutor(new MainCommand());
+		plugin.getCommand("cobblegen").setTabCompleter(new MainTabComplete());
 		plugin.debug("Commands loaded&2 \u2713");
 		
 		// Register a enchantment without effects to give items a glow effect
