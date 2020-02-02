@@ -11,6 +11,9 @@ import java.lang.reflect.Field;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
+import javax.annotation.Nonnull;
+
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -27,11 +30,13 @@ import me.phil14052.CustomCobbleGen.Files.Files;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Files.LangFileUpdater;
 import me.phil14052.CustomCobbleGen.Files.PlayerFileUpdater;
+import me.phil14052.CustomCobbleGen.Files.SignsFileUpdater;
 import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
 import me.phil14052.CustomCobbleGen.Hooks.HookType;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.SignManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
 import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
@@ -41,7 +46,10 @@ public class CustomCobbleGen extends JavaPlugin {
 	public Files lang;
 	private FileConfiguration playerConfig;
 	private File playerConfigFile;
+	private FileConfiguration signsConfig;
+	private File signsConfigFile;
 	private TierManager tierManager;
+	private SignManager signManager;
 	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
 	public HookType islandPluginHooked = null;
@@ -51,6 +59,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		double time = System.currentTimeMillis();
 		plugin = this;
 		tierManager = TierManager.getInstance();
+		signManager = SignManager.getInstance();
 		plugin.log("Enabling CustomCobbleGen plugin");
 		// Setup config
 		new ConfigUpdater();
@@ -65,9 +74,16 @@ public class CustomCobbleGen extends JavaPlugin {
 		playerConfig = null;
 		playerConfigFile = null;
 		new PlayerFileUpdater(plugin);
+		this.debug("Players is now setup");
 		// Setup tiers
 		tierManager.load();
-		this.debug("Players is now setup");
+		this.debug("Tiers is now setup");
+		// Setup signs configs
+		signsConfig = null;
+		signsConfigFile = null;
+		new SignsFileUpdater(plugin);
+		signManager.loadSignsFromFile(true);
+		this.debug("Signs is now setup");
 		this.setupHooks();
 	 
 		registerEvents();
@@ -101,7 +117,9 @@ public class CustomCobbleGen extends JavaPlugin {
 		
 		tierManager.unload();
 		this.savePlayerConfig();
+    	signManager.saveSignsToFile();
 		tierManager = null;
+		signManager = null;
 		plugin = null;
 	}
 	
@@ -151,6 +169,8 @@ public class CustomCobbleGen extends JavaPlugin {
 		this.reloadConfig();
 		this.lang.reload();
 		this.reloadPlayerConfig();
+		this.reloadSignsConfig();
+		signManager.loadSignsFromFile(true);
 		tierManager.reload();
 		tierManager = TierManager.getInstance();
 	}
@@ -184,6 +204,35 @@ public class CustomCobbleGen extends JavaPlugin {
  
     }
 	
+    public void reloadSignsConfig(){
+		if(this.signsConfigFile == null){
+			this.signsConfigFile = new File(new File(plugin.getDataFolder(), "Data"),"signs.yml");
+			this.signsConfig = YamlConfiguration.loadConfiguration(this.signsConfigFile);
+			
+		}
+	}
+	 //Return the player config
+    public FileConfiguration getSignsConfig() {
+ 
+        if(this.signsConfigFile == null) this.reloadSignsConfig();
+ 
+        return this.signsConfig;
+ 
+    }
+ 
+    //Save the player config
+    public void saveSignsConfig() {
+ 
+        if(this.signsConfig == null || this.signsConfigFile == null) return;
+ 
+        try {
+            this.getSignsConfig().save(this.signsConfigFile);
+        } catch (IOException ex) {
+            plugin.getServer().getLogger().log(Level.SEVERE, "Could not save signs config to " + this.signsConfigFile +"!", ex);
+        }
+ 
+    }
+    
     public void registerGlow() {
     	// Creates a enchantment with no effect, but gives a glow effect on items.
     	
@@ -241,6 +290,33 @@ public class CustomCobbleGen extends JavaPlugin {
 	public void log(String message){
 		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lLog &8-&7 " + message).replaceAll("&", "\u00A7"));
 	}
+	
+	//CREDIT TO CryptoMorin
+	@Nonnull
+    public String getMajorVersion(@Nonnull String version) {
+        Validate.notEmpty(version, "Cannot get major Minecraft version from null or empty string");
+
+        // getVersion()
+        int index = version.lastIndexOf("MC:");
+        if (index != -1) {
+            version = version.substring(index + 4, version.length() - 1);
+        } else if (version.endsWith("SNAPSHOT")) {
+            // getBukkitVersion()
+            index = version.indexOf('-');
+            version = version.substring(0, index);
+        }
+
+        // 1.13.2, 1.14.4, etc...
+        int lastDot = version.lastIndexOf('.');
+        if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
+
+        return version;
+    }
+	
+	//CREDIT TO CryptoMorin
+	public boolean serverSupports(int version) {
+        return Integer.parseInt(getMajorVersion(Bukkit.getVersion()).substring(2)) >= version;
+    }
 	
 	public static CustomCobbleGen getInstance(){
 		return plugin;

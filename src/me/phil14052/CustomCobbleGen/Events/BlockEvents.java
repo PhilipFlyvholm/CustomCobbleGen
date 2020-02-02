@@ -4,7 +4,6 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
-import me.phil14052.CustomCobbleGen.Managers.GenBlock;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -15,17 +14,25 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.SignChangeEvent;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.GenBlock;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
+import me.phil14052.CustomCobbleGen.Signs.GUISign;
+import me.phil14052.CustomCobbleGen.Signs.SelectSign;
+import me.phil14052.CustomCobbleGen.Signs.SignManager;
 
 public class BlockEvents implements Listener{
 
 	private TierManager tm = TierManager.getInstance();
 	private BlockManager bm = BlockManager.getInstance();
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private SignManager signManager = SignManager.getInstance();
 
 	@EventHandler
 	public void onBlockFlow(BlockFromToEvent e){
@@ -71,11 +78,65 @@ public class BlockEvents implements Listener{
 	}
 	
 	@EventHandler
-	public void onBlockBreak(BlockBreakEvent e) {
+	public void onSignChange(SignChangeEvent e) {
 		Location l = e.getBlock().getLocation();
 		if(isWorldDisabled(l.getWorld())) return;
+		Player p = e.getPlayer();
+		String[] lines = e.getLines();
+		if(!lines[0].equalsIgnoreCase("[CCG]")) return;
+		ClickableSign sign = null;
+		plugin.debug(lines[1]);
+		if(lines[1].equalsIgnoreCase("GUI")) {
+			sign = new GUISign(l);
+			e.setLine(0, Lang.SIGN_GUI_0.toString());
+			e.setLine(1, Lang.SIGN_GUI_1.toString());
+			e.setLine(2, Lang.SIGN_GUI_2.toString());
+			e.setLine(3, Lang.SIGN_GUI_3.toString());
+		}else if(lines[1].equalsIgnoreCase("select")){
+			if(lines[2] == null) {
+				p.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_CLASS.toString());
+			}else if(lines[3] == null || !lines[3].matches("-?\\d+")) {
+				p.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString());
+			}else {
+				String tierClass = lines[2];
+				int tierLevel = Integer.parseInt(lines[3]);
+				Tier tier = tm.getTierByLevel(tierClass, tierLevel);
+				sign = new SelectSign(l, tier);
+				if(sign.validateData()) {
+	
+					e.setLine(0, Lang.SIGN_SELECT_0.toString(tier));
+					e.setLine(1, Lang.SIGN_SELECT_1.toString(tier));
+					e.setLine(2, Lang.SIGN_SELECT_2.toString(tier));
+					e.setLine(3, Lang.SIGN_SELECT_3.toString(tier));
+				}else {
+					p.sendMessage(Lang.TIER_NOT_FOUND.toString());
+					sign = null;
+				}
+			}
+				
+		}
+		if(sign == null) {
+			e.setLine(0, Lang.SIGN_NOT_VALID_0.toString());
+			e.setLine(1, Lang.SIGN_NOT_VALID_1.toString());
+			e.setLine(2, Lang.SIGN_NOT_VALID_2.toString());
+			e.setLine(3, Lang.SIGN_NOT_VALID_3.toString());
+			return;
+		}
+		
+		signManager.addSign(sign);
+		p.sendMessage(Lang.PREFIX.toString() + Lang.SIGN_SUCCESS.toString());
+	}
+	
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent e) {
+		Location l = e.getBlock().getLocation();
+		ClickableSign signAtLocation = signManager.getSignFromLocation(l);
+		Player p = e.getPlayer();
+		if(signManager.removeSign(signAtLocation)) {
+			p.sendMessage(Lang.PREFIX.toString() + Lang.SIGN_DELETED.toString());
+		}
+		if(isWorldDisabled(l.getWorld())) return;
 		if(bm.isGenLocationKnown(l)) {
-			Player p = e.getPlayer();
 			bm.setPlayerForLocation(p, l);
 		}
 	}
