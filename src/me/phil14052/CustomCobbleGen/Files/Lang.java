@@ -37,7 +37,7 @@ public enum Lang {
     NO_PERMS("no-permissions", "&cYou don't have permission for that!"),
     RELOAD_SUCCESS("reload-success", "&aReloaded the plugin in %time% seconds."),
     FORCE_SAVE_SUCCESS("force-save-success", "&aSuccessfully force saved the player data"),
-    PLAYER_PLUGIN_HELP("player.plugin-help", "ARRAYLIST: &8&l&m--------------------- ,   , &3{CustomCobbleGen} - &8Help"
+    PLAYER_PLUGIN_HELP("player.plugin-help", "ARRAYLIST: &8&l&m--------------------- ,   , &3CustomCobbleGen - &8Help"
     		+ " , &3/%command%&8 - Show the GUI"
     		+ " , &3/%command% help&8 - Shows the help menu"
     		+ " , &3/%command% tier&8 - Shows the currently selected tier"
@@ -51,6 +51,8 @@ public enum Lang {
     PLAYER_ALREADY_OWNS_TIER("player-already-owns-tier", "The player already owns this tier"),
     TIER_GIVEN("tier-given", "Tier has been given to the player"),
     TIER_GOTTEN("tier-gotten", "You have unlocked a new tier"),
+    TIER_NOT_PURCHASED("tier-not-purchased", "&cYou have not unlocked this tier yet"),
+    TIER_NOT_FOUND("tier-not-found", "&cTier not found"),
     FORCE_PURCHASED("force-purchased", "You have now force bought %selected_tier_name% for %player_name%"),
     ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, forcesave, settier, givetier, forcebuy]"),
     GUI_BUY("gui.buy", "&aClick to buy"),
@@ -75,7 +77,25 @@ public enum Lang {
     GUI_CONFIRM_CANCEL("gui.confirm.cancel.name", "&cCancel"),
     GUI_CONFIRM_CANCEL_LORE("gui.confirm.cancel.lore", "&8Click to cancel the purchase"),
     GUI_CONFIRM_BUY("gui.confirm.buy.name", "&aBuy"),
-    GUI_CONFIRM_BUY_LORE("gui.confirm.buy.lore", "&8Click to confirm the purchase");
+    GUI_CONFIRM_BUY_LORE("gui.confirm.buy.lore", "&8Click to confirm the purchase"),
+    SIGN_GUI_0("signs.GUI.0", "&3CustomCobbleGen"),
+    SIGN_GUI_1("signs.GUI.1", " "),
+    SIGN_GUI_2("signs.GUI.2", "&lClick to open"),
+    SIGN_GUI_3("signs.GUI.3", "&lthe GUI"),
+    SIGN_SELECT_0("signs.select.0", "&3CustomCobbleGen"),
+    SIGN_SELECT_1("signs.select.1", " "),
+    SIGN_SELECT_2("signs.select.2", "&lClick to select"),
+    SIGN_SELECT_3("signs.select.3", "&a&l%tier_name%"),
+    SIGN_NOT_VALID_0("signs.not-valid.0", "&3CustomCobbleGen"),
+    SIGN_NOT_VALID_1("signs.not-valid.1", ""),
+    SIGN_NOT_VALID_2("signs.not-valid.2", "&cNot a valid sign"),
+    SIGN_NOT_VALID_3("signs.not-valid.3", ""),
+    SIGN_NO_PERMISSION_0("signs.no-permission.0", "&3CustomCobbleGen"),
+    SIGN_NO_PERMISSION_1("signs.no-permission.1", "&cYou do not have"),
+    SIGN_NO_PERMISSION_2("signs.no-permission.2", "&cpermissions to"),
+    SIGN_NO_PERMISSION_3("signs.no-permission.3", "&ccreate this sign"),
+    SIGN_SUCCESS("signs.success", "Successfully created a clickable sign"),
+    SIGN_DELETED("signs.deleted", "&cSign deleted");
     
     
     private String path;
