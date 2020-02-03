@@ -90,6 +90,10 @@ public enum Lang {
     SIGN_NOT_VALID_1("signs.not-valid.1", ""),
     SIGN_NOT_VALID_2("signs.not-valid.2", "&cNot a valid sign"),
     SIGN_NOT_VALID_3("signs.not-valid.3", ""),
+    SIGN_NO_PERMISSION_0("signs.no-permission.0", "&3CustomCobbleGen"),
+    SIGN_NO_PERMISSION_1("signs.no-permission.1", "&cYou do not have"),
+    SIGN_NO_PERMISSION_2("signs.no-permission.2", "&cpermissions to"),
+    SIGN_NO_PERMISSION_3("signs.no-permission.3", "&ccreate this sign"),
     SIGN_SUCCESS("signs.success", "Successfully created a clickable sign"),
     SIGN_DELETED("signs.deleted", "&cSign deleted");
     

@@ -33,6 +33,10 @@ public class SignManager {
 		signs = new ArrayList<>();
 	}
 	
+	public boolean areSignsEnabled() {
+		return plugin.getConfig().getBoolean("options.signs.enabled");
+	}
+	
 	public List<ClickableSign> getSigns(){
 		return this.signs;
 	}

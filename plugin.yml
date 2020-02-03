@@ -8,4 +8,4 @@ softdepend: [Vault, PlaceholderAPI, BentoBox, uSkyBlock]
 commands:
   cobblegen:
     description: CustomCobbleGen Plugin Main Command
-    aliases: [oregen, cobblegenerator, oregenerator]
+    aliases: [oregen, cobblegenerator, oregenerator, ccg]
