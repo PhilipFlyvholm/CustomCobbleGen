@@ -17,10 +17,11 @@ You can also have different tier classes, which can be used to give players with
 - Placeholder API support
 - Money, XP and Items, Level requirements for buying tiers
 - uSkyBlock and BentoBox (bSkyBlock, AcidIsland + Addons) Support
+- Clickable signs
 
 ### Future features:
 - The ability to only have ranked tiers
-- Purchase/select signs
+- Purchase signs
 
 I am open to new ideas/features. You can write to me over Spigot or on Github
 
