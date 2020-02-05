@@ -77,6 +77,7 @@ public class SignManager {
 	
 	public boolean loadSignsFromFile(boolean forceReload) {
 		if(!this.getSigns().isEmpty() && !forceReload) return false;
+		signs = new ArrayList<>();
 		List<String> serilizedSigns = plugin.getSignsConfig().getStringList("signs");
 		for(String s : serilizedSigns) {
 			// [World, x, y, z, type]
@@ -100,14 +101,15 @@ public class SignManager {
 			
 			ClickableSign sign = null;
 			if(type == ClickableSignType.GUI) sign = new GUISign(loc);
-			if(type == ClickableSignType.SELECT) {
+			if(type == ClickableSignType.SELECT || type == ClickableSignType.BUY) {
 				
 				String tierClass = items[5];
 				int tierLevel = Integer.parseInt(items[6]);
 				plugin.debug(tierClass, tierLevel);
 				Tier tier = tm.getTierByLevel(tierClass, tierLevel);
-				sign = new SelectSign(loc, tier);
-				if(!sign.validateData()) continue;
+				if(type == ClickableSignType.SELECT)  sign = new SelectSign(loc, tier);
+				if(type == ClickableSignType.BUY) sign = new BuySign(loc, tier);
+				if(sign == null || !sign.validateData()) continue;
 			}
 			this.getSigns().add(sign);
 		}

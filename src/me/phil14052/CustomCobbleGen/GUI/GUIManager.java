@@ -161,6 +161,19 @@ public class GUIManager {
 			player.openInventory(inventory);
 		}
 		
+		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
+			int rows = 0;
+			for(String tierClass : tiers.keySet()) {
+				List<Tier> classTiers = tiers.get(tierClass);
+				int classRows = classTiers.size()/9;
+				if(classTiers.size()%9 > 0D) classRows++;
+				rows += classRows;
+			}
+					if(closeLine) rows++;
+			if(rows > 6) rows = 6; //A GUI CAN MAX BE 6 ROWS
+			if(rows < 1) rows = 1;
+			return (rows*9);
+		}
 	}
 	
 	public class ConfirmGUI {
@@ -198,6 +211,7 @@ public class GUIManager {
 			buyItem.setItemMeta(buyItemMeta);
 			
 			Icon buyIcon = new Icon(buyItem);
+			
 			buyIcon.addClickAction(new ClickAction() {
 				@Override
 				public void execute(Player p) {
@@ -212,7 +226,25 @@ public class GUIManager {
 			});
 			
 			ch.setIcon(12, cancelIcon);
-			ch.setIcon(13, new Icon(tier.getIcon()));
+			ItemStack is = tier.getIcon().clone();
+			ItemMeta im = is.getItemMeta();
+			List<String> lore = im.getLore();
+			if(tm.canPlayerBuyTier(p, tier)) {
+				for(Requirement r : tier.getRequirements()) {
+					if(!tier.hasRequirement(r.getRequirementType())) continue;
+					lore = r.addAvailableString(tier, lore);
+				}
+			}else {
+				lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
+
+				for(Requirement r : tier.getRequirements()) {
+					if(!tier.hasRequirement(r.getRequirementType())) continue;
+					lore = r.addUnavailableString(tier, lore);
+				}
+			}
+			im.setLore(lore);
+			is.setItemMeta(im);
+			ch.setIcon(13, new Icon(is));
 			ch.setIcon(14, buyIcon);
 		}
 		public void open(){
@@ -222,34 +254,7 @@ public class GUIManager {
 		
 	}
 	
-	private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
-		//TODO: ADD PAGES
-		int rows = 0;
-		for(String tierClass : tiers.keySet()) {
-			List<Tier> classTiers = tiers.get(tierClass);
-			int classRows = classTiers.size()/9;
-			if(classTiers.size()%9 > 0D) classRows++;
-			rows += classRows;
-		}
-		
-		/*int rows = itemSize/9;
-		if(itemSize%9 > 0D) rows++;*/
-		if(closeLine) rows++;
-		if(rows > 6) rows = 6; //A GUI CAN MAX BE 6 ROWS
-		if(rows < 1) rows = 1;
-		return (rows*9);
-	}
 	
-	@SuppressWarnings("unused")
-	private int getGUISize(int itemsSize, boolean closeLine){
-		//TODO: ADD PAGES
-		int rows = itemsSize/9;
-		if(itemsSize%9 > 0D) rows++;
-		if(closeLine) rows++;
-		if(rows > 6) rows = 6; //A GUI CAN MAX BE 6 ROWS
-		if(rows < 1) rows = 1;
-		return (rows*9);
-	}
 	
 	
 	public static GUIManager getInstance(){
