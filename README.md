@@ -20,8 +20,7 @@ You can also have different tier classes, which can be used to give players with
 - Clickable signs
 
 ### Future features:
-- The ability to only have ranked tiers
-- Purchase signs
+https://trello.com/b/ibJ3WwHW/customcobblegen-plugin
 
 I am open to new ideas/features. You can write to me over Spigot or on Github
 
