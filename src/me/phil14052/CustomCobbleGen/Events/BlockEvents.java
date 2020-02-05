@@ -195,6 +195,7 @@ public class BlockEvents implements Listener{
 				e.setCancelled(true);
 				return;
 			}
+			l.setY(l.getY()-1);
 		}
 		if(isWorldDisabled(l.getWorld())) return;
 		if(bm.isGenLocationKnown(l)) {

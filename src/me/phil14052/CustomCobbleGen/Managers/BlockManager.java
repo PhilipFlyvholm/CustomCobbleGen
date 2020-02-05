@@ -14,12 +14,15 @@ import java.util.Set;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+
 public class BlockManager {
 
 	private static BlockManager instance = null;
 	private List<Location> knownGenLocations = new ArrayList<Location>();
 	private Map<Location, GenBlock> genBreaks = new HashMap<Location, GenBlock>();
-
+	
+	
 	public static BlockManager getInstance() {
 		if(instance == null) instance = new BlockManager();
 		return instance;
