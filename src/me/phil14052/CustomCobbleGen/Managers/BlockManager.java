@@ -68,7 +68,7 @@ public class BlockManager {
 		// Remove all expired GenBlock entries
 		if(genBreaks == null || genBreaks.entrySet() == null) return;
 		Set<Entry<Location, GenBlock>> entrySet = genBreaks.entrySet();
-		if(entrySet.size() <= 0) return;
+		if(entrySet == null || entrySet.size() <= 0) return;
 		for (Map.Entry<Location, GenBlock> entry : entrySet) {
 			GenBlock gb = entry.getValue();
 			if (gb.hasExpired()) {

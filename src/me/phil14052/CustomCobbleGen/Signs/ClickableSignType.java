@@ -10,6 +10,6 @@ package me.phil14052.CustomCobbleGen.Signs;
  */
 public enum ClickableSignType {
 
-	GUI, SELECT;
+	GUI, SELECT, BUY;
 	
 }

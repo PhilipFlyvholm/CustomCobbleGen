@@ -23,6 +23,7 @@ import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.GenBlock;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.BuySign;
 import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
 import me.phil14052.CustomCobbleGen.Signs.GUISign;
 import me.phil14052.CustomCobbleGen.Signs.SelectSign;
@@ -125,6 +126,32 @@ public class BlockEvents implements Listener{
 				noPermission = true;
 			}
 			
+		}else if(lines[1].equalsIgnoreCase("buy")){
+			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create.buy", true)) {
+				if(lines[2] == null) {
+					p.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_CLASS.toString());
+				}else if(lines[3] == null || !lines[3].matches("-?\\d+")) {
+					p.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString());
+				}else {
+					String tierClass = lines[2];
+					int tierLevel = Integer.parseInt(lines[3]);
+					Tier tier = tm.getTierByLevel(tierClass, tierLevel);
+					sign = new BuySign(l, tier);
+					if(sign.validateData()) {
+		
+						e.setLine(0, Lang.SIGN_BUY_0.toString(tier));
+						e.setLine(1, Lang.SIGN_BUY_1.toString(tier));
+						e.setLine(2, Lang.SIGN_BUY_2.toString(tier));
+						e.setLine(3, Lang.SIGN_BUY_3.toString(tier));
+					}else {
+						p.sendMessage(Lang.TIER_NOT_FOUND.toString());
+						sign = null;
+					}
+				}
+			} else {
+				noPermission = true;
+			}
+			
 		}
 
 		if(sign == null) {
@@ -158,6 +185,13 @@ public class BlockEvents implements Listener{
 					return;
 				}
 			}else {
+				e.setCancelled(true);
+				return;
+			}
+		}else {
+			l.setY(l.getY()+1);
+			signAtLocation = signManager.getSignFromLocation(l);
+			if(signAtLocation != null) {
 				e.setCancelled(true);
 				return;
 			}
