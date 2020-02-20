@@ -141,7 +141,7 @@ public enum Lang {
     			string = PlaceholderAPI.setPlaceholders(p, string);
     		}
     		string = string.replaceAll("%player_name%", p.getName());
-    		Tier tier = tm.getSelectedTier(p);
+    		Tier tier = tm.getSelectedTier(p.getUniqueId());
     		if(tier != null) {
         		string = string.replaceAll("%selected_tier_level%", tier.getLevel() + "");
         		string = string.replaceAll("%selected_tier_class%", tier.getTierClass() + "");	

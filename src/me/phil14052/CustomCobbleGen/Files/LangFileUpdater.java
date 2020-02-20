@@ -2,9 +2,9 @@ package me.phil14052.CustomCobbleGen.Files;
 
 import java.util.ArrayList;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-
 import org.bukkit.plugin.PluginDescriptionFile;
+
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
 public class LangFileUpdater {
 	public LangFileUpdater(CustomCobbleGen plugin){

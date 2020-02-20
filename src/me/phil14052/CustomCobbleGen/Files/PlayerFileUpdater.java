@@ -1,8 +1,8 @@
 package me.phil14052.CustomCobbleGen.Files;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-
 import org.bukkit.plugin.PluginDescriptionFile;
+
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
 public class PlayerFileUpdater {
 	public PlayerFileUpdater(CustomCobbleGen plugin){

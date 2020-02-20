@@ -4,6 +4,8 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
+import java.util.UUID;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -34,18 +36,19 @@ public class PlayerEvents implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
-		Player p = e.getPlayer();
+		UUID uuid = e.getPlayer().getUniqueId();
 		// If the player has previously used the plugin, then load the player info.
-		if(!tm.selectedTierContainsPlayer(p) && !tm.purchasedTiersContainsPlayer(p)) tm.loadPlayerData(p);
-		if(!tm.selectedTierContainsPlayer(p)) tm.givePlayerStartSelect(p);
-		if(!tm.purchasedTiersContainsPlayer(p)) tm.givePlayerStartPurchases(p);
+		if(!tm.selectedTierContainsUUID(uuid) && !tm.purchasedTiersContainsUUID(uuid)) tm.loadPlayerData(uuid);
+		if(!tm.selectedTierContainsUUID(uuid)) tm.givePlayerStartSelect(uuid);
+		if(!tm.purchasedTiersContainsUUID(uuid)) tm.givePlayerStartPurchases(e.getPlayer());
 	}
 	
 	@EventHandler
 	public void onPlayerLeave(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
 		// Cleanup
-		tm.savePlayerData(p);
+		bm.cleanupExpiredPistons(p.getUniqueId());
+		tm.savePlayerData(p.getUniqueId());
 		bm.cleanupExpiredLocations();
 	}
 	

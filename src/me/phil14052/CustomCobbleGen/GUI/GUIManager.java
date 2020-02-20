@@ -46,7 +46,7 @@ public class GUIManager {
 				failedLoad = true;
 				return;
 			}
-			Tier selectedTier = tm.getSelectedTier(p);
+			Tier selectedTier = tm.getSelectedTier(p.getUniqueId());
 			for(String tierClass : tiers.keySet()) {
 				int j = 0;
 				List<Tier> classTiers = tiers.get(tierClass);
@@ -121,7 +121,7 @@ public class GUIManager {
 						public void execute(Player p) {
 							//Check if the player has purchased the level
 							if(tm.hasPlayerPurchasedLevel(p, tier)) {
-								tm.setPlayerSelectedTier(p, tier);
+								tm.setPlayerSelectedTier(p.getUniqueId(), tier);
 								p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 								p.closeInventory();
 							}else {
@@ -131,7 +131,7 @@ public class GUIManager {
 										new ConfirmGUI(p, tier).open();	
 									}else {
 										if(tm.purchaseTier(p, tier)) {
-											tm.setPlayerSelectedTier(p, tier);
+											tm.setPlayerSelectedTier(p.getUniqueId(), tier);
 											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
 											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 											p.closeInventory();
@@ -216,7 +216,7 @@ public class GUIManager {
 				@Override
 				public void execute(Player p) {
 					if(tm.purchaseTier(p, tier)) {
-						tm.setPlayerSelectedTier(p, tier);
+						tm.setPlayerSelectedTier(p.getUniqueId(), tier);
 						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
 						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 						p.closeInventory();
