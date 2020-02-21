@@ -116,7 +116,7 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
             return "";
         }
 
-		Tier tier = TierManager.getInstance().getSelectedTier(player);
+		Tier tier = TierManager.getInstance().getSelectedTier(player.getUniqueId());
         // %customcobblegen_selected_tier_level%
         if(identifier.equals("selected_tier_level")){
         	if(tier == null) return "0";

@@ -31,6 +31,7 @@ public class ConfigUpdater extends YamlConfiguration {
 		config.addDefault("options.gui.hideInfoIfLocked", false);
 		config.addDefault("options.gui.confirmpurchases", true);
 		config.addDefault("options.signs.enabled", true);
+		config.addDefault("options.automation.pistons", false);
 		List<String> disabledWorlds = new ArrayList<String>();
 		disabledWorlds.add("world_nether");
 		disabledWorlds.add("world_the_end");

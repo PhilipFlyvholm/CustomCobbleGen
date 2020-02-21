@@ -281,7 +281,11 @@ public class CustomCobbleGen extends JavaPlugin {
 	public void debug(Object... objects) {
 		this.debug(false, objects);
 	}
+
 	
+	public void debug(Boolean booleanObject){
+		this.debug(booleanObject.getClass().getTypeName() + ": "+ booleanObject);
+	}
 	public void debug(String message){
 		this.debug(message, false);
 	}
@@ -289,6 +293,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		if(overrideConfigOption == false && plugin.getConfig().getBoolean("debug") == false) return;
 		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message).replaceAll("&", "\u00A7"));
 	}
+	
 	public void log(String message){
 		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lLog &8-&7 " + message).replaceAll("&", "\u00A7"));
 	}

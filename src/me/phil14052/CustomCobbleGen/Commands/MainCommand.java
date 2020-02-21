@@ -34,11 +34,8 @@ public class MainCommand implements CommandExecutor{
 			guiManager.new MainGUI(p).open();
 			return true;
 		}else if(args[0].equalsIgnoreCase("help")) {
-			List<String> helpStrings = Lang.PLAYER_PLUGIN_HELP.toStringList();
-			for(String s : helpStrings) {
-				s = s.replaceAll("%command%", label);
-				sender.sendMessage(s);
-			}
+
+			sendHelp(sender, label);
 			return true;
 		}else if(args[0].equalsIgnoreCase("tier")) {
 			if(!pm.hasPermission(sender, "customcobblegen.tier", true)) return false;
@@ -49,7 +46,7 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				Player p = (Player) sender;
-				Tier tier = tm.getSelectedTier(p);
+				Tier tier = tm.getSelectedTier(p.getUniqueId());
 				if(tier == null) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_SELF.toString(p));
 					return false;
@@ -64,7 +61,7 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 
-				Tier tier = tm.getSelectedTier(p);
+				Tier tier = tm.getSelectedTier(p.getUniqueId());
 				if(tier == null) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_OTHER.toString(p));
 					return false;
@@ -127,7 +124,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString(p));
 					return false;
 				}
-				tm.setPlayerSelectedTier(p, tier);
+				tm.setPlayerSelectedTier(p.getUniqueId(), tier);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGE_SUCCES.toString(p));
 				return true;
 			}else if(args[1].equalsIgnoreCase("givetier")) {
@@ -162,7 +159,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_ALREADY_OWNS_TIER.toString());
 					return false;
 				}
-				tm.getPlayersPurchasedTiers(p).add(tier);
+				tm.getPlayersPurchasedTiers(p.getUniqueId()).add(tier);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_GIVEN.toString());
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_GOTTEN.toString());
 			}else if(args[1].equalsIgnoreCase("forcebuy")) {
@@ -198,9 +195,12 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				tm.purchaseTier(p, tier, true);
-				tm.setPlayerSelectedTier(p, tier);
+				tm.setPlayerSelectedTier(p.getUniqueId(), tier);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.FORCE_PURCHASED.toString(p));
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
+			}else if(args[1].equalsIgnoreCase("debug")){
+				if(!pm.hasPermission(sender, "customcobblegen.debugger", true)) return false;
+				sender.sendMessage("Hi! Nothing set to debug :D");
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));
@@ -208,15 +208,19 @@ public class MainCommand implements CommandExecutor{
 			}
 			return true;
 		}else{
-			List<String> helpStrings = Lang.PLAYER_PLUGIN_HELP.toStringList();
-			for(String s : helpStrings) {
-				s = s.replaceAll("%command%", label);
-				sender.sendMessage(s);
-			}
-			return true;
+			sendHelp(sender, label);
 		}
+		return true;
 		   
 	}
 	
+	private void sendHelp(CommandSender sender, String label) {
+
+		List<String> helpStrings = Lang.PLAYER_PLUGIN_HELP.toStringList();
+		for(String s : helpStrings) {
+			s = s.replace("%command%", label);
+			sender.sendMessage(s);
+		}
+	}
 }
 

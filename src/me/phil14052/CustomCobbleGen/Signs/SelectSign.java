@@ -77,7 +77,7 @@ public class SelectSign implements ClickableSign{
 	public void onInteract(Player p) {
 		if(!this.isValid()) return;
 		if(tm.hasPlayerPurchasedLevel(p, this.getSelectableTier())) {
-			tm.setPlayerSelectedTier(p, this.getSelectableTier());
+			tm.setPlayerSelectedTier(p.getUniqueId(), this.getSelectableTier());
 			p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 		}else {
 			p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_NOT_PURCHASED.toString(this.getSelectableTier()));

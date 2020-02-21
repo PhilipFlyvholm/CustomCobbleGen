@@ -81,7 +81,7 @@ public class BuySign implements ClickableSign{
 	public void onInteract(Player p) {
 		if(!this.isValid()) return;
 		if(tm.hasPlayerPurchasedLevel(p, this.getPurchasableTier())) {
-			tm.setPlayerSelectedTier(p, this.getPurchasableTier());
+			tm.setPlayerSelectedTier(p.getUniqueId(), this.getPurchasableTier());
 			p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 		}else {
 			String tierClass = this.getPurchasableTier().getTierClass();

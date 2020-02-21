@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -27,16 +26,18 @@ import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 public class TierManager {
 
-	private Map<Player, List<Tier>> purchasedTiers;
-	private Map<Player, Tier> selectedTier;
+	private Map<UUID, List<Tier>> purchasedTiers;
+	private Map<UUID, Tier> selectedTier;
 	private static TierManager instance = null;
 	private CustomCobbleGen plugin = null;
 	private Map<String, List<Tier>> tiers;
+	private BlockManager bm;
 	
 	public TierManager(){
 		plugin = CustomCobbleGen.getInstance();
-		setSelectedTier(new HashMap<Player, Tier>());
-		setPurchasedTiers(new HashMap<Player, List<Tier>>());
+		bm = BlockManager.getInstance();
+		setSelectedTier(new HashMap<UUID, Tier>());
+		setPurchasedTiers(new HashMap<UUID, List<Tier>>());
 	}
 	
 	public void loadTiers(){
@@ -117,37 +118,37 @@ public class TierManager {
 	}
 	
 	
-	public void addPlayer(Player p, Tier selectedTier){
-		if(!this.selectedTierContainsPlayer(p)) this.selectedTier.put(p, selectedTier);
+	public void addUUID(UUID uuid, Tier selectedTier){
+		if(!this.selectedTierContainsUUID(uuid)) this.selectedTier.put(uuid, selectedTier);
 	}
 	
-	public void addPlayer(Player p, List<Tier> purchasedTiers){
-		if(!this.purchasedTiersContainsPlayer(p)) this.purchasedTiers.put(p, purchasedTiers);
+	public void addUUID(UUID uuid, List<Tier> purchasedTiers){
+		if(!this.purchasedTiersContainsUUID(uuid)) this.purchasedTiers.put(uuid, purchasedTiers);
 	}
 	
-	public void addPlayer(Player p, Tier selectedTier, List<Tier> purchasedTiers){
-		if(selectedTier != null) this.addPlayer(p, selectedTier);
-		if(purchasedTiers != null && !purchasedTiers.isEmpty()) this.addPlayer(p, purchasedTiers);
+	public void addUUID(UUID uuid, Tier selectedTier, List<Tier> purchasedTiers){
+		if(selectedTier != null) this.addUUID(uuid, selectedTier);
+		if(purchasedTiers != null && !purchasedTiers.isEmpty()) this.addUUID(uuid, purchasedTiers);
 	}
 	
-	public void setPlayerSelectedTier(Player p, Tier tier){
-		if(this.selectedTierContainsPlayer(p)) this.selectedTier.remove(p);
-		this.addPlayer(p, tier);
+	public void setPlayerSelectedTier(UUID uuid, Tier tier){
+		if(this.selectedTierContainsUUID(uuid)) this.selectedTier.remove(uuid);
+		this.addUUID(uuid, tier);
 	}
 	
-	public boolean selectedTierContainsPlayer(Player p){
-		return selectedTier.containsKey(p);
+	public boolean selectedTierContainsUUID(UUID uuid){
+		return selectedTier.containsKey(uuid);
 	}
-	public boolean purchasedTiersContainsPlayer(Player p){
-		return purchasedTiers.containsKey(p);
-	}
-	
-	public Tier getSelectedTier(Player p){
-		if(!this.selectedTierContainsPlayer(p)) return null;
-		return getSelectedTierList().get(p);
+	public boolean purchasedTiersContainsUUID(UUID uuid){
+		return purchasedTiers.containsKey(uuid);
 	}
 	
-	public Map<Player, Tier> getSelectedTierList() {
+	public Tier getSelectedTier(UUID uuid){
+		if(!this.selectedTierContainsUUID(uuid)) return null;
+		return getSelectedTierList().get(uuid);
+	}
+	
+	public Map<UUID, Tier> getSelectedTierList() {
 		return selectedTier;
 	}
 	
@@ -161,23 +162,22 @@ public class TierManager {
 	}
 	
 	public void loadAllPlayerData() {
-		selectedTier = new HashMap<Player, Tier>();
-		purchasedTiers = new HashMap<Player, List<Tier>>();
+		selectedTier = new HashMap<UUID, Tier>();
+		purchasedTiers = new HashMap<UUID, List<Tier>>();
 		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players");
 		for(String uuid : playerSection.getKeys(false)){
-			Player p = Bukkit.getPlayer(UUID.fromString(uuid));
-			if(p == null || !p.isOnline()) continue; //Offline player
-			this.loadPlayerData(p);
+			this.loadPlayerData(UUID.fromString(uuid));
 		}
+		bm.loadGenPistonData();
 	}
 	
-	public void loadPlayerData(Player p){
-		if(this.selectedTierContainsPlayer(p)) this.selectedTier.remove(p);
-		if(this.purchasedTiersContainsPlayer(p)) this.purchasedTiers.remove(p);
-		if(p == null) return;
+	public void loadPlayerData(UUID uuid){
+		if(this.selectedTierContainsUUID(uuid)) this.selectedTier.remove(uuid);
+		if(this.purchasedTiersContainsUUID(uuid)) this.purchasedTiers.remove(uuid);
+		if(uuid == null) return;
 		Tier tier;
-		if(!plugin.getPlayerConfig().contains("players." + p.getUniqueId().toString())) return; //New player
-		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players." + p.getUniqueId().toString());
+		if(!plugin.getPlayerConfig().contains("players." + uuid)) return; //New Player
+		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players." + uuid);
 		if(playerSection.contains("selected")) {
 			int tierLevel = playerSection.getInt("selected.level");
 			String tierClass = playerSection.getString("selected.class");
@@ -196,39 +196,38 @@ public class TierManager {
 				}
 			}
 		}
-		this.addPlayer(p, tier, purchasedTiers);
+		this.addUUID(uuid, tier, purchasedTiers);
 	}
 	
 	public void saveAllPlayerData(){
-		for(Player p : this.getSelectedTierList().keySet()){
-			this.saveSelectedTierPlayerData(p);
+		for(UUID uuid : this.getSelectedTierList().keySet()){
+			this.saveSelectedTierPlayerData(uuid);
 		}
-		for(Player p : this.getPurchasedTiers().keySet()) {
-			this.savePurchasedTiersPlayerData(p);
+		for(UUID uuid : this.getPurchasedTiers().keySet()) {
+			this.savePurchasedTiersPlayerData(uuid);
 		}
+		bm.saveGenPistonData();
 		plugin.savePlayerConfig();
 	}
 	
-	public void savePlayerData(Player p) {
-		this.savePurchasedTiersPlayerData(p);
-		this.saveSelectedTierPlayerData(p);
+	public void savePlayerData(UUID uuid) {
+		this.savePurchasedTiersPlayerData(uuid);
+		this.saveSelectedTierPlayerData(uuid);
 	}
 	
-	public void saveSelectedTierPlayerData(Player p) {
-		if(this.selectedTierContainsPlayer(p)) {
-			Tier tier = getSelectedTier(p);
-			String uuid = p.getUniqueId().toString();
+	public void saveSelectedTierPlayerData(UUID uuid) {
+		if(this.selectedTierContainsUUID(uuid)) {
+			Tier tier = getSelectedTier(uuid);
 			plugin.debug("Saving selected tier for " + uuid + ". Currently selected level " + tier.getLevel() + " in class " + tier.getTierClass());
 			plugin.getPlayerConfig().set("players." + uuid + ".selected.class", tier.getTierClass());
 			plugin.getPlayerConfig().set("players." + uuid + ".selected.level", tier.getLevel());
 		}
 	}
 	
-	public void savePurchasedTiersPlayerData(Player p) {
+	public void savePurchasedTiersPlayerData(UUID uuid) {
 		
-		if(this.purchasedTiersContainsPlayer(p)) {
-			String uuid = p.getUniqueId().toString();
-			List<Tier> purchasedTiers = this.getPurchasedTiers().get(p);
+		if(this.purchasedTiersContainsUUID(uuid)) {
+			List<Tier> purchasedTiers = this.getPurchasedTiers().get(uuid);
 			for(Tier purchasedTier : purchasedTiers){
 				List<Integer> purchasedLevels = new ArrayList<Integer>();
 				if(plugin.getPlayerConfig().contains("players." + uuid + ".purchased." + purchasedTier.getTierClass()))
@@ -241,6 +240,7 @@ public class TierManager {
 	
 	
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
+		if(!p.isOnline()) return false;
 		if(!tier.getTierClass().equals("DEFAULT") && new PermissionManager().hasPermisson(p, "customcobblegen.generator." + tier.getTierClass(), false) == false) return false;
 		for(Requirement r : tier.getRequirements()) {
 			if(!r.furfillsRequirement(p)) return false;
@@ -261,7 +261,7 @@ public class TierManager {
 		}
 		//Buy the tier
 		if(this.hasPlayerPurchasedLevel(p, tier)) return false;
-		this.getPlayersPurchasedTiers(p).add(tier);
+		this.getPlayersPurchasedTiers(p.getUniqueId()).add(tier);
 		return true;
 	}
 
@@ -271,7 +271,8 @@ public class TierManager {
 			return hasPlayerPurchasedLevel(p, tier);
 		}
 		if(tier.getLevel() <= 0 && tier.getTierClass() == "DEFAULT") return true;
-		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(p, tier.getTierClass());
+		UUID uuid = p.getUniqueId();
+		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(uuid, tier.getTierClass());
 		for(Tier tierI : purchasedTiersByClass) {
 			if(tierI.getLevel() == tier.getLevel()) return true;
 			else continue;
@@ -280,12 +281,13 @@ public class TierManager {
 	}
 	
 	public boolean hasPlayerPurchasedPreviousLevel(Player p, Tier nextTier) {
+		UUID uuid = p.getUniqueId();
 		if(this.purchasedTiers.size() == 0) {
 			this.givePlayerStartPurchases(p);
 			return hasPlayerPurchasedPreviousLevel(p, nextTier);
 		}
 		if(nextTier.getLevel() <= 0) return true;
-		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(p, nextTier.getTierClass());
+		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(uuid, nextTier.getTierClass());
 		if(purchasedTiersByClass.size() <= 0) return false;
 		for(Tier tier : purchasedTiersByClass) {
 			if((nextTier.getLevel() -1 ) == tier.getLevel()) return true;
@@ -294,23 +296,24 @@ public class TierManager {
 		
 	}
 	
-	public void givePlayerStartSelect(Player p) {
+	public void givePlayerStartSelect(UUID uuid) {
 		Tier tier = this.getTierByLevel("DEFAULT", 0);
-		if(this.selectedTierContainsPlayer(p)) {
-			this.selectedTier.remove(p);
+		if(this.selectedTierContainsUUID(uuid)) {
+			this.selectedTier.remove(uuid);
 		}
-		this.setPlayerSelectedTier(p, tier);
+		this.setPlayerSelectedTier(uuid, tier);
 	}
 	
-	//If the player is new then the player needs to have a tier they can use. So we give them the default 0
+	//If the Player  is new then the Player needs to have a tier they can use. So we give them the default 0
 	public void givePlayerStartPurchases(Player p) {
 		Tier tier = this.getTierByLevel("DEFAULT", 0);
-		if(this.purchasedTiersContainsPlayer(p)) {
-			this.purchasedTiers.remove(p);
+		UUID uuid = p.getUniqueId();
+		if(this.purchasedTiersContainsUUID(uuid)) {
+			this.purchasedTiers.remove(uuid);
 		}
 		List<Tier> startList = new ArrayList<Tier>();
 		startList.add(tier);
-		this.purchasedTiers.put(p, startList);
+		this.purchasedTiers.put(uuid, startList);
 		this.purchaseTier(p, tier, true);
 		
 	}
@@ -322,8 +325,8 @@ public class TierManager {
 		tiers = null;
 	}
 	public void load() {
-		setSelectedTier(new HashMap<Player, Tier>());
-		setPurchasedTiers(new HashMap<Player, List<Tier>>());
+		setSelectedTier(new HashMap<UUID, Tier>());
+		setPurchasedTiers(new HashMap<UUID, List<Tier>>());
 		tiers = new HashMap<String, List<Tier>>();
 		this.loadTiers();
 		this.loadAllPlayerData();
@@ -339,16 +342,16 @@ public class TierManager {
 		return instance;
 	}
 	
-	public List<Tier> getPlayersPurchasedTiersByClass(Player p, String tierClass) {
-		return this.focusListOnClass(this.getPlayersPurchasedTiers(p), tierClass);
+	public List<Tier> getPlayersPurchasedTiersByClass(UUID uuid, String tierClass) {
+		return this.focusListOnClass(this.getPlayersPurchasedTiers(uuid), tierClass);
 	}
 	
-	public List<Tier> getPlayersPurchasedTiers(Player p) {
-		if(!this.getPurchasedTiers().containsKey(p)) {
+	public List<Tier> getPlayersPurchasedTiers(UUID uuid) {
+		if(!this.getPurchasedTiers().containsKey(uuid)) {
 			List<Tier> emptyTierList = new ArrayList<Tier>();
 			return emptyTierList;
 		}
-		return this.getPurchasedTiers().get(p);
+		return this.getPurchasedTiers().get(uuid);
 	}
 	
 	public List<Tier> focusListOnClass(List<Tier> list, String tierClass) {
@@ -360,19 +363,19 @@ public class TierManager {
 		return newList;
 	}
 	
-	public Map<Player, List<Tier>> getPurchasedTiers() {
+	public Map<UUID, List<Tier>> getPurchasedTiers() {
 		return purchasedTiers;
 	}
 
-	public void setPurchasedTiers(Map<Player, List<Tier>> purchasedTiers) {
+	public void setPurchasedTiers(Map<UUID, List<Tier>> purchasedTiers) {
 		this.purchasedTiers = purchasedTiers;
 	}
 
-	public Map<Player, Tier> getSelectedTier() {
+	public Map<UUID, Tier> getSelectedTier() {
 		return selectedTier;
 	}
 
-	public void setSelectedTier(Map<Player, Tier> selectedTier) {
+	public void setSelectedTier(Map<UUID, Tier> selectedTier) {
 		this.selectedTier = selectedTier;
 	}
 

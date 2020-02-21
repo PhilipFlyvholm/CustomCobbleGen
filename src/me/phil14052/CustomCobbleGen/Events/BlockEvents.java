@@ -4,6 +4,8 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
+import java.util.UUID;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -14,6 +16,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
@@ -21,6 +25,7 @@ import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.GenBlock;
+import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Signs.BuySign;
@@ -55,11 +60,12 @@ public class BlockEvents implements Listener{
 						//A player has prev broken a block here
 						GenBlock gb = bm.getGenBreaks().get(l); //Get the GenBlock in this location
 						if (gb.hasExpired()) {
+							plugin.debug("GB has expired");
 							bm.removeKnownGenLocation(l);
 							return;
 						}
-						Player p = gb.getPlayer(); //Get the player who broke the blocks tier
-						Tier tier = tm.getSelectedTier(p); // ^
+						UUID uuid = gb.getUUID(); //Get the player who broke the blocks tier
+						Tier tier = tm.getSelectedTier(uuid); // ^
 
 						if(tier != null) {
 							Material result = tier.getRandomResult();
@@ -172,6 +178,29 @@ public class BlockEvents implements Listener{
 		signManager.addSign(sign);
 		p.sendMessage(Lang.PREFIX.toString() + Lang.SIGN_SUCCESS.toString());
 	}
+	@EventHandler
+	public void onPistonPush(BlockPistonExtendEvent e) {
+		if(isWorldDisabled(e.getBlock().getWorld())) return;
+		if(!plugin.getConfig().getBoolean("options.automation.pistons")) return;
+		if(!bm.getKnownGenPistons().containsKey(e.getBlock().getLocation())) return;
+		GenPiston piston = bm.getKnownGenPistons().get(e.getBlock().getLocation());
+		Location genBlockLoc = e.getBlock().getRelative(e.getDirection()).getLocation();
+		if(bm.isGenLocationKnown(genBlockLoc)) {
+			piston.setHasBeenUsed(true);
+			bm.setPlayerForLocation(piston.getUUID(), genBlockLoc, true);
+		}
+		
+	}
+
+	@EventHandler
+	public void onBlockPlace(BlockPlaceEvent e) {
+		if(isWorldDisabled(e.getBlock().getWorld())) return;
+		if(!plugin.getConfig().getBoolean("options.automation.pistons")) return;
+		if(e.getBlock().getType() != Material.PISTON) return;
+		if(e.getPlayer() == null || !e.getPlayer().isOnline()) return;
+		GenPiston piston = new GenPiston(e.getBlock().getLocation(), e.getPlayer().getUniqueId());
+		bm.addKnownGenPiston(piston);
+	}
 	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent e) {
@@ -197,9 +226,13 @@ public class BlockEvents implements Listener{
 			}
 			l.setY(l.getY()-1);
 		}
+		if(bm.getKnownGenPistons().containsKey(l)) {
+			bm.getKnownGenPistons().remove(l);
+			return;
+		}
 		if(isWorldDisabled(l.getWorld())) return;
 		if(bm.isGenLocationKnown(l)) {
-			bm.setPlayerForLocation(p, l);
+			bm.setPlayerForLocation(p.getUniqueId(), l, false);
 		}
 	}
 	
