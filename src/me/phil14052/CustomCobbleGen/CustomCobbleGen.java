@@ -98,7 +98,7 @@ public class CustomCobbleGen extends JavaPlugin {
         
 		// Connect to BStats
 		Metrics metrics = new Metrics(this);
-        Metrics.SingleLineChart chart = new Metrics.SingleLineChart("generators", new Callable<Integer>() {
+        Metrics.SingleLineChart genChart = new Metrics.SingleLineChart("generators", new Callable<Integer>() {
         	
 			@Override
 			public Integer call() throws Exception {
@@ -106,7 +106,16 @@ public class CustomCobbleGen extends JavaPlugin {
 			}
         	
         });
-        metrics.addCustomChart(chart);
+        Metrics.SimplePie pistonChart = new Metrics.SimplePie("servers_using_pistons_for_automation", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				return plugin.getConfig().getBoolean("options.automation.pistons") ? "Enabled" : "Disabled";
+			}
+        	
+        });
+        metrics.addCustomChart(genChart);
+        metrics.addCustomChart(pistonChart);
         
 		plugin.debug("CustomCobbleGen is now enabled&2 \u2713");
 		double time2 = System.currentTimeMillis();
