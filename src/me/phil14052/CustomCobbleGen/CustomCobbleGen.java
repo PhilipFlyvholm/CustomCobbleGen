@@ -36,6 +36,7 @@ import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
 import me.phil14052.CustomCobbleGen.Hooks.HookType;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
+import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Signs.SignManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
@@ -51,6 +52,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	private File signsConfigFile;
 	private TierManager tierManager;
 	private SignManager signManager;
+	private GeneratorModeManager generatorModeManager;
 	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
 	public HookType islandPluginHooked = null;
@@ -59,12 +61,14 @@ public class CustomCobbleGen extends JavaPlugin {
 	public void onEnable(){
 		double time = System.currentTimeMillis();
 		plugin = this;
+		generatorModeManager = GeneratorModeManager.getInstance();
 		tierManager = TierManager.getInstance();
 		signManager = SignManager.getInstance();
 		plugin.log("Enabling CustomCobbleGen plugin");
 		// Setup config
 		new ConfigUpdater();
 		saveConfig();
+		generatorModeManager.loadFromConfig();
 		this.debug("The config is now setup");
 		// Setup lang file
 		lang = new Files(this, "lang.yml");
@@ -181,6 +185,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		this.lang.reload();
 		this.reloadPlayerConfig();
 		this.reloadSignsConfig();
+		generatorModeManager.loadFromConfig();
 		signManager.loadSignsFromFile(true);
 		tierManager.reload();
 		tierManager = TierManager.getInstance();
