@@ -4,6 +4,8 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Location;
@@ -11,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,7 +28,9 @@ import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.GenBlock;
+import me.phil14052.CustomCobbleGen.Managers.GenMode;
 import me.phil14052.CustomCobbleGen.Managers.GenPiston;
+import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Signs.BuySign;
@@ -41,19 +46,42 @@ public class BlockEvents implements Listener{
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	private SignManager signManager = SignManager.getInstance();
 	private PermissionManager pm = new PermissionManager();
+	private GeneratorModeManager genModeManager = GeneratorModeManager.getInstance();
 
 	@EventHandler
 	public void onBlockFlow(BlockFromToEvent e){
 		Block b = e.getBlock();
 		if(isWorldDisabled(b.getLocation().getWorld())) return;
 		Material m = b.getType();
-		if(m.equals(Material.WATER) || m.equals(Material.LAVA)){
+		List<GenMode> modes = genModeManager.getModesContainingMaterial(m);
+		for(GenMode mode : modes) {
+			if(!mode.containsLiquidBlock() || !mode.isValid()) continue;
 			Block toBlock = e.getToBlock();
 			Material toBlockMaterial = toBlock.getType();
-			if(toBlockMaterial.equals(Material.AIR) || toBlockMaterial.equals(Material.WATER) || toBlockMaterial.equals(Material.LAVA)){
-				if(isGeneratingCobbleStone(m, toBlock)){
+			if(toBlockMaterial.equals(Material.AIR) || mode.containsBlock(toBlockMaterial)){
+				if(isGeneratingCobbleStone(mode, m, toBlock)){
 					Location l = toBlock.getLocation();
 					//Checks if the block has been broken before and if it is a known gen location
+					if(!bm.isGenLocationKnown(l) && mode.isSearchingForPlayersNearby()) {
+						Double searchRadius = plugin.getConfig().getDouble("options.playerSearchRadius");
+						Collection<Entity> entitiesNearby = l.getWorld().getNearbyEntities(l, searchRadius, searchRadius, searchRadius);
+						Player closestPlayer = null;
+						double closestDistance = 100D;
+						for(Entity entity : entitiesNearby) {
+							if(entity instanceof Player) {
+								Player p = (Player) entity;
+								double distance = l.distance(p.getLocation());
+								if(closestPlayer == null || closestDistance > distance) {
+									closestPlayer = p;
+									closestDistance = distance;
+								}
+							}
+						}
+						if(closestPlayer != null) {
+							bm.addKnownGenLocation(l);
+							bm.setPlayerForLocation(closestPlayer.getUniqueId(), l, false);	
+						}
+					}
 					if(bm.isGenLocationKnown(l)) {
 						//it is a Known gen location
 						if(!bm.getGenBreaks().containsKey(l)) return; //A player has not prev broken a block here
@@ -250,8 +278,8 @@ public class BlockEvents implements Listener{
 		    BlockFace.WEST
 	};
 	
-	private boolean isGeneratingCobbleStone(Material fromM, Block toB){
-		Material mirrorMaterial = (fromM.equals(Material.WATER) ? Material.LAVA : Material.WATER);
+	private boolean isGeneratingCobbleStone(GenMode mode, Material fromM, Block toB){
+		Material mirrorMaterial = (mode.getMirrorMaterial(fromM));
 		for(BlockFace face : faces){
 			Block r = toB.getRelative(face, 1);
 			if(r.getType().equals(mirrorMaterial)) {

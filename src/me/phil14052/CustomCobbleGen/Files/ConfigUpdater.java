@@ -26,6 +26,9 @@ public class ConfigUpdater extends YamlConfiguration {
 						+ " By " + pluginYml.getAuthors().get(0));
 		config.options().copyHeader();
 		config.addDefault("debug", false);
+		config.addDefault("options.generationModes.0.firstBlock", "water");
+		config.addDefault("options.generationModes.0.secondBlock", "lava");
+		config.addDefault("options.playerSearchRadius", 4D);
 		config.addDefault("options.money.format", true);
 		config.addDefault("options.gui.showBarrierBlockIfLocked", false);
 		config.addDefault("options.gui.hideInfoIfLocked", false);

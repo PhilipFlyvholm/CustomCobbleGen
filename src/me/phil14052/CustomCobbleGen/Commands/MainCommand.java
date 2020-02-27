@@ -13,6 +13,8 @@ import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.GUI.GUIManager;
+import me.phil14052.CustomCobbleGen.Managers.GenMode;
+import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
@@ -200,7 +202,10 @@ public class MainCommand implements CommandExecutor{
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
 			}else if(args[1].equalsIgnoreCase("debug")){
 				if(!pm.hasPermission(sender, "customcobblegen.debugger", true)) return false;
-				sender.sendMessage("Hi! Nothing set to debug :D");
+				GeneratorModeManager modeManager = GeneratorModeManager.getInstance();
+				for(GenMode mode : modeManager.getModes()) {
+					sender.sendMessage(mode.getFirstBlock().name() + " / " + mode.getSecondBlock().name() + " / valid: " + mode.isValid() + " / willSearchForPlayers: " + mode.isSearchingForPlayersNearby());
+				}
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));
