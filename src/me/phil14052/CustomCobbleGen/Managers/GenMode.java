@@ -40,6 +40,8 @@ public class GenMode {
 	
 	public Material getMirrorMaterial(Material m) {
 		if(m == null) return null;
+		if(m.name().equals("LAVA") || m.name().equals("STATIONARY_LAVA")) m = Material.LAVA;
+		if(m.name().equals("WATER") || m.name().equals("STATIONARY_WATER")) m = Material.WATER;
 		if(m.equals(this.firstBlock)) return this.secondBlock;
 		else if(m.equals(this.secondBlock)) return this.firstBlock;
 		return null;
@@ -79,7 +81,16 @@ public class GenMode {
 	}
 	
 	public boolean containsBlock(Material m) {
-		return this.firstBlock.equals(m) || this.secondBlock.equals(m);
+		if( this.firstBlock.equals(m) || this.secondBlock.equals(m)) return true;
+		
+		if(m.name().equalsIgnoreCase("WATER") || m.name().equalsIgnoreCase("STATIONARY_WATER")) {
+			if(this.firstBlock.name().equalsIgnoreCase("WATER") || this.firstBlock.name().equalsIgnoreCase("STATIONARY_WATER")) return true;
+			if(this.secondBlock.name().equalsIgnoreCase("WATER") || this.secondBlock.name().equalsIgnoreCase("STATIONARY_WATER")) return true;			
+		}else if(m.name().equalsIgnoreCase("LAVA") || m.name().equalsIgnoreCase("STATIONARY_LAVA")) {
+			if(this.firstBlock.name().equalsIgnoreCase("LAVA") || this.firstBlock.name().equalsIgnoreCase("STATIONARY_LAVA")) return true;
+			if(this.secondBlock.name().equalsIgnoreCase("LAVA") || this.secondBlock.name().equalsIgnoreCase("STATIONARY_LAVA")) return true;
+		}
+		return false;
 	}
 	
 

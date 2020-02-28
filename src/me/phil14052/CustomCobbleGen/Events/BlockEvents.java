@@ -23,6 +23,8 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 
+import com.cryptomorin.xseries.XMaterial;
+
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
@@ -280,6 +282,18 @@ public class BlockEvents implements Listener{
 	
 	private boolean isGeneratingCobbleStone(GenMode mode, Material fromM, Block toB){
 		Material mirrorMaterial = (mode.getMirrorMaterial(fromM));
+		if(!XMaterial.supports(13)){
+			if(this.isWater(mirrorMaterial.name()) || this.isLava(mirrorMaterial.name())) {
+				boolean testWater = this.isWater(mirrorMaterial.name());
+				for(BlockFace face : faces){
+					Block r = toB.getRelative(face, 1);
+					if((testWater && this.isWater(r.getType().name()) || (!testWater && this.isLava(r.getType().name())))) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
 		for(BlockFace face : faces){
 			Block r = toB.getRelative(face, 1);
 			if(r.getType().equals(mirrorMaterial)) {
@@ -289,4 +303,15 @@ public class BlockEvents implements Listener{
 		
 		return false;
 	}
+	private boolean isWater(String materialName) {
+		return materialName.equalsIgnoreCase("WATER") 
+		|| materialName.equalsIgnoreCase("STATIONARY_WATER");
+	}
+
+
+	private boolean isLava(String materialName) {
+		return materialName.equalsIgnoreCase("LAVA") 
+		|| materialName.equalsIgnoreCase("STATIONARY_LAVA");
+	}
+	
 }

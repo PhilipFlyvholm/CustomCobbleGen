@@ -12,6 +12,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.cryptomorin.xseries.XMaterial;
+
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
@@ -24,7 +26,7 @@ import me.phil14052.CustomCobbleGen.Utils.ItemLib;
 public class GUIManager {
 
 	private static GUIManager instance = null;
-	private final ItemStack backgroundItem = new ItemLib(Material.BLACK_STAINED_GLASS_PANE, 1, (short) 15, " ").create();
+	private final ItemStack backgroundItem = new ItemLib(XMaterial.BLACK_STAINED_GLASS_PANE.parseMaterial(), 1, (short) 15, " ").create();
 	//private final ItemStack noPermissionItem = new ItemLib(XMaterial.BARRIER.parseMaterial(), 1, (short) 0, Lang.GUI_NO_PERMISSION_TITLE.toString(), Arrays.asList(Lang.GUI_NO_PERMISSION_LORE.toString())).create();
 	private TierManager tm = TierManager.getInstance();
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
@@ -73,17 +75,20 @@ public class GUIManager {
 					emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
 					lore.add(emptyString);
 					if(selectedTier != null && selectedTier.getLevel() == tier.getLevel() && selectedTier.getTierClass().equalsIgnoreCase(tier.getTierClass())) {
-						GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
-						itemMeta.addEnchant(glow, 1, true);
+						if(XMaterial.supports(13)) {
+
+							GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
+							itemMeta.addEnchant(glow, 1, true);	
+						}
 						lore.add(Lang.GUI_SELECTED.toString());
 					}else if(tm.hasPlayerPurchasedLevel(p, tier)){
 						lore.add(Lang.GUI_SELECT.toString());
 					}else if(!tierClass.equalsIgnoreCase("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tierClass, false)){
-						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(Material.BARRIER);
+						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
 						lore.add(Lang.GUI_LOCKED_PERMISSION.toString());
 					}else if(!tm.hasPlayerPurchasedPreviousLevel(p, tier)){
-						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(Material.BARRIER);
+						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
 					
 						lore.add(Lang.GUI_LOCKED_PREV.toString());
@@ -182,9 +187,15 @@ public class GUIManager {
 		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
 		private Player player;
 		
+		@SuppressWarnings("deprecation")
 		public ConfirmGUI(Player p, Tier tier){
 			player = p;
-			ItemStack cancelItem = new ItemStack(Material.RED_DYE);
+			ItemStack cancelItem;
+			if(!XMaterial.supports(13)) {
+				cancelItem = new ItemStack(Material.matchMaterial("INK_SACK"), 1, (short) 1);
+			}else {
+				cancelItem = new ItemStack(XMaterial.RED_DYE.parseMaterial());
+			}
 			ItemMeta cancelItemMeta = cancelItem.getItemMeta();
 			cancelItemMeta.setDisplayName(Lang.GUI_CONFIRM_CANCEL.toString());
 			List<String> cancelLore = new ArrayList<String>();
@@ -202,7 +213,7 @@ public class GUIManager {
 				}
 			});
 			
-			ItemStack buyItem = new ItemStack(Material.LIME_DYE);
+			ItemStack buyItem = XMaterial.LIME_DYE.parseItem(true);
 			ItemMeta buyItemMeta = buyItem.getItemMeta();
 			buyItemMeta.setDisplayName(Lang.GUI_CONFIRM_BUY.toString());
 			List<String> buyLore = new ArrayList<String>();

@@ -9,6 +9,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.cryptomorin.xseries.XMaterial;
+
 
 public class ItemLib {
 /*
@@ -145,6 +147,7 @@ public class ItemLib {
 	}
 	
 	
+	
 	public ItemStack create(){
 		if(is == null){
 			is = new ItemStack(material, amount);
@@ -156,9 +159,22 @@ public class ItemLib {
 		if(lore != null){
 			im.setLore(lore);
 		}
-		Damageable damageMeta = (Damageable) im;
-		damageMeta.setDamage(damagevalue);
-		is.setItemMeta((ItemMeta) damageMeta);
+		is.setItemMeta(im);
+		is = this.setDamage(is);
+		return is;
+	}
+
+	@SuppressWarnings("deprecation")
+	public ItemStack setDamage(ItemStack is) {
+
+		if(XMaterial.supports(13)) {
+
+			Damageable damageMeta = (Damageable) im;
+			damageMeta.setDamage(damagevalue);
+			is.setItemMeta((ItemMeta) damageMeta);	
+		}else {
+			is.setDurability(damagevalue);
+		}
 		return is;
 	}
 }
