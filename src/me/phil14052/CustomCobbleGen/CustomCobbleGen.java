@@ -11,9 +11,6 @@ import java.lang.reflect.Field;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
-import javax.annotation.Nonnull;
-
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -21,6 +18,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.cryptomorin.xseries.XMaterial;
 
 import me.phil14052.CustomCobbleGen.Commands.MainCommand;
 import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
@@ -250,26 +249,28 @@ public class CustomCobbleGen extends JavaPlugin {
     }
     
     public void registerGlow() {
-    	// Creates a enchantment with no effect, but gives a glow effect on items.
-    	
-    	if(Enchantment.getByKey(new NamespacedKey(this, "GlowEnchant")) != null) return;
-        try {
-            Field f = Enchantment.class.getDeclaredField("acceptingNew");
-            f.setAccessible(true);
-            f.set(null, true);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            GlowEnchant glow = new GlowEnchant(new NamespacedKey(this, "GlowEnchant"));
-            Enchantment.registerEnchantment(glow);
-        }
-        catch (IllegalArgumentException e){
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
+    	// Creates a enchantment with no effect, but gives a glow effect on items. Pre 1.13 makes this a mess. So it disabled
+    	if(XMaterial.supports(13)) {
+
+        	if(Enchantment.getByKey(new NamespacedKey(this, "GlowEnchant")) != null) return;
+            try {
+                Field f = Enchantment.class.getDeclaredField("acceptingNew");
+                f.setAccessible(true);
+                f.set(null, true);
+            }
+            catch (Exception e) {
+            	plugin.log("&cFailed to create enchament: " + e.getMessage());
+            }
+            try {
+                GlowEnchant glow = new GlowEnchant(new NamespacedKey(this, "GlowEnchant"));
+                Enchantment.registerEnchantment(glow);
+            }
+            catch (IllegalArgumentException e){
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+    	}
     }
     
     
@@ -312,32 +313,6 @@ public class CustomCobbleGen extends JavaPlugin {
 		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lLog &8-&7 " + message).replaceAll("&", "\u00A7"));
 	}
 	
-	//CREDIT TO CryptoMorin
-	@Nonnull
-    public String getMajorVersion(@Nonnull String version) {
-        Validate.notEmpty(version, "Cannot get major Minecraft version from null or empty string");
-
-        // getVersion()
-        int index = version.lastIndexOf("MC:");
-        if (index != -1) {
-            version = version.substring(index + 4, version.length() - 1);
-        } else if (version.endsWith("SNAPSHOT")) {
-            // getBukkitVersion()
-            index = version.indexOf('-');
-            version = version.substring(0, index);
-        }
-
-        // 1.13.2, 1.14.4, etc...
-        int lastDot = version.lastIndexOf('.');
-        if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
-
-        return version;
-    }
-	
-	//CREDIT TO CryptoMorin
-	public boolean serverSupports(int version) {
-        return Integer.parseInt(getMajorVersion(Bukkit.getVersion()).substring(2)) >= version;
-    }
 	
 	public static CustomCobbleGen getInstance(){
 		return plugin;
