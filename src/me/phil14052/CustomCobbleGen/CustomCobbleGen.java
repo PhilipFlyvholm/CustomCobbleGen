@@ -141,6 +141,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		this.connectToPlaceholderAPI();
 		this.connectToVault();
 		this.connectToIslandPlugin();
+		
 	}
 	
 	public void connectToIslandPlugin() {
@@ -151,6 +152,9 @@ public class CustomCobbleGen extends JavaPlugin {
 		}else if(pm.getPlugin("uSkyBlock") != null) {
 			this.islandPluginHooked = HookType.USKYBLOCK;
 			plugin.debug("Found uSkyBlock&2 \u2713");
+		}else if(pm.getPlugin("ASkyBlock") != null) {
+			this.islandPluginHooked = HookType.ASKYBLOCK;
+			plugin.debug("Found ASkyBlock&2 \u2713");
 		}
 	}
 	

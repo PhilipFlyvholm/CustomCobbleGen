@@ -9,7 +9,7 @@ package me.phil14052.CustomCobbleGen.Hooks;
  *
  */
 public enum HookType {
-	BENTOBOX(new BentoboxHook()), USKYBLOCK(new uSkyBlockHook());
+	BENTOBOX(new BentoboxHook()), USKYBLOCK(new uSkyBlockHook()), ASKYBLOCK(new ASkyBlockHook());
 	
 	private IslandLevelHook levelHook = null;
 	

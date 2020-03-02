@@ -25,6 +25,7 @@ import org.bukkit.event.block.SignChangeEvent;
 
 import com.cryptomorin.xseries.XMaterial;
 
+import me.jet315.minions.events.MinerBlockBreakEvent;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
@@ -226,7 +227,7 @@ public class BlockEvents implements Listener{
 	public void onBlockPlace(BlockPlaceEvent e) {
 		if(isWorldDisabled(e.getBlock().getWorld())) return;
 		if(!plugin.getConfig().getBoolean("options.automation.pistons")) return;
-		if(e.getBlock().getType() != Material.PISTON) return;
+		if(e.getBlock().getType() != XMaterial.PISTON.parseMaterial()) return;
 		if(e.getPlayer() == null || !e.getPlayer().isOnline()) return;
 		GenPiston piston = new GenPiston(e.getBlock().getLocation(), e.getPlayer().getUniqueId());
 		bm.addKnownGenPiston(piston);
@@ -265,6 +266,16 @@ public class BlockEvents implements Listener{
 			bm.setPlayerForLocation(p.getUniqueId(), l, false);
 		}
 	}
+	
+	@EventHandler
+	public void onMinionBreak(MinerBlockBreakEvent e) {
+		Location loc = e.getBlock().getLocation();
+		Player p = e.getMinion().getPlayer();
+		if(bm.isGenLocationKnown(loc)) {
+			bm.setPlayerForLocation(p.getUniqueId(), loc, false);
+		}
+	}
+	
 	
 	public boolean isWorldDisabled(World world) {
 		return plugin.getConfig().getList("options.disabled.worlds").contains(world.getName());
