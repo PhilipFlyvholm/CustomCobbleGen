@@ -14,9 +14,10 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
+
+import com.cryptomorin.xseries.XMaterial;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
@@ -100,7 +101,7 @@ public class BlockManager {
 		List<GenPiston> expiredPistons = new ArrayList<>();
 		for (Entry<Location, GenPiston> entry : entrySet) {
 			GenPiston piston = entry.getValue();
-			if(piston.getLoc().getBlock().getType() == Material.PISTON) {
+			if(piston.getLoc().getBlock().getType() == XMaterial.PISTON.parseMaterial()) {
 				expiredPistons.add(piston);
 				continue;
 			}
@@ -173,7 +174,7 @@ public class BlockManager {
 				UUID uuidObject = UUID.fromString(uuid);
 				for(String stringLoc : locations) {
 					Location loc = this.deserializeLoc(stringLoc);
-					if(loc == null || loc.getBlock().getType() != Material.PISTON) continue;
+					if(loc == null || loc.getBlock().getType() != XMaterial.PISTON.parseMaterial()) continue;
 					GenPiston piston = new GenPiston(loc, uuidObject);
 					piston.setHasBeenUsed(true);
 					this.addKnownGenPiston(piston);

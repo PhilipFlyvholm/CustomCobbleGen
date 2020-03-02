@@ -20,16 +20,10 @@ import world.bentobox.bentobox.BentoBox;
  */
 public class BentoboxHook implements IslandLevelHook{
 
-	private HookType type = HookType.BENTOBOX;
 	private BentoBox api;
 	
 	public BentoboxHook() {
 		api = (BentoBox) Bukkit.getPluginManager().getPlugin("BentoBox");
-	}
-	
-	@Override
-	public HookType getHookType() {
-		return this.type;
 	}
 
 	@Override

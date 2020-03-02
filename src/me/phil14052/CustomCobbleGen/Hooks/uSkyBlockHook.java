@@ -16,7 +16,6 @@ import us.talabrek.ultimateskyblock.api.uSkyBlockAPI;
  */
 public class uSkyBlockHook implements IslandLevelHook{
 
-	private HookType type = HookType.USKYBLOCK;
 	private uSkyBlockAPI api;
 	
 	public uSkyBlockHook() {
@@ -24,11 +23,6 @@ public class uSkyBlockHook implements IslandLevelHook{
 		if (plugin instanceof uSkyBlockAPI && plugin.isEnabled()) {
 		  api =  (uSkyBlockAPI) plugin;
 		}
-	}
-	
-	@Override
-	public HookType getHookType() {
-		return this.type;
 	}
 
 	@Override

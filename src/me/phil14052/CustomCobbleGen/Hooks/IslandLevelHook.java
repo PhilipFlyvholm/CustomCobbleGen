@@ -11,9 +11,7 @@ import org.bukkit.entity.Player;
  *
  */
 public interface IslandLevelHook {
-	
-	public HookType getHookType();
-	
+		
 	public int getIslandLevel(Player p);
 	
 }

@@ -33,7 +33,7 @@ public class LevelRequirement implements Requirement {
 			plugin.log("&cThere is a island requirement in use, but there are no island/skyblock plugins installed. Returning true.");
 			return true;
 		}
-		IslandLevelHook hook = plugin.islandPluginHooked.getLevelHook();
+		IslandLevelHook hook = CustomCobbleGen.islandPluginHooked;
 		int currentLevel = hook.getIslandLevel(p);
 		plugin.debug(currentLevel);
 		return currentLevel >= this.getRequirementValue();
