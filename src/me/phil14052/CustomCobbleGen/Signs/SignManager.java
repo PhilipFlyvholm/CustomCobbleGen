@@ -95,7 +95,7 @@ public class SignManager {
 
 				type = ClickableSignType.valueOf(items[4].toUpperCase());	
 			}catch(IllegalArgumentException e) {
-				plugin.log("§cThere is a error in a sign saved. Deleting it..."); 
+				plugin.log("&cThere is a error in a sign saved. Deleting it...");
 				continue;
 			}
 			

@@ -14,16 +14,10 @@ import com.wasteofplastic.askyblock.ASkyBlockAPI;
  */
 public class ASkyBlockHook implements IslandLevelHook{
 
-	private HookType type = HookType.ASKYBLOCK;
 	private ASkyBlockAPI api;
 	
 	public ASkyBlockHook() {
 		api = ASkyBlockAPI.getInstance();
-	}
-	
-	@Override
-	public HookType getHookType() {
-		return this.type;
 	}
 
 	@Override

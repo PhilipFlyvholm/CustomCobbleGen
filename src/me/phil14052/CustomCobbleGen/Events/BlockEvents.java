@@ -101,7 +101,7 @@ public class BlockEvents implements Listener{
 						if(tier != null) {
 							Material result = tier.getRandomResult();
 							if(result == null) {
-								plugin.log("§cUnkown material in " + tier.getName() + " tier.");
+								plugin.log("&cUnkown material in " + tier.getName() + " tier.");
 								return;
 							}
 							e.setCancelled(true);

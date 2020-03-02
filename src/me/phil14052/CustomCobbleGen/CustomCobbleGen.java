@@ -32,7 +32,11 @@ import me.phil14052.CustomCobbleGen.Files.LangFileUpdater;
 import me.phil14052.CustomCobbleGen.Files.PlayerFileUpdater;
 import me.phil14052.CustomCobbleGen.Files.SignsFileUpdater;
 import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
-import me.phil14052.CustomCobbleGen.Hooks.HookType;
+import me.phil14052.CustomCobbleGen.Hooks.ASkyBlockHook;
+import me.phil14052.CustomCobbleGen.Hooks.BentoboxHook;
+import me.phil14052.CustomCobbleGen.Hooks.FabledHook;
+import me.phil14052.CustomCobbleGen.Hooks.IslandLevelHook;
+import me.phil14052.CustomCobbleGen.Hooks.uSkyBlockHook;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
@@ -54,7 +58,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	private GeneratorModeManager generatorModeManager;
 	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
-	public HookType islandPluginHooked = null;
+	public static IslandLevelHook islandPluginHooked = null;
 	
 	@Override
 	public void onEnable(){
@@ -140,20 +144,23 @@ public class CustomCobbleGen extends JavaPlugin {
 	public void setupHooks() {
 		this.connectToPlaceholderAPI();
 		this.connectToVault();
-		this.connectToIslandPlugin();
+		connectToIslandPlugin();
 		
 	}
 	
-	public void connectToIslandPlugin() {
+	public static void connectToIslandPlugin() {
 		PluginManager pm = Bukkit.getPluginManager();
 		if(pm.getPlugin("BentoBox") != null) {
-			this.islandPluginHooked = HookType.BENTOBOX;
+			islandPluginHooked = new BentoboxHook();
 			plugin.debug("Found BentoBox&2 \u2713");
 		}else if(pm.getPlugin("uSkyBlock") != null) {
-			this.islandPluginHooked = HookType.USKYBLOCK;
+			islandPluginHooked = new uSkyBlockHook();
 			plugin.debug("Found uSkyBlock&2 \u2713");
+		}else if(pm.getPlugin("FabledSkyBlock") != null) {
+			islandPluginHooked = new FabledHook();
+			plugin.debug("Found FabledSkyblock&2 \u2713");
 		}else if(pm.getPlugin("ASkyBlock") != null) {
-			this.islandPluginHooked = HookType.ASKYBLOCK;
+			islandPluginHooked = new ASkyBlockHook();
 			plugin.debug("Found ASkyBlock&2 \u2713");
 		}
 	}
@@ -180,7 +187,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	
 	public boolean isConnectedToIslandPlugin() {
-		return this.islandPluginHooked != null;
+		return islandPluginHooked != null;
 	}
 	
 	public void reloadPlugin() {
@@ -310,11 +317,11 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	public void debug(String message, boolean overrideConfigOption){
 		if(overrideConfigOption == false && plugin.getConfig().getBoolean("debug") == false) return;
-		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message).replaceAll("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	public void log(String message){
-		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lLog &8-&7 " + message).replaceAll("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lLog &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	

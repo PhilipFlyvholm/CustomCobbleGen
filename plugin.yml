@@ -4,7 +4,7 @@ version: 1.3.0
 author: phil14052
 description: Adds the ability to change the cobblestone generator
 api-version: 1.13
-softdepend: [Vault, PlaceholderAPI, BentoBox, uSkyBlock, JetMinions, ASkyBlock]
+softdepend: [Vault, PlaceholderAPI, BentoBox, uSkyBlock, JetsMinions, ASkyBlock, FabledSkyBlock]
 commands:
   cobblegen:
     description: CustomCobbleGen Plugin Main Command
