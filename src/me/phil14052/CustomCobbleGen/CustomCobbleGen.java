@@ -24,6 +24,7 @@ import com.cryptomorin.xseries.XMaterial;
 import me.phil14052.CustomCobbleGen.Commands.MainCommand;
 import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
 import me.phil14052.CustomCobbleGen.Events.BlockEvents;
+import me.phil14052.CustomCobbleGen.Events.MinionEvents;
 import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
 import me.phil14052.CustomCobbleGen.Files.ConfigUpdater;
 import me.phil14052.CustomCobbleGen.Files.Files;
@@ -59,6 +60,9 @@ public class CustomCobbleGen extends JavaPlugin {
 	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
 	public static IslandLevelHook islandPluginHooked = null;
+	private static String connectedMinionPlugin = "None";
+	private static String connectedIslandPlugin = "None";
+	
 	
 	@Override
 	public void onEnable(){
@@ -121,8 +125,35 @@ public class CustomCobbleGen extends JavaPlugin {
 			}
         	
         });
+        Metrics.SimplePie signChart = new Metrics.SimplePie("servers_using_signs", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				return plugin.getConfig().getBoolean("options.signs.enabled") ? "Enabled" : "Disabled";
+			}
+        	
+        });
+        Metrics.SimplePie minionChart = new Metrics.SimplePie("connected_minion_plugins", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				return connectedMinionPlugin;
+			}
+        	
+        });
+        Metrics.SimplePie islandChart = new Metrics.SimplePie("connected_island_plugins", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				return connectedIslandPlugin;
+			}
+        	
+        });
         metrics.addCustomChart(genChart);
         metrics.addCustomChart(pistonChart);
+        metrics.addCustomChart(signChart);
+        metrics.addCustomChart(minionChart);
+        metrics.addCustomChart(islandChart);
         
 		plugin.debug("CustomCobbleGen is now enabled&2 \u2713");
 		double time2 = System.currentTimeMillis();
@@ -152,17 +183,22 @@ public class CustomCobbleGen extends JavaPlugin {
 		PluginManager pm = Bukkit.getPluginManager();
 		if(pm.getPlugin("BentoBox") != null) {
 			islandPluginHooked = new BentoboxHook();
+			connectedIslandPlugin = "BentoBox";
 			plugin.debug("Found BentoBox&2 \u2713");
 		}else if(pm.getPlugin("uSkyBlock") != null) {
 			islandPluginHooked = new uSkyBlockHook();
+			connectedIslandPlugin = "uSkyBlock";
 			plugin.debug("Found uSkyBlock&2 \u2713");
 		}else if(pm.getPlugin("FabledSkyBlock") != null) {
 			islandPluginHooked = new FabledHook();
+			connectedIslandPlugin = "FabledSkyBlock";
 			plugin.debug("Found FabledSkyblock&2 \u2713");
 		}else if(pm.getPlugin("ASkyBlock") != null) {
 			islandPluginHooked = new ASkyBlockHook();
+			connectedIslandPlugin = "ASkyBlock";
 			plugin.debug("Found ASkyBlock&2 \u2713");
 		}
+		
 	}
 	
 	
@@ -290,6 +326,11 @@ public class CustomCobbleGen extends JavaPlugin {
 		pm.registerEvents(new BlockEvents(), this);
 		pm.registerEvents(new InventoryEvents(), this);
 		pm.registerEvents(new PlayerEvents(), this);
+		if(pm.getPlugin("JetsMinions") != null) {
+			plugin.debug("Found JetsMinions");
+			connectedMinionPlugin = "JetsMinions";
+			pm.registerEvents(new MinionEvents(), this);
+		}
 	}
 	
 	public void debug(boolean overrideConfigOption, Object... objects) {
