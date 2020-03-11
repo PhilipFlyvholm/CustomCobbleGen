@@ -128,9 +128,13 @@ public enum Lang {
         LANG = config;
     }
  
+    public static String color(String s) {
+    	return ChatColor.translateAlternateColorCodes('&', s);
+    }
+    
     @Override
     public String toString() {
-    	String string = ChatColor.translateAlternateColorCodes('&', LANG.getString(this.path));
+    	String string = color(LANG.getString(this.getPath()));
         if (this == PREFIX) string = string + " ";
         return string;
     }

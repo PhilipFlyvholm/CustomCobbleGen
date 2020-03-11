@@ -27,7 +27,7 @@ public class Tier {
 	private int level;
 	private List<Requirement> requirements;
 	
-	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements){
+	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements, List<String> description){
 		this.name = name;
 		this.tierClass = tierClass;
 		this.level = level;
@@ -38,13 +38,18 @@ public class Tier {
 		im.setDisplayName(Lang.GUI_ITEM_NAME.toString(this));
 		List<String> lore = new ArrayList<String>();
 		lore.add(Lang.GUI_ITEM_LORE_TITLE.toString(this));
-		for(Material result : results.keySet()){
-			String resultName = StringUtils.toCamelCase(result.name());
-			String percentage = results.get(result) % 1 == 0 ? ((int) Math.round(results.get(result))) + "%" : ((double) results.get(result)) + "%";
-			String resultString = Lang.GUI_ITEM_LORE_RESULT.toString(this);
-			resultString = resultString.replaceAll("%result_name%", resultName);
-			resultString = resultString.replaceAll("%result_percentage%", percentage);
-			lore.add(resultString);
+		if(description == null) {
+
+			for(Material result : results.keySet()){
+				String resultName = StringUtils.toCamelCase(result.name());
+				String percentage = results.get(result) % 1 == 0 ? ((int) Math.round(results.get(result))) + "%" : ((double) results.get(result)) + "%";
+				String resultString = Lang.GUI_ITEM_LORE_RESULT.toString(this);
+				resultString = resultString.replaceAll("%result_name%", resultName);
+				resultString = resultString.replaceAll("%result_percentage%", percentage);
+				lore.add(resultString);
+			}	
+		}else {
+			lore.addAll(description);
 		}
 		im.setLore(lore);
 		icon.setItemMeta(im);

@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
@@ -100,7 +101,18 @@ public class TierManager {
 						requirements.add(new LevelRequirement(levelRequirement));
 					}
 				}
-				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements);
+				List<String> description = null;
+				if(tierSection.contains("description")) {
+					description = new ArrayList<>();
+					List<String> rawDescription = tierSection.getStringList("description");
+					plugin.debug(rawDescription);
+					for(String s : rawDescription) {
+						s = Lang.color(s);
+						description.add(s);
+					}
+					
+				}
+				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements,description);
 				try {
 					//If already defined override
 					tierLevelsList.set(tierLevel, tier);
