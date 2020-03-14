@@ -57,10 +57,10 @@ public enum Lang {
     TIER_CANT_AFFORD("tier-cant-afford", "&cYou can not afford this tier"),
     FORCE_PURCHASED("force-purchased", "You have now force bought %selected_tier_name% for %player_name%"),
     ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, forcesave, settier, givetier, forcebuy]"),
-    GUI_BUY("gui.buy", "&aClick to buy"),
-    GUI_CAN_NOT_AFFORD("gui.can-not-afford", "&cCan't afford"),
-    GUI_SELECTED("gui.selected", "&aSelected"),
-    GUI_SELECT("gui.select", "&aClick to select"),
+    GUI_BUY("gui.main.buy", "&aClick to buy"),
+    GUI_CAN_NOT_AFFORD("gui.main.can-not-afford", "&cCan't afford"),
+    GUI_SELECTED("gui.main.selected", "&aSelected"),
+    GUI_SELECT("gui.main.select", "&aClick to select"),
     GUI_LOCKED_PERMISSION("gui.locked.missing-permission", "&cLocked - Missing permissions"),
     GUI_LOCKED_PREV("gui.locked.prev-unowned", "&cLocked - Buy the previous level first"),
     GUI_PRICE_MONEY_AFFORD("gui.price.money.afford", "&a$%tier_price_money%"),
@@ -80,6 +80,35 @@ public enum Lang {
     GUI_CONFIRM_CANCEL_LORE("gui.confirm.cancel.lore", "&8Click to cancel the purchase"),
     GUI_CONFIRM_BUY("gui.confirm.buy.name", "&aBuy"),
     GUI_CONFIRM_BUY_LORE("gui.confirm.buy.lore", "&8Click to confirm the purchase"),
+    GUI_ADMIN_TITLE("gui.admin.title", "&4&lCCG: &cAdmin"),
+    GUI_ADMIN_RELOAD("gui.admin.reload.title", "&6&lReload config"),
+    GUI_ADMIN_RELOAD_LORE("gui.admin.reload.lore", "ARRAYLIST: &8Reloads all files , &7- config.yml , &7- lang.yml , &7- data/players.yml"),
+    GUI_ADMIN_FORCESAVE("gui.admin.forcesave.title", "&6&lForce save"),
+    GUI_ADMIN_FORCESAVE_LORE("gui.admin.forcesave.lore", "ARRAYLIST: &8Forces the server to save player files , &7- data/players.yml , &r , &cUseful for big changes in player data"),
+    GUI_ADMIN_FORCEBUY("gui.admin.forcebuy.title", "&6&lForce buy"),
+    GUI_ADMIN_FORCEBUY_LORE("gui.admin.forcebuy.lore", "ARRAYLIST: &8Forces a player to buy a tier , &r  , &cThe player will pay for the tier , &ceven if they can't afford it!"),
+    GUI_ADMIN_GIVETIER("gui.admin.givetier.title", "&6&lGive tier"),
+    GUI_ADMIN_GIVETIER_LORE("gui.admin.givetier.lore", "ARRAYLIST: &8Gives a player a tier , &r  , &cThe player will get the tier for free"),
+    GUI_ADMIN_SETTIER("gui.admin.settier.title", "&6&lSet tier"),
+    GUI_ADMIN_SETTIER_LORE("gui.admin.settier.lore", "ARRAYLIST: &8Sets the current tier for a player , &r  , &cThis will not purchase a tier"),
+    GUI_ADMIN_NO_PERMISSION_TITLE("gui.admin.no-permission.title", "&4&lNo permission"),
+    GUI_ADMIN_NO_PERMISSION_LORE("gui.admin.no-permission.lore", "&cYou do not have the %s1 permission"),
+    GUI_SELECT_PLAYER_SKULL_TITLE("gui.select.player-select-skull.title", "&e&l%player_name%"),
+    GUI_SELECT_PLAYER_SKULL_LORE("gui.select.player-select-skull.lore", "ARRAYLIST: &aClick to select %player_name%"),
+    GUI_SELECT_TITLE("gui.select.title", "&4&lCCG: &cSelect a player"),
+    GUI_CLOSE_TITLE("gui.close.title", "&4&lClose"),
+    GUI_CLOSE_LORE("gui.close.lore", "ARRAYLIST: &cClick to close the inventory"),
+    GUI_NEXTPAGE_TITLE("gui.select.next-page.title", "&a&lNext page"),
+    GUI_NEXTPAGE_LORE("gui.select.next-page.lore", "ARRAYLIST: &8Click to go the next page"),
+    GUI_NEXTPAGE_LAST_TITLE("gui.select.next-page.last-page.title", "&a&lNext page"),
+    GUI_NEXTPAGE_LAST_LORE("gui.select.next-page.last-page.lore", "ARRAYLIST: &8You are on the last page"),
+    GUI_PREVIOUSPAGE_TITLE("gui.select.previous-page.title", "&a&lPrevious page"),
+    GUI_PREVIOUSPAGE_LORE("gui.select.previous-page.lore", "ARRAYLIST: &8Click to go the previous page"),
+    GUI_PREVIOUSPAGE_FIRST_TITLE("gui.select.previous-page.first-page.title", "&a&lPrevious page"),
+    GUI_PREVIOUSPAGE_FIRST_LORE("gui.select.previous-page.first-page.lore", "ARRAYLIST: &8You are on the first page"),
+    GUI_SELECT_TIER_ALREADY_SELECTED("gui.select.tier.already-selected", "&4&lTier currently selected"),
+    GUI_SELECT_TIER_ALREADY_OWN("gui.select.tier.already-own", "&4&lTier already own"),
+    GUI_SELECT_TIER_TITLE("gui.select.tier.title", "&4&lCCG: &cSelect a tier"),
     SIGN_GUI_0("signs.GUI.0", "&3CustomCobbleGen"),
     SIGN_GUI_1("signs.GUI.1", " "),
     SIGN_GUI_2("signs.GUI.2", "&lClick to open"),
@@ -128,9 +157,13 @@ public enum Lang {
         LANG = config;
     }
  
+    public static String color(String s) {
+    	return ChatColor.translateAlternateColorCodes('&', s);
+    }
+    
     @Override
     public String toString() {
-    	String string = ChatColor.translateAlternateColorCodes('&', LANG.getString(this.path));
+    	String string = color(LANG.getString(this.getPath()));
         if (this == PREFIX) string = string + " ";
         return string;
     }
@@ -179,7 +212,31 @@ public enum Lang {
     	List<String> s = LANG.getStringList(this.path);
     	List<String> colored_s = new ArrayList<String>();
     	for(String string : s){
-    		colored_s.add(ChatColor.translateAlternateColorCodes('&', string));
+    		colored_s.add(color(string));
+    	}
+    	return colored_s;
+    }
+    
+    public List<String> toStringList(Player p){
+    	List<String> s = LANG.getStringList(this.path);
+    	List<String> colored_s = new ArrayList<String>();
+    	for(String string : s){
+    		string = color(string);
+    		if(p != null && p.isOnline()) {
+        		if(CustomCobbleGen.getInstance().isUsingPlaceholderAPI) {
+        			string = PlaceholderAPI.setPlaceholders(p, string);
+        		}
+        		string = string.replaceAll("%player_name%", p.getName());
+        		Tier tier = tm.getSelectedTier(p.getUniqueId());
+        		if(tier != null) {
+            		string = string.replaceAll("%selected_tier_level%", tier.getLevel() + "");
+            		string = string.replaceAll("%selected_tier_class%", tier.getTierClass() + "");	
+            		string = string.replaceAll("%selected_tier_name%", tier.getName() + "");		
+            		string = string.replaceAll("%selected_tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "");		
+            		string = string.replaceAll("%selected_tier_price_xp%", tier.getRequirementValue(RequirementType.XP) + "");	
+        		}
+        	}
+    		colored_s.add(string);
     	}
     	return colored_s;
     }
