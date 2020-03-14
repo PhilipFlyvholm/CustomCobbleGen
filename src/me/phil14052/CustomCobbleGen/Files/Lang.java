@@ -82,7 +82,7 @@ public enum Lang {
     GUI_CONFIRM_BUY_LORE("gui.confirm.buy.lore", "&8Click to confirm the purchase"),
     GUI_ADMIN_TITLE("gui.admin.title", "&4&lCCG: &cAdmin"),
     GUI_ADMIN_RELOAD("gui.admin.reload.title", "&6&lReload config"),
-    GUI_ADMIN_RELOAD_LORE("gui.admin.reload.lore", "ARRAYLIST: &8Reloads all files , &7- config.yml , &7- lang.yml , &7- data/players.yml"),
+    GUI_ADMIN_RELOAD_LORE("gui.admin.reload.lore", "ARRAYLIST: &8Reloads all files , &7- config.yml , &7- lang.yml , &7- data/players.yml , &7- data/signs.yml"),
     GUI_ADMIN_FORCESAVE("gui.admin.forcesave.title", "&6&lForce save"),
     GUI_ADMIN_FORCESAVE_LORE("gui.admin.forcesave.lore", "ARRAYLIST: &8Forces the server to save player files , &7- data/players.yml , &r , &cUseful for big changes in player data"),
     GUI_ADMIN_FORCEBUY("gui.admin.forcebuy.title", "&6&lForce buy"),
