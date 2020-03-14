@@ -3,13 +3,16 @@ package me.phil14052.CustomCobbleGen.Managers;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 
 public class PermissionManager {
 	public boolean hasPermisson(Player p, String permission, boolean withMessage){
 
 		if(p.hasPermission(permission)) return true;
+		
 		String permissionClone = permission;
+		CustomCobbleGen.getInstance().debug(permission);
 		if(permission.contains(".")) {
 			String permissionBuilder = "";
 			//CustomCobbleGen.admin.reload
@@ -18,6 +21,7 @@ public class PermissionManager {
 				//CustomCobbleGen.admin
 				permissionBuilder = permissionBuilder + permissionChild;
 				//CustomCobbleGen.admin.*
+				CustomCobbleGen.getInstance().debug(permissionBuilder + ".*");
 				if(p.hasPermission(permissionBuilder + ".*")) return true;
 				permissionBuilder = permissionBuilder + ".";
 				//CustomCobbleGen.admin.

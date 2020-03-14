@@ -71,31 +71,33 @@ public class CustomCobbleGen extends JavaPlugin {
 		generatorModeManager = GeneratorModeManager.getInstance();
 		tierManager = TierManager.getInstance();
 		signManager = SignManager.getInstance();
-		plugin.log("Enabling CustomCobbleGen plugin");
+		plugin.debug("Enabling CustomCobbleGen plugin");
+		plugin.log("&cIF YOU ENCOUNTER ANY BUGS OR ERRORS PLEASE REPORT THEM ON SPIGOT!");
+		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub) and Fang_Zhijian (Chinese translation)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
 		// Setup config
 		new ConfigUpdater();
 		saveConfig();
 		generatorModeManager.loadFromConfig();
-		this.debug("The config is now setup");
+		this.debug("The config is now setup&2 \u2713");
 		// Setup lang file
 		lang = new Files(this, "lang.yml");
 		new LangFileUpdater(plugin);
 		Lang.setFile(lang);
-		this.debug("Lang is now setup");
+		this.debug("Lang is now setup&2 \u2713");
 		// Setup player configs
 		playerConfig = null;
 		playerConfigFile = null;
 		new PlayerFileUpdater(plugin);
-		this.debug("Players is now setup");
+		this.debug("Players is now setup&2 \u2713");
 		// Setup tiers
 		tierManager.load();
-		this.debug("Tiers is now setup");
+		this.debug("Tiers is now setup&2 \u2713");
 		// Setup signs configs
 		signsConfig = null;
 		signsConfigFile = null;
 		new SignsFileUpdater(plugin);
 		signManager.loadSignsFromFile(true);
-		this.debug("Signs is now setup");
+		this.debug("Signs is now setup&2 \u2713");
 		this.setupHooks();
 	 
 		registerEvents();
@@ -155,7 +157,7 @@ public class CustomCobbleGen extends JavaPlugin {
         metrics.addCustomChart(minionChart);
         metrics.addCustomChart(islandChart);
         
-		plugin.debug("CustomCobbleGen is now enabled&2 \u2713");
+		plugin.log("CustomCobbleGen is now enabled&2 \u2713");
 		double time2 = System.currentTimeMillis();
 		double time3 = (time2-time)/1000;
 		plugin.debug("Took " + String.valueOf(time3) + " seconds to setup CustomCobbleGen");
@@ -362,7 +364,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	
 	public void log(String message){
-		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lLog &8-&7 " + message).replace("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &8&lLog &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	

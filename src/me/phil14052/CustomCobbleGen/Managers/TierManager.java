@@ -105,7 +105,6 @@ public class TierManager {
 				if(tierSection.contains("description")) {
 					description = new ArrayList<>();
 					List<String> rawDescription = tierSection.getStringList("description");
-					plugin.debug(rawDescription);
 					for(String s : rawDescription) {
 						s = Lang.color(s);
 						description.add(s);

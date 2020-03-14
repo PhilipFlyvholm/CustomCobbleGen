@@ -1,6 +1,6 @@
 name: CustomCobbleGen
 main: me.phil14052.CustomCobbleGen.CustomCobbleGen
-version: 1.3.2
+version: 1.4.0
 author: phil14052
 description: Adds the ability to change the cobblestone generator
 api-version: 1.13
@@ -9,3 +9,127 @@ commands:
   cobblegen:
     description: CustomCobbleGen Plugin Main Command
     aliases: [oregen, cobblegenerator, oregenerator, ccg]
+permissions:
+  customcobblegen.*:
+    description: Gives access to all CustomCobbleGens commands
+    children:
+      customcobblegen.tier: true
+      customcobblegen.admin: true
+      customcobblegen.signs: true
+      customcobblegen.tier.*: true
+      customcobblegen.admin.*: true
+      customcobblegen.signs.*: true
+  customcobblegen.tier.*:
+    description: Allows you to use the /customcobblegen tier command
+    default: op
+    children:
+      customcobblegen.tier: true
+      customcobblegen.tier.other: true
+  customcobblegen.tier:
+    description: Allows you to use the /customcobblegen tier command
+    default: true
+  customcobblegen.tier.others:
+    description: Allows you to use the /customcobblegen tier [player] command
+    default: op
+    children:
+      customcobblegen.tier: true
+  customcobblegen.admin.*:
+    description: Allows you to use the /customcobblegen admin command
+    default: op
+    children:
+      customcobblegen.admin: true
+      customcobblegen.admin.reload: true
+      customcobblegen.admin.forcesave: true
+      customcobblegen.admin.forcebuy: true
+      customcobblegen.admin.settier: true
+      customcobblegen.admin.givetier: true
+  customcobblegen.admin:
+    description: Allows you to use the /customcobblegen admin command
+    default: op
+  customcobblegen.admin.reload:
+    description: Allows you to use the /customcobblegen admin reload command
+    default: op
+    children:
+      customcobblegen.admin: true
+  customcobblegen.admin.forcesave:
+    description: Allows you to use the /customcobblegen admin forcesave command
+    default: op
+    children:
+      customcobblegen.admin: true
+  customcobblegen.admin.settier:
+    description: Allows you to use the /customcobblegen admin settier command
+    default: op
+    children:
+      customcobblegen.admin: true
+  customcobblegen.admin.forcebuy:
+    description: Allows you to use the /customcobblegen admin forcebuy command
+    default: op
+    children:
+      customcobblegen.admin: true
+  customcobblegen.admin.givetier:
+    description: Allows you to use the /customcobblegen admin givetier command
+    default: op
+    children:
+      customcobblegen.admin: true
+  customcobblegen.signs.*:
+    description: Allows you to use and create signs
+    default: true
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.use.*: true
+      customcobblegen.signs.create.*: true
+  customcobblegen.signs:
+    description: Allows you to use the /customcobblegen admin command
+    default: op
+  customcobblegen.signs.use.*:
+    description: Allows you to use all the signs
+    default: true
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.use.gui: true
+      customcobblegen.signs.use.select: true
+      customcobblegen.signs.use.buy: true
+  customcobblegen.signs.use.gui:
+    description: Allows you to use the GUI sign
+    default: op
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.use: true
+  customcobblegen.signs.use.select:
+    description: Allows you to use the select sign
+    default: op
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.use: true
+  customcobblegen.signs.use.buy:
+    description: Allows you to use the buy sign
+    default: op
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.use: true
+  customcobblegen.signs.create.*:
+    description: Allows you to create all the signs
+    default: true
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.create.gui: true
+      customcobblegen.signs.create.select: true
+      customcobblegen.signs.create.buy: true
+  customcobblegen.signs.create.gui:
+    description: Allows you to create the GUI sign
+    default: op
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.create: true
+  customcobblegen.signs.create.select:
+    description: Allows you to create the select sign
+    default: op
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.create: true
+  customcobblegen.signs.create.buy:
+    description: Allows you to create the buy sign
+    default: op
+    children:
+      customcobblegen.signs: true
+      customcobblegen.signs.create: true
