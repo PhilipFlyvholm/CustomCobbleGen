@@ -287,11 +287,17 @@ public class GUIManager {
 		private Player player;
 		public AdminGUI(Player p) {
 			this.player = p;
-			Icon reloadIcon = new Icon(new ItemLib(XMaterial.REDSTONE_TORCH.parseMaterial(), 1, (short) 0, Lang.GUI_ADMIN_RELOAD.toString(p), Lang.GUI_ADMIN_RELOAD_LORE.toStringList(p)).create());
-			Icon saveIcon = new Icon(new ItemLib(XMaterial.REDSTONE_TORCH.parseMaterial(), 1, (short) 0, Lang.GUI_ADMIN_FORCESAVE.toString(p), Lang.GUI_ADMIN_FORCESAVE_LORE.toStringList(p)).create());
-			Icon forceBuyIcon = new Icon(new ItemLib(XMaterial.REDSTONE_TORCH.parseMaterial(), 1, (short) 0, Lang.GUI_ADMIN_FORCEBUY.toString(p), Lang.GUI_ADMIN_FORCEBUY_LORE.toStringList(p)).create());
-			Icon giveTierIcon = new Icon(new ItemLib(XMaterial.REDSTONE_TORCH.parseMaterial(), 1, (short) 0, Lang.GUI_ADMIN_GIVETIER.toString(p), Lang.GUI_ADMIN_GIVETIER_LORE.toStringList(p)).create());
-			Icon setTierIcon = new Icon(new ItemLib(XMaterial.REDSTONE_TORCH.parseMaterial(), 1, (short) 0, Lang.GUI_ADMIN_SETTIER.toString(p), Lang.GUI_ADMIN_SETTIER_LORE.toStringList(p)).create());
+			Material redstoneTorch = null;
+			if(XMaterial.supports(13)) {
+				redstoneTorch = Material.REDSTONE_TORCH;
+			}else {
+				redstoneTorch = Material.matchMaterial("REDSTONE_TORCH_ON");
+			}
+			Icon reloadIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_RELOAD.toString(p), Lang.GUI_ADMIN_RELOAD_LORE.toStringList(p)).create());
+			Icon saveIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_FORCESAVE.toString(p), Lang.GUI_ADMIN_FORCESAVE_LORE.toStringList(p)).create());
+			Icon forceBuyIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_FORCEBUY.toString(p), Lang.GUI_ADMIN_FORCEBUY_LORE.toStringList(p)).create());
+			Icon giveTierIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_GIVETIER.toString(p), Lang.GUI_ADMIN_GIVETIER_LORE.toStringList(p)).create());
+			Icon setTierIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_SETTIER.toString(p), Lang.GUI_ADMIN_SETTIER_LORE.toStringList(p)).create());
 			
 			// RELOAD CONFIG
 			if(pm.hasPermisson(p, "customcobblegen.admin.reload", false)) {
@@ -610,10 +616,15 @@ public class GUIManager {
 	
 	@SuppressWarnings("deprecation")
 	public ItemStack createSkull(String name, String displayName, List<String> lore) {
-		ItemStack skull = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(), 1);
-		Damageable damageMeta = (Damageable) skull.getItemMeta();
-		damageMeta.setDamage(3);
-		skull.setItemMeta((ItemMeta) damageMeta);
+		ItemStack skull = null;
+		if(XMaterial.supports(13)) {
+			skull = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(), 1);
+			Damageable damageMeta = (Damageable) skull.getItemMeta();
+			damageMeta.setDamage(3);
+			skull.setItemMeta((ItemMeta) damageMeta);
+		}else {
+			skull = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(), 1, (byte) 3);
+		}
 		SkullMeta meta = ((SkullMeta) skull.getItemMeta());
 		meta.setOwner(name);
 		meta.setDisplayName(displayName);
