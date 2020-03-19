@@ -158,6 +158,7 @@ public class BlockManager {
 			List<String> locations = new ArrayList<>();
 			for(GenPiston piston : pistonSet.getValue()) {
 				if(!piston.hasBeenUsed()) continue;
+				if(!piston.getLoc().getBlock().getType().equals(XMaterial.PISTON.parseMaterial())) continue;
 				String serializedLoc = this.serializeLoc(piston.getLoc());
 				if(!locations.contains(serializedLoc)) locations.add(serializedLoc);
 			}

@@ -115,7 +115,12 @@ public class CustomCobbleGen extends JavaPlugin {
         	
 			@Override
 			public Integer call() throws Exception {
-				return BlockManager.getInstance().getKnownGenLocations().size();
+				int numOfGenerators = BlockManager.getInstance().getKnownGenLocations().size();
+				if(numOfGenerators > 10000) { // Over 10000 generators found - Prob a mistake
+					plugin.log("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
+					plugin.log("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
+				}
+				return numOfGenerators;
 			}
         	
         });

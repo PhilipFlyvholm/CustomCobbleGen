@@ -37,6 +37,7 @@ public class ConfigUpdater extends YamlConfiguration {
 		config.addDefault("options.signs.enabled", true);
 		config.addDefault("options.automation.pistons", false);
 		List<String> disabledWorlds = new ArrayList<String>();
+		disabledWorlds.add("world");
 		disabledWorlds.add("world_nether");
 		disabledWorlds.add("world_the_end");
 		config.addDefault("options.disabled.worlds", disabledWorlds);
