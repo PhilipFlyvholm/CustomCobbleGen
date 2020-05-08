@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.cryptomorin.xseries.XMaterial;
@@ -162,8 +163,10 @@ public class BlockManager {
 				String serializedLoc = this.serializeLoc(piston.getLoc());
 				if(!locations.contains(serializedLoc)) locations.add(serializedLoc);
 			}
-			if(!locations.isEmpty()) plugin.getPlayerConfig().set("players." + pistonSet.getKey() + ".pistons", locations);
+			if(!locations.isEmpty()) plugin.getPlayerConfig().set("players." + pistonSet.getKey().toString() + ".pistons", locations);
+			plugin.debug(locations);
 		}
+		plugin.savePlayerConfig();
 	}
 	
 	public void loadGenPistonData() {
@@ -175,7 +178,16 @@ public class BlockManager {
 				UUID uuidObject = UUID.fromString(uuid);
 				for(String stringLoc : locations) {
 					Location loc = this.deserializeLoc(stringLoc);
-					if(loc == null || loc.getBlock().getType() != XMaterial.PISTON.parseMaterial()) continue;
+					if(loc == null) {
+						plugin.log("&cERROR: &7Unkown location in players.yml under UUID: " + uuid + ".pistons", stringLoc);
+						continue;
+					}
+					Block block = loc.getWorld().getBlockAt(loc);
+					if(block == null) {
+						plugin.log("&cERROR: &7Unkown block in players.yml under UUID: " + uuid + ".pistons at ", stringLoc);
+						continue;
+					}
+					if(loc.getWorld().getBlockAt(loc).getType()!= XMaterial.PISTON.parseMaterial()) continue;
 					GenPiston piston = new GenPiston(loc, uuidObject);
 					piston.setHasBeenUsed(true);
 					this.addKnownGenPiston(piston);

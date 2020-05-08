@@ -241,8 +241,14 @@ public class TierManager {
 			List<Tier> purchasedTiers = this.getPurchasedTiers().get(uuid);
 			for(Tier purchasedTier : purchasedTiers){
 				List<Integer> purchasedLevels = new ArrayList<Integer>();
-				if(plugin.getPlayerConfig().contains("players." + uuid + ".purchased." + purchasedTier.getTierClass()))
-					purchasedLevels = plugin.getPlayerConfig().getIntegerList("players." + uuid + ".purchased." + purchasedTier.getTierClass());
+				if(plugin.getPlayerConfig() == null){
+					plugin.log("&cERROR: &7MISSING PLAYER.YML FILE");
+					return;
+				}
+				plugin.debug("Saving purchased tier: ",purchasedTier);
+				if(plugin.getPlayerConfig().contains("players." + uuid + ".purchased." + purchasedTier.getTierClass())) {
+					purchasedLevels = plugin.getPlayerConfig().getIntegerList("players." + uuid + ".purchased." + purchasedTier.getTierClass());	
+				}
 				if(!purchasedLevels.contains(purchasedTier.getLevel())) purchasedLevels.add(purchasedTier.getLevel());
 				plugin.getPlayerConfig().set("players." + uuid + ".purchased." + purchasedTier.getTierClass(), purchasedLevels);
 			}
