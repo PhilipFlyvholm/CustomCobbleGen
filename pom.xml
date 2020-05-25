@@ -19,8 +19,8 @@
   <repositories>
     	<!-- This adds the Spigot Maven repository to the build -->
     	<repository>
-        	<id>spigot-repo</id>
-        	<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+	        <id>spigot-repo</id>
+	        <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     	</repository>
     	<repository>
 		    <id>codemc-repo</id>
@@ -49,10 +49,10 @@
     	<!--This adds the Spigot API artifact to the build -->
     	<dependency>
            <groupId>org.spigotmc</groupId>
-           <artifactId>spigot</artifactId>
-           <version>1.15.1-R0.1-SNAPSHOT</version>
+           <artifactId>spigot-api</artifactId>
+           <version>1.15.2-R0.1-SNAPSHOT</version>
            <scope>provided</scope>
-   	 	</dependency>
+    	</dependency>
 		<dependency>
 		  <groupId>world.bentobox</groupId>
 		  <artifactId>bentobox</artifactId>
@@ -86,21 +86,11 @@
 		  <artifactId>askyblock</artifactId>
 		  <version>3.0.9.4</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
 		<dependency>
-			<groupId>me.jet315.mionions</groupId>
-			<artifactId>minions</artifactId>
-			<scope>system</scope>
-			<version>5.7.8</version>
-
-			<systemPath>D:/Minecraft Servere/#3Server - FabledSkyblock version/plugins/Minions.jar</systemPath>
-		</dependency>
-
-		<dependency>
-			<groupId>com.songoda</groupId>
-			<artifactId>skyblock</artifactId>
-			<version>2.1.1</version>
-			<scope>system</scope>
-			<systemPath>D:/Minecraft Servere/#3Server - FabledSkyblock version/plugins/fabledskyblock-2.1.1.jar</systemPath>
+		    <groupId>commons-io</groupId>
+		    <artifactId>commons-io</artifactId>
+		    <version>2.5</version>
 		</dependency>
 
 	</dependencies>

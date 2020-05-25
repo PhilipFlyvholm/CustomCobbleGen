@@ -64,8 +64,12 @@ public class GUIManager {
 		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
 		private Player player;
 		private boolean failedLoad = false;
+
+
 		
 		public MainGUI(Player p){
+			boolean centerItems = plugin.getConfig().getBoolean("options.gui.centerTiers");
+			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
 			player = p;
 			int i = 0;
 			if(tiers == null) {
@@ -87,10 +91,13 @@ public class GUIManager {
 					if(currentRow == rows) {
 						int firstItemInRow = ((currentRow-1)*9)+1;
 						int itemsInRow = classTiers.size()-firstItemInRow;
-						if(j == firstItemInRow) {
+						if(centerItems && j == firstItemInRow) {
 							int emptySpacesAtStart = (int) Math.ceil(((double)4.5-(itemsInRow/2)));
 							i = (i+emptySpacesAtStart)-1;
-							emptySpacesAtEnd = 9-emptySpacesAtStart-itemsInRow;
+							emptySpacesAtEnd -= emptySpacesAtStart;
+						}
+						if(newLines && j == firstItemInRow) {
+							emptySpacesAtEnd = 9-itemsInRow;
 						}
 					}
 					ItemStack item = tier.getIcon().clone();
@@ -193,13 +200,27 @@ public class GUIManager {
 		
 		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
 			int rows = 0;
-			for(String tierClass : tiers.keySet()) {
-				List<Tier> classTiers = tiers.get(tierClass);
-				int classRows = classTiers.size()/9;
-				if(classTiers.size()%9 > 0D) classRows++;
+			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
+			plugin.debug("NewLines: " + newLines);
+			if(newLines) {
+				for(String tierClass : tiers.keySet()) {
+					List<Tier> classTiers = tiers.get(tierClass);
+					int classRows = classTiers.size()/9;
+					if(classTiers.size()%9 > 0D) classRows++;
+					rows += classRows;
+					plugin.debug(rows);
+				}	
+			}else {
+				int size = 0;
+				for(String tierClass : tiers.keySet()) {
+					size += tiers.get(tierClass).size();
+				}
+				int classRows = size/9;
+				if(size%9 > 0D) classRows++;
 				rows += classRows;
 			}
-					if(closeLine) rows++;
+			
+			if(closeLine) rows++;
 			if(rows > 6) rows = 6; //A GUI CAN MAX BE 6 ROWS
 			if(rows < 1) rows = 1;
 			return (rows*9);
@@ -593,7 +614,7 @@ public class GUIManager {
 			for(Material m : results.keySet()) {
 				ItemStack materialIs = new ItemStack(m);
 				ItemMeta materialIm = materialIs.getItemMeta();
-				materialIm.setDisplayName("§6§l" + m.name());
+				materialIm.setDisplayName("ï¿½6ï¿½l" + m.name());
 				materialIs.setItemMeta(materialIm);
 				Icon materialIcon = new Icon(materialIs);
 				materialIcon.addClickAction(new ClickAction() {
