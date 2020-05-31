@@ -64,42 +64,38 @@ public class GUIManager {
 		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
 		private Player player;
 		private boolean failedLoad = false;
-
-
 		
 		public MainGUI(Player p){
 			boolean centerItems = plugin.getConfig().getBoolean("options.gui.centerTiers");
 			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
 			player = p;
-			int i = 0;
 			if(tiers == null) {
 				p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIERS_DEFINED.toString());
 				failedLoad = true;
 				return;
 			}
+			int i = 0; //Current pos
 			Tier selectedTier = tm.getSelectedTier(p.getUniqueId());
+			//int numOfPreviousTiers = 0;
+			if(centerItems && tm.getTiersSize() < 9) {
+				i += Math.floor(4.5-((double) tm.getTiersSize()/2));
+			}
 			for(String tierClass : tiers.keySet()) {
-				int j = 0;
-				List<Tier> classTiers = tiers.get(tierClass);
-				int rows = 0;
-				rows = (int) Math.ceil((double)classTiers.size()/9);
-				int currentRow = 1;
-				int emptySpacesAtEnd = 0;
+				int j = 0; //Current pos in class
+				List<Tier> classTiers = tiers.get(tierClass); //Tiers in current class
+				
 				for(Tier tier : classTiers) {
-					j++;
-					currentRow = (int) Math.ceil((double)j/9);
-					if(currentRow == rows) {
-						int firstItemInRow = ((currentRow-1)*9)+1;
-						int itemsInRow = classTiers.size()-firstItemInRow;
-						if(centerItems && j == firstItemInRow) {
-							int emptySpacesAtStart = (int) Math.ceil(((double)4.5-(itemsInRow/2)));
-							i = (i+emptySpacesAtStart)-1;
-							emptySpacesAtEnd -= emptySpacesAtStart;
-						}
-						if(newLines && j == firstItemInRow) {
-							emptySpacesAtEnd = 9-itemsInRow;
+					if(j == 0) {
+						if(newLines) {
+							if(i != 0) {
+								i += 9-((i)%9);	
+							}
+							if(centerItems) {
+								i += Math.floor(4.5-(classTiers.size()/2));
+							}
 						}
 					}
+					
 					ItemStack item = tier.getIcon().clone();
 					ItemMeta itemMeta = item.getItemMeta();
 					List<String> lore = itemMeta.getLore();
@@ -179,9 +175,11 @@ public class GUIManager {
 						}
 					});
 					ch.setIcon(i, icon);
-					if(j >= classTiers.size()) {
-						i = i + emptySpacesAtEnd;
+					//numOfPreviousTiers += classTiers.size();
+					if(j >= classTiers.size() && centerItems) {
+						i += Math.ceil(4.5-(classTiers.size()/2));
 					}
+					j++;
 					i++;
 				}
 			}
@@ -208,7 +206,6 @@ public class GUIManager {
 					int classRows = classTiers.size()/9;
 					if(classTiers.size()%9 > 0D) classRows++;
 					rows += classRows;
-					plugin.debug(rows);
 				}	
 			}else {
 				int size = 0;

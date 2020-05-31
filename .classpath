@@ -6,7 +6,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.8.0_131">
 		<attributes>
 			<attribute name="module" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
@@ -17,7 +17,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/philipflyvholm/Documents/Code/MCSERVER/plugins/Minions.jar"/>
-	<classpathentry kind="lib" path="/Users/philipflyvholm/Documents/Code/MCSERVER/plugins/FabledSkyblock-2.2.11.jar"/>
+	<classpathentry kind="lib" path="D:/Minecraft Servere/#3Server - FabledSkyblock version/plugins/Minions.jar"/>
+	<classpathentry kind="lib" path="D:/Minecraft Servere/#3Server - FabledSkyblock version/plugins/fabledskyblock-2.1.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

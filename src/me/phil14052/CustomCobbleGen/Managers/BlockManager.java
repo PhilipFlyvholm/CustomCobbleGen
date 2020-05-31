@@ -102,6 +102,9 @@ public class BlockManager {
 		List<GenPiston> expiredPistons = new ArrayList<>();
 		for (Entry<Location, GenPiston> entry : entrySet) {
 			GenPiston piston = entry.getValue();
+			if(piston.getLoc().getBlock() == null) { // Probs not loaded so ignore it. We can't confirm an unloaded block
+				continue;
+			}
 			if(piston.getLoc().getBlock().getType() == XMaterial.PISTON.parseMaterial()) {
 				expiredPistons.add(piston);
 				continue;
@@ -158,8 +161,14 @@ public class BlockManager {
 		for(Entry<UUID, List<GenPiston>> pistonSet : entrySet) {
 			List<String> locations = new ArrayList<>();
 			for(GenPiston piston : pistonSet.getValue()) {
+				if(piston == null) {
+					continue;
+				}
+				if(piston.getLoc().getBlock() == null) {
+					plugin.log("&cERROR: &7Can't confirm block is piston in players.yml under UUID: " + pistonSet.getKey().toString() + ".pistons at ", piston.getLoc());
+				}
+				else if(!piston.getLoc().getBlock().getType().equals(XMaterial.PISTON.parseMaterial())) continue;
 				if(!piston.hasBeenUsed()) continue;
-				if(!piston.getLoc().getBlock().getType().equals(XMaterial.PISTON.parseMaterial())) continue;
 				String serializedLoc = this.serializeLoc(piston.getLoc());
 				if(!locations.contains(serializedLoc)) locations.add(serializedLoc);
 			}
@@ -184,10 +193,10 @@ public class BlockManager {
 					}
 					Block block = loc.getWorld().getBlockAt(loc);
 					if(block == null) {
-						plugin.log("&cERROR: &7Unkown block in players.yml under UUID: " + uuid + ".pistons at ", stringLoc);
+						plugin.log("&cERROR: &7Can't confirm block is piston in players.yml under UUID: " + uuid + ".pistons at ", stringLoc);
 						continue;
 					}
-					if(loc.getWorld().getBlockAt(loc).getType()!= XMaterial.PISTON.parseMaterial()) continue;
+					else if(loc.getWorld().getBlockAt(loc).getType()!= XMaterial.PISTON.parseMaterial()) continue;
 					GenPiston piston = new GenPiston(loc, uuidObject);
 					piston.setHasBeenUsed(true);
 					this.addKnownGenPiston(piston);
