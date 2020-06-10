@@ -2,7 +2,7 @@
  * CustomCobbleGen By @author Philip Flyvholm
  * Tier.java
  */
-package me.phil14052.CustomCobbleGen;
+package me.phil14052.CustomCobbleGen.API;
 
 import java.util.ArrayList;
 import java.util.HashMap;

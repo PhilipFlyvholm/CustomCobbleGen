@@ -24,7 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import com.cryptomorin.xseries.XMaterial;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
 import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
 import me.phil14052.CustomCobbleGen.Files.Lang;

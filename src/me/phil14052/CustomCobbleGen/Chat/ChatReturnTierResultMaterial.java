@@ -7,7 +7,7 @@ package me.phil14052.CustomCobbleGen.Chat;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 
 /**

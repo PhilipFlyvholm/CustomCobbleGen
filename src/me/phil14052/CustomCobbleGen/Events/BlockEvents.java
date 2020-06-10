@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -26,7 +27,9 @@ import org.bukkit.event.block.SignChangeEvent;
 import com.cryptomorin.xseries.XMaterial;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.GeneratorGenerateEvent;
+import me.phil14052.CustomCobbleGen.API.PlayerBreakGeneratedBlock;
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.GenBlock;
@@ -99,12 +102,15 @@ public class BlockEvents implements Listener{
 
 						if(tier != null) {
 							Material result = tier.getRandomResult();
-							if(result == null) {
-								plugin.log("&cUnkown material in " + tier.getName() + " tier.");
+							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
+							Bukkit.getPluginManager().callEvent(event);
+							if(event.isCancelled()) return;
+							if(event.getResult() == null) {
+								plugin.log("&cUnkown material in " + event.getTierUsed().getName() + " tier.");
 								return;
 							}
 							e.setCancelled(true);
-							toBlock.setType(result); //Get a random material and replace the block
+							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
 							return;
 						}
 					}else {
@@ -262,6 +268,9 @@ public class BlockEvents implements Listener{
 		}
 		if(isWorldDisabled(l.getWorld())) return;
 		if(bm.isGenLocationKnown(l)) {
+			PlayerBreakGeneratedBlock event = new PlayerBreakGeneratedBlock(p,l);
+			Bukkit.getPluginManager().callEvent(event);
+			if(event.isCancelled()) return;
 			bm.setPlayerForLocation(p.getUniqueId(), l, false);
 		}
 	}
