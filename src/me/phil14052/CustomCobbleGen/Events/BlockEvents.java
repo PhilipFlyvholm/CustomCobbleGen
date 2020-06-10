@@ -127,7 +127,7 @@ public class BlockEvents implements Listener{
 		ClickableSign sign = null;
 		boolean noPermission = false;
 		if(lines[1].equalsIgnoreCase("GUI")) {
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create.gui", true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.create.gui", true)) {
 				sign = new GUISign(l);
 				e.setLine(0, Lang.SIGN_GUI_0.toString());
 				e.setLine(1, Lang.SIGN_GUI_1.toString());
@@ -137,7 +137,7 @@ public class BlockEvents implements Listener{
 				noPermission = true;
 			}
 		}else if(lines[1].equalsIgnoreCase("select")){
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create.select", true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.create.select", true)) {
 				if(lines[2] == null) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_CLASS.toString());
 				}else if(lines[3] == null || !lines[3].matches("-?\\d+")) {
@@ -163,7 +163,7 @@ public class BlockEvents implements Listener{
 			}
 			
 		}else if(lines[1].equalsIgnoreCase("buy")){
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create.buy", true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.create.buy", true)) {
 				if(lines[2] == null) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_CLASS.toString());
 				}else if(lines[3] == null || !lines[3].matches("-?\\d+")) {
@@ -238,7 +238,7 @@ public class BlockEvents implements Listener{
 		ClickableSign signAtLocation = signManager.getSignFromLocation(l);
 		Player p = e.getPlayer();
 		if(signAtLocation != null) {
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create." + signAtLocation.getSignType().name().toLowerCase(), true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.create." + signAtLocation.getSignType().name().toLowerCase(), true)) {
 				if(signManager.removeSign(signAtLocation)) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.SIGN_DELETED.toString());
 					return;

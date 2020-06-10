@@ -74,7 +74,7 @@ public class PlayerEvents implements Listener {
 		if(isSign(e.getClickedBlock().getType())) {
 			ClickableSign sign = signManager.getSignFromLocation(e.getClickedBlock().getLocation());
 			if(sign == null) return;
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.use." + sign.getSignType().name().toLowerCase(), true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.use." + sign.getSignType().name().toLowerCase(), true)) {
 				sign.onInteract(e.getPlayer());	
 			}
 		}

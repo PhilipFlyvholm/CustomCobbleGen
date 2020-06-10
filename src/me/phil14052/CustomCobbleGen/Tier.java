@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
@@ -27,6 +29,8 @@ public class Tier {
 	private int level = -1;
 	private List<Requirement> requirements = null;
 	private List<String> description = null;
+	private String permission = null;
+	private PermissionManager pm = new PermissionManager();
 	
 	public Tier() {
 		this.name = "";
@@ -36,9 +40,10 @@ public class Tier {
 		this.results = null;
 		this.description = null;
 		this.level = -1;
+		this.permission = null;
 	}
 	
-	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements, List<String> description){
+	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements, List<String> description, String permission){
 		this.name = name;
 		this.tierClass = tierClass;
 		this.level = level;
@@ -59,6 +64,7 @@ public class Tier {
 		this.icon = icon;
 		this.results = results;
 		this.description = description;
+		this.permission = permission;
 	}
 	
 	public String getName() {
@@ -166,6 +172,27 @@ public class Tier {
 	
 	public void setDescription(List<String> description) {
 		this.description = description;
+	}
+	
+	public boolean hasCustomPermission() {
+		return !(this.permission == null || this.permission.trim().equals(""));
+	}
+	
+	public String getCustomPermission() {
+		return this.permission;
+	}
+	
+	public void setCustomPermission(String permission) {
+		this.permission = permission;
+	}
+	
+	
+	public boolean doesPlayerHavePermission(Player p) {
+		if(!this.getTierClass().equalsIgnoreCase("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + this.tierClass, false)) return false;
+		if(this.hasCustomPermission()) {
+			if(!pm.hasPermission(p, this.getCustomPermission(), false)) return false;
+		}
+		return true;
 	}
 }
 

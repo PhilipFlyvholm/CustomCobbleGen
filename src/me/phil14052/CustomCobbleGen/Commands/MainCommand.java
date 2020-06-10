@@ -39,6 +39,8 @@ public class MainCommand implements CommandExecutor{
 
 			sendHelp(sender, label);
 			return true;
+		}else if(args[0].equalsIgnoreCase("v")){
+			sender.sendMessage("CCG V: " + plugin.getDescription().getVersion());
 		}else if(args[0].equalsIgnoreCase("tier")) {
 			if(!pm.hasPermission(sender, "customcobblegen.tier", true)) return false;
 			if(args.length < 2) {

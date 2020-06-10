@@ -111,7 +111,7 @@ public class GUIManager {
 						lore.add(Lang.GUI_SELECTED.toString());
 					}else if(tm.hasPlayerPurchasedLevel(p, tier)){
 						lore.add(Lang.GUI_SELECT.toString());
-					}else if(!tierClass.equalsIgnoreCase("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tierClass, false)){
+					}else if(!tier.doesPlayerHavePermission(p)){
 						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
 						lore.add(Lang.GUI_LOCKED_PERMISSION.toString());
@@ -343,7 +343,7 @@ public class GUIManager {
 			}*/
 			
 			// RELOAD CONFIG
-			if(pm.hasPermisson(p, "customcobblegen.admin.reload", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.reload", false)) {
 				reloadIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -359,7 +359,7 @@ public class GUIManager {
 			}
 			
 			// FORCE SAVE
-			if(pm.hasPermisson(p, "customcobblegen.admin.forcesave", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.forcesave", false)) {
 				saveIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -375,7 +375,7 @@ public class GUIManager {
 			}
 			
 			// FORCE BUY
-			if(pm.hasPermisson(p, "customcobblegen.admin.forcebuy", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.forcebuy", false)) {
 				forceBuyIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -392,7 +392,7 @@ public class GUIManager {
 			}
 			
 			// GIVE TIER
-			if(pm.hasPermisson(p, "customcobblegen.admin.givetier", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.givetier", false)) {
 				giveTierIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -408,7 +408,7 @@ public class GUIManager {
 			}
 			
 			// SET TIER
-			if(pm.hasPermisson(p, "customcobblegen.admin.settier", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.settier", false)) {
 				setTierIcon.addClickAction(new ClickAction() {
 
 					@Override

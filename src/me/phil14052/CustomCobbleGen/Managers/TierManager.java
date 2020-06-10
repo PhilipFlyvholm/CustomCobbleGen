@@ -33,10 +33,12 @@ public class TierManager {
 	private CustomCobbleGen plugin = null;
 	private Map<String, List<Tier>> tiers;
 	private BlockManager bm;
+	private PermissionManager pm;
 	
 	public TierManager(){
 		plugin = CustomCobbleGen.getInstance();
 		bm = BlockManager.getInstance();
+		pm = new PermissionManager();
 		setSelectedTier(new HashMap<UUID, Tier>());
 		setPurchasedTiers(new HashMap<UUID, List<Tier>>());
 	}
@@ -94,6 +96,7 @@ public class TierManager {
 						requirements.add(new ItemsRequirement(priceItems));
 					}
 				}
+				
 				if(tierSection.contains("price.level")) {
 					int levelRequirement = tierSection.getInt("price.level");
 
@@ -101,6 +104,7 @@ public class TierManager {
 						requirements.add(new LevelRequirement(levelRequirement));
 					}
 				}
+				
 				List<String> description = null;
 				if(tierSection.contains("description")) {
 					description = new ArrayList<>();
@@ -111,7 +115,12 @@ public class TierManager {
 					}
 					
 				}
-				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements,description);
+				
+				String permission = null;
+				if(tierSection.contains("permission")) {
+					permission = tierSection.getString("permission");
+				}
+				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements,description, permission);
 				try {
 					//If already defined override
 					tierLevelsList.set(tierLevel, tier);
@@ -258,7 +267,9 @@ public class TierManager {
 	
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
 		if(!p.isOnline()) return false;
-		if(!tier.getTierClass().equals("DEFAULT") && new PermissionManager().hasPermisson(p, "customcobblegen.generator." + tier.getTierClass(), false) == false) return false;
+		if(!tier.getTierClass().equals("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tier.getTierClass(), false)) return false;
+		plugin.log(tier.hasCustomPermission(), tier.getCustomPermission());
+		if(tier.hasCustomPermission() && !pm.hasPermission(p, tier.getCustomPermission(), false)) return false;
 		for(Requirement r : tier.getRequirements()) {
 			if(!r.furfillsRequirement(p)) return false;
 		}
