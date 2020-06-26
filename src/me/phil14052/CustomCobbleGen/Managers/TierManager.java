@@ -59,6 +59,7 @@ public class TierManager {
 				Material iconMaterial = Material.matchMaterial(tierSection.getString("icon").toUpperCase());
 				if(iconMaterial == null) iconMaterial = Material.COBBLESTONE;
 				Map<Material, Double> results = new HashMap<Material, Double>();
+				double totalPercentage = 0D;
 				for(String resultMaterialString : tierSection.getConfigurationSection("contains").getKeys(false)){
 					Material resultMaterial = Material.matchMaterial(resultMaterialString.toUpperCase());
 					if(resultMaterial == null) {
@@ -67,8 +68,17 @@ public class TierManager {
 						levelNeedsUserChange = true;
 						classNeedsUserChange = true;
 					}
-					results.put(resultMaterial, tierSection.getDouble("contains." + resultMaterialString));
+					double percentage = tierSection.getDouble("contains." + resultMaterialString);
+					totalPercentage += percentage;
+					results.put(resultMaterial, percentage);
 				}
+				if(totalPercentage > 100D) {
+					plugin.log("&c&lUser Error: Results total percentage is over 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
+				}else if(totalPercentage < 100D) {
+					plugin.log("&c&lUser Error: Results total percentage is under 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
+					plugin.log("&c&lTHIS CAN GIVE NULL POINTER ERRORS! THESE ARE USER ERRORS AND NEED TO BE FIXED BY YOU!");
+				}
+				
 				List<Requirement> requirements = new ArrayList<Requirement>();
 				
 				if(tierSection.contains("price.money")) {
@@ -254,6 +264,11 @@ public class TierManager {
 					plugin.log("&cERROR: &7MISSING PLAYER.YML FILE");
 					return;
 				}
+				if(purchasedTier == null) {
+					plugin.log("&c&lUser Error: Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!");
+					plugin.log("&c&lIf not manually added then please report this to the dev");
+					continue;
+				}
 				plugin.debug("Saving purchased tier: ",purchasedTier);
 				if(plugin.getPlayerConfig().contains("players." + uuid + ".purchased." + purchasedTier.getTierClass())) {
 					purchasedLevels = plugin.getPlayerConfig().getIntegerList("players." + uuid + ".purchased." + purchasedTier.getTierClass());	
@@ -301,6 +316,10 @@ public class TierManager {
 		if(tier.getLevel() <= 0 && tier.getTierClass() == "DEFAULT") return true;
 		UUID uuid = p.getUniqueId();
 		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(uuid, tier.getTierClass());
+		if(purchasedTiersByClass == null) {
+			plugin.log("Unknown tier purchases from - " + p.getName());
+			return false;
+		}
 		for(Tier tierI : purchasedTiersByClass) {
 			if(tierI.getLevel() == tier.getLevel()) return true;
 			else continue;
@@ -384,7 +403,9 @@ public class TierManager {
 	
 	public List<Tier> focusListOnClass(List<Tier> list, String tierClass) {
 		List<Tier> newList = new ArrayList<Tier>();
+		if(list == null || list.isEmpty()) return newList;
 		for(Tier tier : list) {
+			if(tier == null || tier.getTierClass() == null) continue;
 			if(!tier.getTierClass().equals(tierClass)) continue;
 			newList.add(tier);
 		}
