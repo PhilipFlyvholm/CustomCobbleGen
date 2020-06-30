@@ -4,8 +4,10 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -64,7 +66,7 @@ public class BlockEvents implements Listener{
 			Block toBlock = e.getToBlock();
 			Material toBlockMaterial = toBlock.getType();
 			if(toBlockMaterial.equals(Material.AIR) || mode.containsBlock(toBlockMaterial)){
-				if(isGeneratingCobbleStone(mode, m, toBlock)){
+				if(isGenerating(mode, m, toBlock)){
 					Location l = toBlock.getLocation();
 					//Checks if the block has been broken before and if it is a known gen location
 					if(!bm.isGenLocationKnown(l) && mode.isSearchingForPlayersNearby()) {
@@ -289,29 +291,67 @@ public class BlockEvents implements Listener{
 		    BlockFace.WEST
 	};
 	
-	private boolean isGeneratingCobbleStone(GenMode mode, Material fromM, Block toB){
-		Material mirrorMaterial = (mode.getMirrorMaterial(fromM));
-		if(!XMaterial.supports(13)){
-			if(this.isWater(mirrorMaterial.name()) || this.isLava(mirrorMaterial.name())) {
-				boolean testWater = this.isWater(mirrorMaterial.name());
-				for(BlockFace face : faces){
-					Block r = toB.getRelative(face, 1);
-					if((testWater && this.isWater(r.getType().name()) || (!testWater && this.isLava(r.getType().name())))) {
-						return true;
-					}
+	private boolean isGenerating(GenMode mode, Material fromM, Block toB){
+		if(!mode.isValid()) return false;
+		int blocksFound = 0; /** We need all blocks to be correct */
+		List<BlockFace> testedFaces = new ArrayList<>();
+		if(mode.getFixedBlocks() != null && !mode.getFixedBlocks().isEmpty()) {
+			for(Entry<BlockFace, Material> entry : mode.getFixedBlocks().entrySet()) {
+				if(testedFaces.contains(entry.getKey())) continue;
+				testedFaces.add(entry.getKey());
+				if(entry.getValue().equals(fromM))  {
+					blocksFound++;
+					continue;
+				};
+				Block r = toB.getRelative(entry.getKey(), 1);
+				/** Version 1.12 and under have multiple names for lava and water so both needs to be tested for */
+				if(!XMaterial.supports(13) 
+						&& ((this.isWater(r.getType().name()) && this.isWater(entry.getValue().name())) 
+						|| (this.isLava(r.getType().name()) && this.isLava(entry.getValue().name()))
+						)){
+					blocksFound++; /** This block is positioned correctly; */
+					continue;
 				}
-				return false;
-			}
+				 if(r.getType().equals(entry.getValue())) {
+					blocksFound++; /** This block is positioned correctly; */
+				}else {
+					return false; /** This block is not positioned correctly so we stop testing */
+				}
+			}	
 		}
-		for(BlockFace face : faces){
-			Block r = toB.getRelative(face, 1);
-			if(r.getType().equals(mirrorMaterial)) {
-				return true;
+		if(mode.getBlocks() != null && !mode.getBlocks().isEmpty()) {
+			for(BlockFace face : faces){
+				if(testedFaces.contains(face)) continue;
+				testedFaces.add(face);
+				Block r = toB.getRelative(face, 1);
+				if(r.getType().equals(fromM)) {
+					blocksFound++;
+					continue;
+				}
+				
+				for(Material mirrorMaterial : mode.getBlocks()) {
+					/** Version 1.12 and under have multiple names for lava and water so both needs to be tested for */
+					if(!XMaterial.supports(13) 
+							&& ((this.isWater(r.getType().name()) && this.isWater(mirrorMaterial.name())) 
+							|| (this.isLava(r.getType().name()) && this.isLava(mirrorMaterial.name()))
+							)){
+						blocksFound++; /** This block is positioned correctly; */
+						continue;
+					}
+					 if(r.getType().equals(mirrorMaterial)) {
+						blocksFound++; /** This block is positioned correctly; */
+					}	
+				}
 			}
 		}
 		
-		return false;
+		int blocksNeeded = (mode.getBlocks().size() + mode.getFixedBlocks().size());
+		plugin.debug("Blocks found: " + blocksFound + " - Blocks needed " + blocksNeeded + " - Success?? " + (blocksFound == blocksNeeded));
+		
+		return blocksFound == blocksNeeded;
 	}
+	
+	
 	private boolean isWater(String materialName) {
 		return materialName.equalsIgnoreCase("WATER") 
 		|| materialName.equalsIgnoreCase("STATIONARY_WATER");

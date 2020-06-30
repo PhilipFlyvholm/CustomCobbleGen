@@ -4,72 +4,108 @@
  */
 package me.phil14052.CustomCobbleGen.Managers;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
+
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
 /**
  * @author Philip
  *
  */
 public class GenMode {
-
-	private Material firstBlock = null;
-	private Material secondBlock = null;
 	private boolean searchForPlayersNearby = false;
-	
+	private List<Material> blocks = null;
+	private Map<BlockFace, Material> fixedBlocks = null;
+	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private List<String> enabledWorlds = new ArrayList<>(); //TODO: ADD THIS
 	private boolean valid = false;
 
-	public GenMode(String firstBlock, String secondBlock) {
-		this(Material.valueOf(firstBlock), Material.valueOf(secondBlock));
-	}
-	public GenMode(String firstBlock, String secondBlock, boolean searchForNearbyPlayers) {
-		this(Material.valueOf(firstBlock), Material.valueOf(secondBlock), searchForNearbyPlayers);
-	}
-	public GenMode(Material firstBlock, Material secondBlock) {
-		this(firstBlock, secondBlock, !((firstBlock.equals(Material.WATER) && secondBlock.equals(Material.LAVA)) ||
-				(firstBlock.equals(Material.LAVA) && secondBlock.equals(Material.WATER))));
+	public GenMode(List<Material> blocks) {
+		this(blocks, null, true);
 	}
 	
-	public GenMode(Material firstBlock, Material secondBlock, boolean searchForNearbyPlayers) {
-		if(firstBlock == null || secondBlock == null) return;
-		this.firstBlock = firstBlock;
-		this.secondBlock = secondBlock;
-		this.setSearchForPlayersNearby(searchForNearbyPlayers);
-		if(!this.containsLiquidBlock()) return;
+	public GenMode(List<Material> blocks, Map<BlockFace, Material> fixedBlocks) {
+		this(blocks, fixedBlocks, true);
+	}
+	
+	public GenMode(List<Material> blocks, Map<BlockFace, Material> fixedBlocks, boolean searchForPlayersNearby) {
+		if(blocks == null) { //CREATE A EMPTY LIST IF ONLY "FIXED BLOCKS" ARE USED
+			blocks = new ArrayList<>();
+		}
+		if(fixedBlocks == null) { //CREATE A EMPTY LIST IF ONLY "BLOCKS" ARE USED
+			fixedBlocks = new HashMap<>();
+		}
+		if(blocks.isEmpty() && fixedBlocks.isEmpty()) { //Throw user error if no blocks are defined
+			plugin.log("&c&lUser error: Invalid generation mode. Empty lists");
+			valid = false;
+			return;
+		}
+		int totalBlocks = blocks.size() + fixedBlocks.size(); //Get the amount of blocks specified
+		if(totalBlocks < 2) { // There needs to be at least two blocks. If not then throw error
+			plugin.log("&c&lUser error: Invalid generation mode. There needs to be at least two blocks specified");
+			valid = false;
+			return;
+		}
+		if(!this.containsLiquidBlock(blocks, fixedBlocks)) { // There needs to flow from a liquid block
+			plugin.log("&c&lUser error: Invalid generation mode. There needs to be at least one liquid block - i.e. LAVA or WATER");
+			valid = false;
+			return;
+		}
+		//TODO: PUT ENABLED WORLDS IN
+		
+		//CONGRATZ IT LOOKS VALID
+		this.setBlocks(blocks);
+		this.setFixedBlocks(fixedBlocks);
+		this.setSearchForPlayersNearby(searchForPlayersNearby);
 		valid = true;
-	}
+		
 	
-	public Material getMirrorMaterial(Material m) {
+	}
+	public List<Material> getMirrorMaterials(Material m, BlockFace blockFace) {
 		if(m == null) return null;
 		if(m.name().equals("LAVA") || m.name().equals("STATIONARY_LAVA")) m = Material.LAVA;
 		if(m.name().equals("WATER") || m.name().equals("STATIONARY_WATER")) m = Material.WATER;
-		if(m.equals(this.firstBlock)) return this.secondBlock;
-		else if(m.equals(this.secondBlock)) return this.firstBlock;
-		return null;
+
+		List<Material> possibleMirrors = new ArrayList<>();
+		if(fixedBlocks.containsKey(blockFace.getOppositeFace())){
+			possibleMirrors.add(fixedBlocks.get(blockFace.getOppositeFace()));
+		}else {
+			possibleMirrors.addAll(this.getBlocks());
+			if(possibleMirrors.contains(m)) {
+				possibleMirrors.remove(m);
+			}else {
+				possibleMirrors = new ArrayList<>();
+			}
+		}
+		if(possibleMirrors.isEmpty()) possibleMirrors = null;
+		
+		return possibleMirrors;
 	}
 	
 	
 	public boolean containsLiquidBlock() {
-		return this.firstBlock.equals(Material.WATER) || 
-				this.firstBlock.equals(Material.LAVA) || 
-				this.secondBlock.equals(Material.WATER) || 
-				this.secondBlock.equals(Material.LAVA);
+		return this.containsLiquidBlock(this.getBlocks(), this.getFixedBlocks());
 	}
 	
-	
-	public Material getFirstBlock() {
-		return firstBlock;
-	}
-
-	public void setFirstBlock(Material firstBlock) {
-		this.firstBlock = firstBlock;
-	}
-
-	public Material getSecondBlock() {
-		return secondBlock;
-	}
-
-	public void setSecondBlock(Material secondBlock) {
-		this.secondBlock = secondBlock;
+	public boolean containsLiquidBlock(List<Material> blocks, Map<BlockFace, Material> fixedBlocks) {
+		for(Material m : blocks) {
+			if(m == null) continue;
+			if(m.name().equals("LAVA") || m.name().equals("STATIONARY_LAVA") || m.name().equals("WATER") || m.name().equals("STATIONARY_WATER")) return true;
+		}
+		for(Entry<BlockFace, Material> set : fixedBlocks.entrySet()) {
+			if(set.getKey() == BlockFace.DOWN) continue; // If the liquid is DOWN then there can not be any flow, which means the event will never be called by this block.
+			Material m = set.getValue();
+			if(m == null) continue;
+			if(m.name().equals("LAVA") || m.name().equals("STATIONARY_LAVA") || m.name().equals("WATER") || m.name().equals("STATIONARY_WATER")) return true;
+		}
+		return false;
 	}
 
 	public boolean isValid() {
@@ -81,14 +117,19 @@ public class GenMode {
 	}
 	
 	public boolean containsBlock(Material m) {
-		if( this.firstBlock.equals(m) || this.secondBlock.equals(m)) return true;
-		
-		if(m.name().equalsIgnoreCase("WATER") || m.name().equalsIgnoreCase("STATIONARY_WATER")) {
-			if(this.firstBlock.name().equalsIgnoreCase("WATER") || this.firstBlock.name().equalsIgnoreCase("STATIONARY_WATER")) return true;
-			if(this.secondBlock.name().equalsIgnoreCase("WATER") || this.secondBlock.name().equalsIgnoreCase("STATIONARY_WATER")) return true;			
-		}else if(m.name().equalsIgnoreCase("LAVA") || m.name().equalsIgnoreCase("STATIONARY_LAVA")) {
-			if(this.firstBlock.name().equalsIgnoreCase("LAVA") || this.firstBlock.name().equalsIgnoreCase("STATIONARY_LAVA")) return true;
-			if(this.secondBlock.name().equalsIgnoreCase("LAVA") || this.secondBlock.name().equalsIgnoreCase("STATIONARY_LAVA")) return true;
+		if(m == null) return false;
+		if(m.name().equalsIgnoreCase("WATER") || m.name().equalsIgnoreCase("STATIONARY_WATER")) m = Material.WATER;
+		if(m.name().equalsIgnoreCase("LAVA") || m.name().equalsIgnoreCase("STATIONARY_LAVA")) m = Material.LAVA;
+		for(Material mat : blocks) {
+			if(mat == null) continue;
+			if(mat.equals(m)) return true;
+		}
+		for(Entry<BlockFace, Material> set : fixedBlocks.entrySet()) {
+			if(set.getKey() == BlockFace.DOWN) continue; // If the liquid is DOWN then there can not be any flow, which means the event will never be called by this block.
+			Material mat = set.getValue();
+			if(mat == null) continue;
+
+			if(mat.equals(m)) return true;
 		}
 		return false;
 	}
@@ -101,6 +142,30 @@ public class GenMode {
 
 	public void setSearchForPlayersNearby(boolean searchForPlayersNearby) {
 		this.searchForPlayersNearby = searchForPlayersNearby;
+	}
+
+	public List<String> getEnabledWorlds() {
+		return enabledWorlds;
+	}
+
+	public void setEnabledWorlds(List<String> enabledWorlds) {
+		this.enabledWorlds = enabledWorlds;
+	}
+
+	public Map<BlockFace, Material> getFixedBlocks() {
+		return fixedBlocks;
+	}
+
+	public void setFixedBlocks(Map<BlockFace, Material> fixedBlocks) {
+		this.fixedBlocks = fixedBlocks;
+	}
+
+	public List<Material> getBlocks() {
+		return blocks;
+	}
+
+	public void setBlocks(List<Material> blocks) {
+		this.blocks = blocks;
 	}
 	
 }

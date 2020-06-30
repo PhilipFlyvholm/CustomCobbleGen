@@ -87,7 +87,8 @@ public class GUIManager {
 				for(Tier tier : classTiers) {
 					if(j == 0) {
 						if(newLines) {
-							if(i != 0) {
+							plugin.debug(i);
+							if(i != 0 && i != 9) {
 								i += 9-((i)%9);	
 							}
 							if(centerItems) {
