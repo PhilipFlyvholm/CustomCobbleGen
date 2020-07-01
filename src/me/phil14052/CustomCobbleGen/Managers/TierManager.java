@@ -16,7 +16,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
@@ -33,10 +33,12 @@ public class TierManager {
 	private CustomCobbleGen plugin = null;
 	private Map<String, List<Tier>> tiers;
 	private BlockManager bm;
+	private PermissionManager pm;
 	
 	public TierManager(){
 		plugin = CustomCobbleGen.getInstance();
 		bm = BlockManager.getInstance();
+		pm = new PermissionManager();
 		setSelectedTier(new HashMap<UUID, Tier>());
 		setPurchasedTiers(new HashMap<UUID, List<Tier>>());
 	}
@@ -57,6 +59,7 @@ public class TierManager {
 				Material iconMaterial = Material.matchMaterial(tierSection.getString("icon").toUpperCase());
 				if(iconMaterial == null) iconMaterial = Material.COBBLESTONE;
 				Map<Material, Double> results = new HashMap<Material, Double>();
+				double totalPercentage = 0D;
 				for(String resultMaterialString : tierSection.getConfigurationSection("contains").getKeys(false)){
 					Material resultMaterial = Material.matchMaterial(resultMaterialString.toUpperCase());
 					if(resultMaterial == null) {
@@ -65,8 +68,17 @@ public class TierManager {
 						levelNeedsUserChange = true;
 						classNeedsUserChange = true;
 					}
-					results.put(resultMaterial, tierSection.getDouble("contains." + resultMaterialString));
+					double percentage = tierSection.getDouble("contains." + resultMaterialString);
+					totalPercentage += percentage;
+					results.put(resultMaterial, percentage);
 				}
+				if(totalPercentage > 100D) {
+					plugin.log("&c&lUser Error: Results total percentage is over 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
+				}else if(totalPercentage < 100D) {
+					plugin.log("&c&lUser Error: Results total percentage is under 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
+					plugin.log("&c&lTHIS CAN GIVE NULL POINTER ERRORS! THESE ARE USER ERRORS AND NEED TO BE FIXED BY YOU!");
+				}
+				
 				List<Requirement> requirements = new ArrayList<Requirement>();
 				
 				if(tierSection.contains("price.money")) {
@@ -94,6 +106,7 @@ public class TierManager {
 						requirements.add(new ItemsRequirement(priceItems));
 					}
 				}
+				
 				if(tierSection.contains("price.level")) {
 					int levelRequirement = tierSection.getInt("price.level");
 
@@ -101,6 +114,7 @@ public class TierManager {
 						requirements.add(new LevelRequirement(levelRequirement));
 					}
 				}
+				
 				List<String> description = null;
 				if(tierSection.contains("description")) {
 					description = new ArrayList<>();
@@ -111,7 +125,12 @@ public class TierManager {
 					}
 					
 				}
-				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements,description);
+				
+				String permission = null;
+				if(tierSection.contains("permission")) {
+					permission = tierSection.getString("permission");
+				}
+				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements,description, permission);
 				try {
 					//If already defined override
 					tierLevelsList.set(tierLevel, tier);
@@ -241,8 +260,19 @@ public class TierManager {
 			List<Tier> purchasedTiers = this.getPurchasedTiers().get(uuid);
 			for(Tier purchasedTier : purchasedTiers){
 				List<Integer> purchasedLevels = new ArrayList<Integer>();
-				if(plugin.getPlayerConfig().contains("players." + uuid + ".purchased." + purchasedTier.getTierClass()))
-					purchasedLevels = plugin.getPlayerConfig().getIntegerList("players." + uuid + ".purchased." + purchasedTier.getTierClass());
+				if(plugin.getPlayerConfig() == null){
+					plugin.log("&cERROR: &7MISSING PLAYER.YML FILE");
+					return;
+				}
+				if(purchasedTier == null) {
+					plugin.log("&c&lUser Error: Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!");
+					plugin.log("&c&lIf not manually added then please report this to the dev");
+					continue;
+				}
+				plugin.debug("Saving purchased tier: ",purchasedTier);
+				if(plugin.getPlayerConfig().contains("players." + uuid + ".purchased." + purchasedTier.getTierClass())) {
+					purchasedLevels = plugin.getPlayerConfig().getIntegerList("players." + uuid + ".purchased." + purchasedTier.getTierClass());	
+				}
 				if(!purchasedLevels.contains(purchasedTier.getLevel())) purchasedLevels.add(purchasedTier.getLevel());
 				plugin.getPlayerConfig().set("players." + uuid + ".purchased." + purchasedTier.getTierClass(), purchasedLevels);
 			}
@@ -252,7 +282,9 @@ public class TierManager {
 	
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
 		if(!p.isOnline()) return false;
-		if(!tier.getTierClass().equals("DEFAULT") && new PermissionManager().hasPermisson(p, "customcobblegen.generator." + tier.getTierClass(), false) == false) return false;
+		if(!tier.getTierClass().equals("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tier.getTierClass(), false)) return false;
+		plugin.log(tier.hasCustomPermission(), tier.getCustomPermission());
+		if(tier.hasCustomPermission() && !pm.hasPermission(p, tier.getCustomPermission(), false)) return false;
 		for(Requirement r : tier.getRequirements()) {
 			if(!r.furfillsRequirement(p)) return false;
 		}
@@ -284,6 +316,10 @@ public class TierManager {
 		if(tier.getLevel() <= 0 && tier.getTierClass() == "DEFAULT") return true;
 		UUID uuid = p.getUniqueId();
 		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(uuid, tier.getTierClass());
+		if(purchasedTiersByClass == null) {
+			plugin.log("Unknown tier purchases from - " + p.getName());
+			return false;
+		}
 		for(Tier tierI : purchasedTiersByClass) {
 			if(tierI.getLevel() == tier.getLevel()) return true;
 			else continue;
@@ -367,7 +403,9 @@ public class TierManager {
 	
 	public List<Tier> focusListOnClass(List<Tier> list, String tierClass) {
 		List<Tier> newList = new ArrayList<Tier>();
+		if(list == null || list.isEmpty()) return newList;
 		for(Tier tier : list) {
+			if(tier == null || tier.getTierClass() == null) continue;
 			if(!tier.getTierClass().equals(tierClass)) continue;
 			newList.add(tier);
 		}

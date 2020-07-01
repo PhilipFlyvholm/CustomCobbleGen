@@ -9,7 +9,7 @@ import java.util.List;
 import org.bukkit.entity.Player;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Hooks.IslandLevelHook;
 

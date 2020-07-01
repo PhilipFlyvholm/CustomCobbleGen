@@ -4,16 +4,17 @@ package me.phil14052.CustomCobbleGen.Commands;
 import java.util.List;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.GUI.GUIManager;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
@@ -38,6 +39,8 @@ public class MainCommand implements CommandExecutor{
 
 			sendHelp(sender, label);
 			return true;
+		}else if(args[0].equalsIgnoreCase("v")){
+			sender.sendMessage("CCG V: " + plugin.getDescription().getVersion());
 		}else if(args[0].equalsIgnoreCase("tier")) {
 			if(!pm.hasPermission(sender, "customcobblegen.tier", true)) return false;
 			if(args.length < 2) {
@@ -206,7 +209,10 @@ public class MainCommand implements CommandExecutor{
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
 			}else if(args[1].equalsIgnoreCase("debug")){
 				if(!pm.hasPermission(sender, "customcobblegen.debugger", true)) return false;
-				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "Hey mate! Nothing to debug here yet!"));
+				sender.sendMessage(" ");
+				for(GenPiston piston : BlockManager.getInstance().getKnownGenPistons().values()) {
+					sender.sendMessage(piston.getLoc().toString());
+				}
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));

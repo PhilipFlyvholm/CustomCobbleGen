@@ -4,10 +4,13 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -26,7 +29,9 @@ import org.bukkit.event.block.SignChangeEvent;
 import com.cryptomorin.xseries.XMaterial;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.GeneratorGenerateEvent;
+import me.phil14052.CustomCobbleGen.API.PlayerBreakGeneratedBlock;
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.GenBlock;
@@ -57,11 +62,11 @@ public class BlockEvents implements Listener{
 		Material m = b.getType();
 		List<GenMode> modes = genModeManager.getModesContainingMaterial(m);
 		for(GenMode mode : modes) {
-			if(!mode.containsLiquidBlock() || !mode.isValid()) continue;
+			if(!mode.containsLiquidBlock() || !mode.isValid() || mode.isWorldDisabled(b.getLocation().getWorld())) continue;
 			Block toBlock = e.getToBlock();
 			Material toBlockMaterial = toBlock.getType();
 			if(toBlockMaterial.equals(Material.AIR) || mode.containsBlock(toBlockMaterial)){
-				if(isGeneratingCobbleStone(mode, m, toBlock)){
+				if(isGenerating(mode, m, toBlock)){
 					Location l = toBlock.getLocation();
 					//Checks if the block has been broken before and if it is a known gen location
 					if(!bm.isGenLocationKnown(l) && mode.isSearchingForPlayersNearby()) {
@@ -99,12 +104,15 @@ public class BlockEvents implements Listener{
 
 						if(tier != null) {
 							Material result = tier.getRandomResult();
-							if(result == null) {
-								plugin.log("&cUnkown material in " + tier.getName() + " tier.");
+							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
+							Bukkit.getPluginManager().callEvent(event);
+							if(event.isCancelled()) return;
+							if(event.getResult() == null) {
+								plugin.log("&cUnkown material in " + event.getTierUsed().getName() + " tier.");
 								return;
 							}
 							e.setCancelled(true);
-							toBlock.setType(result); //Get a random material and replace the block
+							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
 							return;
 						}
 					}else {
@@ -127,7 +135,7 @@ public class BlockEvents implements Listener{
 		ClickableSign sign = null;
 		boolean noPermission = false;
 		if(lines[1].equalsIgnoreCase("GUI")) {
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create.gui", true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.create.gui", true)) {
 				sign = new GUISign(l);
 				e.setLine(0, Lang.SIGN_GUI_0.toString());
 				e.setLine(1, Lang.SIGN_GUI_1.toString());
@@ -137,7 +145,7 @@ public class BlockEvents implements Listener{
 				noPermission = true;
 			}
 		}else if(lines[1].equalsIgnoreCase("select")){
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create.select", true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.create.select", true)) {
 				if(lines[2] == null) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_CLASS.toString());
 				}else if(lines[3] == null || !lines[3].matches("-?\\d+")) {
@@ -163,7 +171,7 @@ public class BlockEvents implements Listener{
 			}
 			
 		}else if(lines[1].equalsIgnoreCase("buy")){
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create.buy", true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.create.buy", true)) {
 				if(lines[2] == null) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_CLASS.toString());
 				}else if(lines[3] == null || !lines[3].matches("-?\\d+")) {
@@ -238,7 +246,7 @@ public class BlockEvents implements Listener{
 		ClickableSign signAtLocation = signManager.getSignFromLocation(l);
 		Player p = e.getPlayer();
 		if(signAtLocation != null) {
-			if(pm.hasPermisson(e.getPlayer(), "customcobblegen.signs.create." + signAtLocation.getSignType().name().toLowerCase(), true)) {
+			if(pm.hasPermission(e.getPlayer(), "customcobblegen.signs.create." + signAtLocation.getSignType().name().toLowerCase(), true)) {
 				if(signManager.removeSign(signAtLocation)) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.SIGN_DELETED.toString());
 					return;
@@ -262,6 +270,9 @@ public class BlockEvents implements Listener{
 		}
 		if(isWorldDisabled(l.getWorld())) return;
 		if(bm.isGenLocationKnown(l)) {
+			PlayerBreakGeneratedBlock event = new PlayerBreakGeneratedBlock(p,l);
+			Bukkit.getPluginManager().callEvent(event);
+			if(event.isCancelled()) return;
 			bm.setPlayerForLocation(p.getUniqueId(), l, false);
 		}
 	}
@@ -280,29 +291,56 @@ public class BlockEvents implements Listener{
 		    BlockFace.WEST
 	};
 	
-	private boolean isGeneratingCobbleStone(GenMode mode, Material fromM, Block toB){
-		Material mirrorMaterial = (mode.getMirrorMaterial(fromM));
-		if(!XMaterial.supports(13)){
-			if(this.isWater(mirrorMaterial.name()) || this.isLava(mirrorMaterial.name())) {
-				boolean testWater = this.isWater(mirrorMaterial.name());
-				for(BlockFace face : faces){
-					Block r = toB.getRelative(face, 1);
-					if((testWater && this.isWater(r.getType().name()) || (!testWater && this.isLava(r.getType().name())))) {
-						return true;
+	private boolean isGenerating(GenMode mode, Material fromM, Block toB){
+		if(!mode.isValid()) return false;
+		int blocksFound = 0; /** We need all blocks to be correct */
+		List<BlockFace> testedFaces = new ArrayList<>();
+		if(mode.getFixedBlocks() != null && !mode.getFixedBlocks().isEmpty()) {
+			for(Entry<BlockFace, Material> entry : mode.getFixedBlocks().entrySet()) {
+				if(testedFaces.contains(entry.getKey())) continue;
+				testedFaces.add(entry.getKey());
+				if(this.isSameMaterial(entry.getValue().name(), fromM.name())) continue;  // Should not check for the original block
+				Block r = toB.getRelative(entry.getKey(), 1);
+				if(this.isSameMaterial(r.getType().name(), entry.getValue().name())){
+					blocksFound++; /** This block is positioned correctly; */
+				}else {
+					return false; /** This block is not positioned correctly so we stop testing */
+				}
+			}	
+		}
+		if(mode.getBlocks() != null && !mode.getBlocks().isEmpty()) {
+			for(BlockFace face : faces){
+				if(testedFaces.contains(face)) continue;
+				testedFaces.add(face);
+				Block r = toB.getRelative(face, 1);
+				if(this.isSameMaterial(r.getType().name(), fromM.name())) { // Should not check for the original block
+					continue;
+				}
+				
+				for(Material mirrorMaterial : mode.getBlocks()) {
+					if(this.isSameMaterial(r.getType().name(), mirrorMaterial.name())){
+						blocksFound++; /** This block is positioned correctly; */
 					}
 				}
-				return false;
 			}
 		}
-		for(BlockFace face : faces){
-			Block r = toB.getRelative(face, 1);
-			if(r.getType().equals(mirrorMaterial)) {
-				return true;
-			}
-		}
+
+		blocksFound++;
+		int blocksNeeded = (mode.getBlocks().size() + mode.getFixedBlocks().size());
+		plugin.debug("Blocks found: " + blocksFound + " - Blocks needed " + blocksNeeded + " - Success?? " + (blocksFound == blocksNeeded));
 		
-		return false;
+		return blocksFound == blocksNeeded;
 	}
+	
+
+	private boolean isSameMaterial(String materialName1, String materialName2) {
+		/** Version 1.12 and under have multiple names for lava and water so both needs to be tested for */
+		if(materialName1.equalsIgnoreCase(materialName2)) return true;
+		else if(isWater(materialName1) && isWater(materialName2)) return true;
+		else if(isLava(materialName1) && isLava(materialName2)) return true;
+		else return false;
+	}
+	
 	private boolean isWater(String materialName) {
 		return materialName.equalsIgnoreCase("WATER") 
 		|| materialName.equalsIgnoreCase("STATIONARY_WATER");

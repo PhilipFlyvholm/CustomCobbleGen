@@ -3,6 +3,7 @@ package me.phil14052.CustomCobbleGen.GUI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,14 @@ import org.bukkit.inventory.meta.SkullMeta;
 import com.cryptomorin.xseries.XMaterial;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierClass;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierDescription;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierIcon;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierLevel;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierName;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
@@ -31,10 +39,11 @@ import me.phil14052.CustomCobbleGen.Utils.ItemLib;
 public class GUIManager {
 
 	private static GUIManager instance = null;
-	private final ItemStack backgroundItem = new ItemLib(XMaterial.BLACK_STAINED_GLASS_PANE.parseMaterial(), 1, (short) 15, " ").create();
+	private final ItemStack backgroundItem = new ItemLib(XMaterial.GRAY_STAINED_GLASS_PANE.parseMaterial(), 1, (short) 7, " ").create();
 	private TierManager tm = TierManager.getInstance();
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	private PermissionManager pm = new PermissionManager();
+	private Map<Player, ChatReturn> playerChatting = new HashMap<Player, ChatReturn>();
 	
 	public Icon getNoPermissionsIcon(String permission) {
 		return new Icon(
@@ -57,33 +66,33 @@ public class GUIManager {
 		private boolean failedLoad = false;
 		
 		public MainGUI(Player p){
+			boolean centerItems = plugin.getConfig().getBoolean("options.gui.centerTiers");
+			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
 			player = p;
-			int i = 0;
 			if(tiers == null) {
 				p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIERS_DEFINED.toString());
 				failedLoad = true;
 				return;
 			}
+			int i = 0; //Current pos
 			Tier selectedTier = tm.getSelectedTier(p.getUniqueId());
 			for(String tierClass : tiers.keySet()) {
-				int j = 0;
-				List<Tier> classTiers = tiers.get(tierClass);
-				int rows = 0;
-				rows = (int) Math.ceil((double)classTiers.size()/9);
-				int currentRow = 1;
-				int emptySpacesAtEnd = 0;
+				int j = 0; //Current pos in class
+				List<Tier> classTiers = tiers.get(tierClass); //Tiers in current class
+				
 				for(Tier tier : classTiers) {
-					j++;
-					currentRow = (int) Math.ceil((double)j/9);
-					if(currentRow == rows) {
-						int firstItemInRow = ((currentRow-1)*9)+1;
-						int itemsInRow = classTiers.size()-firstItemInRow;
-						if(j == firstItemInRow) {
-							int emptySpacesAtStart = (int) Math.ceil(((double)4.5-(itemsInRow/2)));
-							i = (i+emptySpacesAtStart)-1;
-							emptySpacesAtEnd = 9-emptySpacesAtStart-itemsInRow;
+					if(j == 0) {
+						if(newLines) {
+							if(i != 0 && i != 9) {
+								i += 9-((i)%9);	
+							}
+							
+							if(centerItems && classTiers.size() < 9) {
+								i += Math.floor(4.5-(classTiers.size()/2));
+							}
 						}
 					}
+					
 					ItemStack item = tier.getIcon().clone();
 					ItemMeta itemMeta = item.getItemMeta();
 					List<String> lore = itemMeta.getLore();
@@ -99,7 +108,7 @@ public class GUIManager {
 						lore.add(Lang.GUI_SELECTED.toString());
 					}else if(tm.hasPlayerPurchasedLevel(p, tier)){
 						lore.add(Lang.GUI_SELECT.toString());
-					}else if(!tierClass.equalsIgnoreCase("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tierClass, false)){
+					}else if(!tier.doesPlayerHavePermission(p)){
 						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
 						lore.add(Lang.GUI_LOCKED_PERMISSION.toString());
@@ -163,9 +172,11 @@ public class GUIManager {
 						}
 					});
 					ch.setIcon(i, icon);
-					if(j >= classTiers.size()) {
-						i = i + emptySpacesAtEnd;
+					//numOfPreviousTiers += classTiers.size();
+					if(j >= classTiers.size() && centerItems) {
+						i += Math.ceil(4.5-(classTiers.size()/2));
 					}
+					j++;
 					i++;
 				}
 			}
@@ -184,13 +195,25 @@ public class GUIManager {
 		
 		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
 			int rows = 0;
-			for(String tierClass : tiers.keySet()) {
-				List<Tier> classTiers = tiers.get(tierClass);
-				int classRows = classTiers.size()/9;
-				if(classTiers.size()%9 > 0D) classRows++;
+			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
+			if(newLines) {
+				for(String tierClass : tiers.keySet()) {
+					List<Tier> classTiers = tiers.get(tierClass);
+					int classRows = classTiers.size()/9;
+					if(classTiers.size()%9 > 0D) classRows++;
+					rows += classRows;
+				}	
+			}else {
+				int size = 0;
+				for(String tierClass : tiers.keySet()) {
+					size += tiers.get(tierClass).size();
+				}
+				int classRows = size/9;
+				if(size%9 > 0D) classRows++;
 				rows += classRows;
 			}
-					if(closeLine) rows++;
+			
+			if(closeLine) rows++;
 			if(rows > 6) rows = 6; //A GUI CAN MAX BE 6 ROWS
 			if(rows < 1) rows = 1;
 			return (rows*9);
@@ -281,9 +304,9 @@ public class GUIManager {
 		
 	}
 	
-	
 	public class AdminGUI {
-		private CustomHolder ch = new CustomHolder(27, Lang.GUI_ADMIN_TITLE.toString());
+		private int GUISize = 27;
+		private CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_ADMIN_TITLE.toString());
 		private Player player;
 		public AdminGUI(Player p) {
 			this.player = p;
@@ -299,8 +322,24 @@ public class GUIManager {
 			Icon giveTierIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_GIVETIER.toString(p), Lang.GUI_ADMIN_GIVETIER_LORE.toStringList(p)).create());
 			Icon setTierIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_SETTIER.toString(p), Lang.GUI_ADMIN_SETTIER_LORE.toStringList(p)).create());
 			
+			/*Icon createdTierIcon = new Icon(new ItemLib(XMaterial.PAPER.parseMaterial(), 1, (short) 0, Lang.GUI_ADMIN_CREATETIER.toString(p), Lang.GUI_ADMIN_CRAETETIER_LORE.toStringList(p)).create());
+			
+			//Create tier
+			if(pm.hasPermission(p, "customcobblegen.admin.create", false)) {
+				createdTierIcon.addClickAction(new ClickAction() {
+
+					@Override
+					public void execute(Player p) {
+						GUIManager.getInstance().new CreateTierGUI(p, null).open();
+					}
+				});
+				ch.setIcon(11, createdTierIcon);
+			}else {
+				ch.setIcon(11, getNoPermissionsIcon("customcobblegen.admin.reload"));
+			}*/
+			
 			// RELOAD CONFIG
-			if(pm.hasPermisson(p, "customcobblegen.admin.reload", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.reload", false)) {
 				reloadIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -316,7 +355,7 @@ public class GUIManager {
 			}
 			
 			// FORCE SAVE
-			if(pm.hasPermisson(p, "customcobblegen.admin.forcesave", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.forcesave", false)) {
 				saveIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -332,7 +371,7 @@ public class GUIManager {
 			}
 			
 			// FORCE BUY
-			if(pm.hasPermisson(p, "customcobblegen.admin.forcebuy", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.forcebuy", false)) {
 				forceBuyIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -349,7 +388,7 @@ public class GUIManager {
 			}
 			
 			// GIVE TIER
-			if(pm.hasPermisson(p, "customcobblegen.admin.givetier", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.givetier", false)) {
 				giveTierIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -365,7 +404,7 @@ public class GUIManager {
 			}
 			
 			// SET TIER
-			if(pm.hasPermisson(p, "customcobblegen.admin.settier", false)) {
+			if(pm.hasPermission(p, "customcobblegen.admin.settier", false)) {
 				setTierIcon.addClickAction(new ClickAction() {
 
 					@Override
@@ -381,7 +420,7 @@ public class GUIManager {
 				ch.setIcon(15, getNoPermissionsIcon("customcobblegen.admin.settier"));
 			}
 			
-			for(int i = 0; i < 27; i++) {
+			for(int i = 0; i < GUISize; i++) {
 				if(ch.getIcon(i) == null) {
 					ch.setIcon(i, new Icon(backgroundItem));
 				}
@@ -389,6 +428,209 @@ public class GUIManager {
 			
 		}
 		public void open(){
+			Inventory inventory = ch.getInventory();
+			player.openInventory(inventory);
+		}
+	}
+	
+	public class CreateTierGUI{
+		private int GUISize = 27;
+		private CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_CREATE_TITLE.toString());
+		private Player player;
+		
+		public CreateTierGUI(Player p, Tier createdTier) {
+			this.player = p;
+			boolean tierCreated = createdTier != null;
+			Material paperMaterial = XMaterial.PAPER.parseMaterial();
+			
+			List<String> classIconLore = Lang.GUI_CREATE_CLASS_LORE.toStringList(tierCreated 
+					&& createdTier.getTierClass() != null 
+						? "\"" + createdTier.getTierClass() + "\""
+						: Lang.GUI_CREATE_EMPTY.toString());
+			classIconLore.add(Lang.GUI_CREATE_REQUIRED.toString());
+			Icon classIcon = new Icon(new ItemLib(paperMaterial, 1, (short) 0, Lang.GUI_CREATE_CLASS.toString(p), classIconLore).create());
+			classIcon.addClickAction(new ClickAction() {
+
+				@Override
+				public void execute(Player p) {
+					addPlayerChatting(p, createdTier, ChatReturnType.CLASS);
+					for(String s : Lang.CHATINPUT_INFO_CLASS.toStringList(p)) {
+						p.sendMessage(Lang.PREFIX.toString() + s);
+					}
+					p.sendMessage(Lang.PREFIX.toString() + Lang.CHATINPUT_INFO_CANCEL.toString("CANCEL"));
+					p.closeInventory();
+				}
+				
+			});
+			
+			
+			List<String> levelIconLore = Lang.GUI_CREATE_LEVEL_LORE.toStringList(tierCreated 
+					&& createdTier.getLevel() >= 0 
+						? createdTier.getLevel() + "" 
+						: Lang.GUI_CREATE_EMPTY.toString());
+			levelIconLore.add(Lang.GUI_CREATE_REQUIRED.toString());
+			Icon levelIcon = new Icon(new ItemLib(paperMaterial, 1, (short) 0, Lang.GUI_CREATE_LEVEL.toString(p), levelIconLore).create());
+			levelIcon.addClickAction(new ClickAction() {
+
+				@Override
+				public void execute(Player p) {
+					addPlayerChatting(p, createdTier, ChatReturnType.LEVEL);
+					for(String s : Lang.CHATINPUT_INFO_LEVEL.toStringList(p)) {
+						p.sendMessage(Lang.PREFIX.toString() + s);
+					}
+					p.sendMessage(Lang.PREFIX.toString() + Lang.CHATINPUT_INFO_CANCEL.toString("CANCEL"));
+					p.closeInventory();
+				}
+				
+			});
+			
+			
+			List<String> nameIconLore = Lang.GUI_CREATE_NAME_LORE.toStringList(tierCreated 
+					&& createdTier.getName() != null 
+					&& !createdTier.getName().trim().equals("") 
+						? "\"" + ChatColor.translateAlternateColorCodes('&', createdTier.getName() + "&a") + "\""
+						: Lang.GUI_CREATE_EMPTY.toString());
+			nameIconLore.add(Lang.GUI_CREATE_REQUIRED.toString());
+			Icon nameIcon = new Icon(new ItemLib(paperMaterial, 1, (short) 0, Lang.GUI_CREATE_NAME.toString(p), nameIconLore).create());
+			nameIcon.addClickAction(new ClickAction() {
+
+				@Override
+				public void execute(Player p) {
+					addPlayerChatting(p, createdTier, ChatReturnType.NAME);
+					for(String s : Lang.CHATINPUT_INFO_NAME.toStringList(p)) {
+						p.sendMessage(Lang.PREFIX.toString() + s);
+					}
+					p.sendMessage(Lang.PREFIX.toString() + Lang.CHATINPUT_INFO_CANCEL.toString("CANCEL"));
+					p.closeInventory();
+				}
+				
+			});
+			
+			
+			boolean iconMaterialSet = tierCreated && createdTier.getIcon() != null && !createdTier.getIcon().getType().equals(Material.AIR);
+			List<String> materialIconLore = Lang.GUI_CREATE_ICON_LORE.toStringList(iconMaterialSet
+						? "\"" + createdTier.getIcon().getType().name() + "\"" 
+						: Lang.GUI_CREATE_EMPTY.toString());
+			Icon materialIcon = new Icon(new ItemLib(iconMaterialSet ? createdTier.getIcon().getType() : paperMaterial, 1, (short) 0, Lang.GUI_CREATE_ICON.toString(p), materialIconLore).create());
+			materialIcon.addClickAction(new ClickAction() {
+
+				@Override
+				public void execute(Player p) {
+					addPlayerChatting(p, createdTier, ChatReturnType.ICON);
+					for(String s : Lang.CHATINPUT_INFO_ICON.toStringList(p)) {
+						p.sendMessage(Lang.PREFIX.toString() + s);
+					}
+					p.sendMessage(Lang.PREFIX.toString() + Lang.CHATINPUT_INFO_CANCEL.toString("CANCEL"));
+					p.closeInventory();
+				}
+				
+			});
+			
+			
+			List<String> resultsIconLore = Lang.GUI_CREATE_RESULTS_LORE.toStringList();
+			if(tierCreated && createdTier.getResults() != null && !createdTier.getResults().isEmpty()) {
+				resultsIconLore.addAll(createdTier.getResultsLore(createdTier.getResults()));
+			}else {
+				resultsIconLore.add(Lang.GUI_CREATE_EMPTY.toString());
+			}
+			resultsIconLore.add(Lang.GUI_CREATE_REQUIRED.toString());
+			Icon resultsIcon = new Icon(new ItemLib(paperMaterial, 1, (short) 0, Lang.GUI_CREATE_RESULTS.toString(p), resultsIconLore).create());
+			
+			
+			
+			List<String> requirementsIconLore = Lang.GUI_CREATE_REQUIREMENTS_LORE.toStringList(tierCreated && createdTier.getRequirements() != null ? createdTier.getRequirements().size() + "" : "0");
+			Icon requirementsIcon = new Icon(new ItemLib(paperMaterial, 1, (short) 0, Lang.GUI_CREATE_REQUIREMENTS.toString(p), requirementsIconLore).create());
+			
+			List<String> descriptionIconLore = Lang.GUI_CREATE_DESCRIPTION_LORE.toStringList();
+			if(tierCreated && createdTier.hasDescription()) {
+				descriptionIconLore.addAll(createdTier.getDescription());
+			}else {
+				descriptionIconLore.add(Lang.GUI_CREATE_EMPTY.toString());
+			}
+			Icon descriptionIcon = new Icon(new ItemLib(paperMaterial, 1, (short) 0, Lang.GUI_CREATE_DESCRIPTION.toString(p), descriptionIconLore).create());
+			descriptionIcon.addClickAction(new ClickAction() {
+
+				@Override
+				public void execute(Player p) {
+					addPlayerChatting(p, createdTier, ChatReturnType.DESCRIPTION);
+					for(String s : Lang.CHATINPUT_INFO_DESCRIPTION.toStringList("%n%", "REMOVE")) {
+						p.sendMessage(Lang.PREFIX.toString() + s);
+					}
+					p.sendMessage(Lang.PREFIX.toString() + Lang.CHATINPUT_INFO_CANCEL.toString("CANCEL"));
+					p.closeInventory();
+				}
+				
+			});
+			
+			
+			ch.setIcon(10, classIcon);
+			ch.setIcon(11, levelIcon);
+			ch.setIcon(12, nameIcon);
+			ch.setIcon(13, resultsIcon);
+			ch.setIcon(14, materialIcon);
+			ch.setIcon(15, requirementsIcon);
+			ch.setIcon(16, descriptionIcon);
+			
+			for(int i = 0; i < GUISize; i++) {
+				if(ch.getIcon(i) == null) {
+					ch.setIcon(i, new Icon(backgroundItem));
+				}
+			}
+		}
+		
+		
+		
+		public void open() {
+			Inventory inventory = ch.getInventory();
+			player.openInventory(inventory);
+		}
+	}
+	
+	public class ResultsEditTierGUI{
+		private int GUISize = 27;
+		private CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_CREATE_TITLE.toString());
+		private Player player;
+		
+		public ResultsEditTierGUI(Player p, Tier createdTier) {
+			this.player = p;
+			boolean tierCreated = createdTier != null;
+			@SuppressWarnings("unused")
+			Material paperMaterial = XMaterial.PAPER.parseMaterial();
+			Map<Material, Double> results = null;
+			if(tierCreated) {
+				results = createdTier.getResults();
+			}else {
+				results = new HashMap<Material, Double>();
+				results.put(Material.COBBLESTONE, 100.0);
+			}
+			int row = 0;
+			for(Material m : results.keySet()) {
+				ItemStack materialIs = new ItemStack(m);
+				ItemMeta materialIm = materialIs.getItemMeta();
+				materialIm.setDisplayName("�6�l" + m.name());
+				materialIs.setItemMeta(materialIm);
+				Icon materialIcon = new Icon(materialIs);
+				materialIcon.addClickAction(new ClickAction() {
+
+					@Override
+					public void execute(Player p) {
+						addPlayerChatting(p, createdTier, ChatReturnType.MATERIAL);
+						for(String s : Lang.CHATINPUT_INFO_RESULTS_MATERIAL.toStringList(p)) {
+							p.sendMessage(Lang.PREFIX.toString() + s);
+						}
+						p.sendMessage(Lang.PREFIX.toString() + Lang.CHATINPUT_INFO_CANCEL.toString("CANCEL"));
+						p.closeInventory();
+					}
+					
+				});
+				ch.setIcon(row, materialIcon);
+			}
+			
+		}
+		
+		
+		
+		public void open() {
 			Inventory inventory = ch.getInventory();
 			player.openInventory(inventory);
 		}
@@ -490,7 +732,6 @@ public class GUIManager {
 			player.openInventory(inventory);
 		}
 	}
-	
 	
 	public class TierSelectGUI {
 		private Map<String, List<Tier>> tiers = tm.getTiers();
@@ -638,6 +879,53 @@ public class GUIManager {
 			instance = new GUIManager();
 		}
 		return instance;
+	}
+
+	public Map<Player, ChatReturn> getPlayerChatting() {
+		return playerChatting;
+	}
+
+	public void setPlayerChatting(Map<Player, ChatReturn> playerChatting) {
+		this.playerChatting = playerChatting;
+	}
+	
+	public boolean isPlayerChatting(Player p) {
+		return this.getPlayerChatting().containsKey(p);
+	}
+	
+	public ChatReturn getPlayersReturn(Player p) {
+		return this.getPlayerChatting().get(p);
+	}
+	
+	public void removePlayerChatting(Player p) {
+		if(this.isPlayerChatting(p)) this.getPlayerChatting().remove(p);
+	}
+	
+	public void addPlayerChatting(Player p, Tier tier, ChatReturnType type) {
+		if(type == null) {
+			plugin.log("&4ERROR: &cTYPE IS NULL IN GUIManager.addPlayerChatting(Player p, Tier tier, ChatReturnType type)");
+			return;
+		}
+		ChatReturn chatReturn = null;
+		if(type.equals(ChatReturnType.CLASS)) {
+			chatReturn = new ChatReturnTierClass(p, tier);
+		}else if(type.equals(ChatReturnType.LEVEL)) {
+			chatReturn = new ChatReturnTierLevel(p, tier);
+		}else if(type.equals(ChatReturnType.NAME)) {
+			chatReturn = new ChatReturnTierName(p, tier);
+		}else if(type.equals(ChatReturnType.DESCRIPTION)) {
+			chatReturn = new ChatReturnTierDescription(p, tier);
+		}else if(type.equals(ChatReturnType.ICON)) {
+			chatReturn = new ChatReturnTierIcon(p, tier);
+		}else if(type.equals(ChatReturnType.ICON)) {
+			chatReturn = new ChatReturnTierIcon(p, tier);
+		}else {
+			plugin.log("&4ERROR: &c" + type.name() + " does not have a class yet!");
+			return;
+		}
+		
+		if(this.isPlayerChatting(p)) this.removePlayerChatting(p);
+		this.getPlayerChatting().put(p, chatReturn);
 	}
 	
 }

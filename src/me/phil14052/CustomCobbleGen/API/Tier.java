@@ -2,7 +2,7 @@
  * CustomCobbleGen By @author Philip Flyvholm
  * Tier.java
  */
-package me.phil14052.CustomCobbleGen;
+package me.phil14052.CustomCobbleGen.API;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,24 +10,40 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 public class Tier {
 
-	private String name;
+	private String name = "";
 	private String tierClass = "";
-	private ItemStack icon;
-	private Map<Material, Double> results;
-	private int level;
-	private List<Requirement> requirements;
+	private ItemStack icon = null;
+	private Map<Material, Double> results = null;
+	private int level = -1;
+	private List<Requirement> requirements = null;
+	private List<String> description = null;
+	private String permission = null;
+	private PermissionManager pm = new PermissionManager();
 	
-	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements, List<String> description){
+	public Tier() {
+		this.name = "";
+		this.tierClass = "";
+		this.icon = null;
+		this.requirements = null;
+		this.results = null;
+		this.description = null;
+		this.level = -1;
+		this.permission = null;
+	}
+	
+	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements, List<String> description, String permission){
 		this.name = name;
 		this.tierClass = tierClass;
 		this.level = level;
@@ -39,15 +55,7 @@ public class Tier {
 		List<String> lore = new ArrayList<String>();
 		lore.add(Lang.GUI_ITEM_LORE_TITLE.toString(this));
 		if(description == null) {
-
-			for(Material result : results.keySet()){
-				String resultName = StringUtils.toCamelCase(result.name());
-				String percentage = results.get(result) % 1 == 0 ? ((int) Math.round(results.get(result))) + "%" : ((double) results.get(result)) + "%";
-				String resultString = Lang.GUI_ITEM_LORE_RESULT.toString(this);
-				resultString = resultString.replaceAll("%result_name%", resultName);
-				resultString = resultString.replaceAll("%result_percentage%", percentage);
-				lore.add(resultString);
-			}	
+			lore.addAll(this.getResultsLore(results));
 		}else {
 			lore.addAll(description);
 		}
@@ -55,6 +63,8 @@ public class Tier {
 		icon.setItemMeta(im);
 		this.icon = icon;
 		this.results = results;
+		this.description = description;
+		this.permission = permission;
 	}
 	
 	public String getName() {
@@ -137,6 +147,53 @@ public class Tier {
 		return this.requirements;
 	}
 	
+	public List<String> getResultsLore(Map<Material, Double> results){
+		List<String> lore = new ArrayList<>();
+		for(Material result : results.keySet()){
+			String resultName = StringUtils.toCamelCase(result.name());
+			String percentage = results.get(result) % 1 == 0 ? ((int) Math.round(results.get(result))) + "%" : ((double) results.get(result)) + "%";
+			String resultString = Lang.GUI_ITEM_LORE_RESULT.toString(this);
+			resultString = resultString.replaceAll("%result_name%", resultName);
+			resultString = resultString.replaceAll("%result_percentage%", percentage);
+			lore.add(resultString);
+		}
+		return lore;
+	}
+	
+	
+	public boolean hasDescription() {
+		if(this.description == null || this.description.isEmpty()) return false;
+		return true;
+	}
+	
+	public List<String> getDescription(){
+		return this.description;
+	}
+	
+	public void setDescription(List<String> description) {
+		this.description = description;
+	}
+	
+	public boolean hasCustomPermission() {
+		return !(this.permission == null || this.permission.trim().equals(""));
+	}
+	
+	public String getCustomPermission() {
+		return this.permission;
+	}
+	
+	public void setCustomPermission(String permission) {
+		this.permission = permission;
+	}
+	
+	
+	public boolean doesPlayerHavePermission(Player p) {
+		if(!this.getTierClass().equalsIgnoreCase("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + this.tierClass, false)) return false;
+		if(this.hasCustomPermission()) {
+			if(!pm.hasPermission(p, this.getCustomPermission(), false)) return false;
+		}
+		return true;
+	}
 }
 
 

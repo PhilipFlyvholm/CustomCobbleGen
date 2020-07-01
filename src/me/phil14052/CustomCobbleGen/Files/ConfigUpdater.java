@@ -3,6 +3,7 @@ package me.phil14052.CustomCobbleGen.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -26,17 +27,24 @@ public class ConfigUpdater extends YamlConfiguration {
 						+ " By " + pluginYml.getAuthors().get(0));
 		config.options().copyHeader();
 		config.addDefault("debug", false);
-		config.addDefault("options.generationModes.0.firstBlock", "water");
-		config.addDefault("options.generationModes.0.secondBlock", "lava");
+		if(!config.contains("options.generationModes.0")) {
+			List<String> defaultMode = new ArrayList<>();
+			defaultMode.add("WATER");
+			defaultMode.add("LAVA");
+			config.addDefault("options.generationModes.0.blocks", defaultMode);
+		}
 		config.addDefault("options.playerSearchRadius", 4D);
 		config.addDefault("options.money.format", true);
 		config.addDefault("options.gui.showBarrierBlockIfLocked", false);
 		config.addDefault("options.gui.hideInfoIfLocked", false);
 		config.addDefault("options.gui.confirmpurchases", true);
 		config.addDefault("options.gui.admingui", true);
+		config.addDefault("options.gui.seperateClassesByLines", true);
+		config.addDefault("options.gui.centerTiers", true);
 		config.addDefault("options.signs.enabled", true);
 		config.addDefault("options.automation.pistons", false);
 		List<String> disabledWorlds = new ArrayList<String>();
+		disabledWorlds.add("world");
 		disabledWorlds.add("world_nether");
 		disabledWorlds.add("world_the_end");
 		config.addDefault("options.disabled.worlds", disabledWorlds);
@@ -93,6 +101,37 @@ public class ConfigUpdater extends YamlConfiguration {
 		}
 		config.options().copyDefaults(true);
 		plugin.saveDefaultConfig();
+		
+		/* This will try to update from version 1.4.0 and prev to 1.4.1 configs */
+		ConfigurationSection modeSection = config.getConfigurationSection("options.generationModes");
+		boolean changesMade = false;
+		for(String mode : modeSection.getKeys(false)) {
+			if(modeSection.contains(mode + ".blocks") || modeSection.contains(mode + ".fixedBlocks")) continue;
+			else {
+				plugin.log("&aFound prev 1.4.1 configuration of generation mode. Will now try to auto update configuration.");
+			}
+			List<String> blocks = new ArrayList<>();
+			if(modeSection.contains(mode + ".firstBlock")) {
+				blocks.add(modeSection.getString(mode + ".firstBlock"));
+				modeSection.set(mode + ".firstBlock", null);
+				changesMade = true;
+			}
+			if(modeSection.contains(mode + ".secondBlock")) {
+				blocks.add(modeSection.getString(mode + ".secondBlock"));
+				modeSection.set(mode + ".secondBlock", null);
+				changesMade = true;
+			}
+			modeSection.set(mode + ".blocks", blocks);
+			if(blocks.isEmpty()) {
+				plugin.log("&cFAILED AUTO UPDATING GENERATION MODE CONFIGURATION");
+			}else {
+				plugin.log("&aSuccessfully auto updated generation mode configuration!");
+			}
+		}
+		if(changesMade) {
+			plugin.saveConfig();
+			plugin.reloadConfig();
+		}
 	}
 
 }

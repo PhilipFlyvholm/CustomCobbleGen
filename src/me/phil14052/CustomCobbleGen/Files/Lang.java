@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Tier;
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
@@ -91,6 +91,8 @@ public enum Lang {
     GUI_ADMIN_GIVETIER_LORE("gui.admin.givetier.lore", "ARRAYLIST: &8Gives a player a tier , &r  , &cThe player will get the tier for free"),
     GUI_ADMIN_SETTIER("gui.admin.settier.title", "&6&lSet tier"),
     GUI_ADMIN_SETTIER_LORE("gui.admin.settier.lore", "ARRAYLIST: &8Sets the current tier for a player , &r  , &cThis will not purchase a tier"),
+    GUI_ADMIN_CREATETIER("gui.admin.createtier.title", "&6&lCreate a new tier"),
+    GUI_ADMIN_CRAETETIER_LORE("gui.admin.createtier.lore", "ARRAYLIST: &8Create a new tier with a GUI"),
     GUI_ADMIN_NO_PERMISSION_TITLE("gui.admin.no-permission.title", "&4&lNo permission"),
     GUI_ADMIN_NO_PERMISSION_LORE("gui.admin.no-permission.lore", "&cYou do not have the %s1 permission"),
     GUI_SELECT_PLAYER_SKULL_TITLE("gui.select.player-select-skull.title", "&e&l%player_name%"),
@@ -109,6 +111,33 @@ public enum Lang {
     GUI_SELECT_TIER_ALREADY_SELECTED("gui.select.tier.already-selected", "&4&lTier currently selected"),
     GUI_SELECT_TIER_ALREADY_OWN("gui.select.tier.already-own", "&4&lTier already own"),
     GUI_SELECT_TIER_TITLE("gui.select.tier.title", "&4&lCCG: &cSelect a tier"),
+    GUI_CREATE_TITLE("gui.create.title", "&4&lCCG: &cCreating a tier"),
+    GUI_CREATE_REQUIRED("gui.create.info.required", "&c**REQUIRED**"),
+    GUI_CREATE_EMPTY("gui.create.info.emptyList", "&aNone"),
+    GUI_CREATE_CLASS("gui.create.class.title", "&6&lTier class"),
+    GUI_CREATE_CLASS_LORE("gui.create.class.lore", "ARRAYLIST: &8Define the tier class , &r , &7Current: &a%s1"),
+    GUI_CREATE_LEVEL("gui.create.level.title", "&6&lTier level"),
+    GUI_CREATE_LEVEL_LORE("gui.create.level.lore", "ARRAYLIST: &8Define the tier level , &r , &7Current: &a%s1"),
+    GUI_CREATE_ICON("gui.create.icon.title", "&6&lTier icon"),
+    GUI_CREATE_ICON_LORE("gui.create.icon.lore", "ARRAYLIST: &8Define the tier icon material , &r , &7Current: &a%s1"),
+    GUI_CREATE_NAME("gui.create.name.title", "&6&lTier name"),
+    GUI_CREATE_NAME_LORE("gui.create.name.lore", "ARRAYLIST: &8Define the tier displayname , &r , &7Current: &a%s1"),
+    GUI_CREATE_RESULTS("gui.create.results.title", "&6&lTier results"),
+    GUI_CREATE_RESULTS_LORE("gui.create.results.lore", "ARRAYLIST: &8Define the results of the tier , &r , &7Current:"),
+    GUI_CREATE_REQUIREMENTS("gui.create.requirements.title", "&6&lTier requirements"),
+    GUI_CREATE_REQUIREMENTS_LORE("gui.create.requirements.lore", "ARRAYLIST: &8Define the requirements for the tier , &r , &7Currently &a%s1&7 requrirements in use"),
+    GUI_CREATE_DESCRIPTION("gui.create.description.title", "&6&lTier description"),
+    GUI_CREATE_DESCRIPTION_LORE("gui.create.description.lore", "ARRAYLIST: &8Define the description of the tier , &cWill replace displayed results in the GUI , &r , &7Current:"),
+    CHATINPUT_INVALID("chatinput.invalid.default", "&4%s1 &cis a invalid input"),
+    CHATINPUT_INVALID_NOSPACE("chatinput.invalid.no-space", "&cSpaces are not allowed"),
+    CHATINPUT_INVALID_NAN("chatinput.invalid.no-number", "&4%s1&c is not a valid number!"),
+    CHATINPUT_INVALID_NULL_MATERIAL("chatinput.invalid.unknown-material", "&4%s1&c is not a valid material!"),
+    CHATINPUT_INFO_CLASS("chatinput.info.class", "ARRAYLIST: &7Editing tier &aclass , &7Write the tier &aclass&7 in chat , &cSpaces are not allowed"),
+    CHATINPUT_INFO_ICON("chatinput.info.icon", "ARRAYLIST: &7Editing tier &aicon , &7Write the tier &aicon material name&7 in chat , &cUse Bukkit material names!"),
+    CHATINPUT_INFO_LEVEL("chatinput.info.level", "ARRAYLIST: &7Editing tier &alevel , &7Write the tier &alevel&7 in chat , &cPositive numbers or zero only!"),
+    CHATINPUT_INFO_NAME("chatinput.info.name", "ARRAYLIST: &7Editing tier &aname , &7Write the tier &aname&7 in chat , &cSpaces and colors are allowed!"),
+    CHATINPUT_INFO_DESCRIPTION("chatinput.info.description", "ARRAYLIST: &7Editing tier &adescription , &7Write the tier &adescription&7 in chat , &7Write &a%s1&7 for new line  , &cSpaces and colors are allowed! , &cWrite &4&l\"%s2\"&c to delete description"),
+    CHATINPUT_INFO_CANCEL("chatinput.info.CANCEL", "&cWrite &4&l\"%s1\" &c to cancel"),
     SIGN_GUI_0("signs.GUI.0", "&3CustomCobbleGen"),
     SIGN_GUI_1("signs.GUI.1", " "),
     SIGN_GUI_2("signs.GUI.2", "&lClick to open"),
@@ -130,7 +159,8 @@ public enum Lang {
     SIGN_NO_PERMISSION_2("signs.no-permission.2", "&cpermissions to"),
     SIGN_NO_PERMISSION_3("signs.no-permission.3", "&ccreate this sign"),
     SIGN_SUCCESS("signs.success", "Successfully created a clickable sign"),
-    SIGN_DELETED("signs.deleted", "&cSign deleted");
+    SIGN_DELETED("signs.deleted", "&cSign deleted"),
+    CHATINPUT_INFO_RESULTS_MATERIAL("chatinput.info.results.material", "ARRAYLIST: &7Editing result &amaterial , &7Write the result &amaterial name , &cUse Bukkit material names!");
     
     
     private String path;
@@ -235,6 +265,21 @@ public enum Lang {
             		string = string.replaceAll("%selected_tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "");		
             		string = string.replaceAll("%selected_tier_price_xp%", tier.getRequirementValue(RequirementType.XP) + "");	
         		}
+        	}
+    		colored_s.add(string);
+    	}
+    	return colored_s;
+    }
+    
+    public List<String> toStringList(String... strings){
+    	List<String> stringList = LANG.getStringList(this.path);
+    	List<String> colored_s = new ArrayList<String>();
+    	for(String string : stringList){
+    		string = color(string);
+    		int i = 0;
+    		for(String s : strings) {
+        		i++;
+        		string = string.replaceFirst("%s" + i, s);
         	}
     		colored_s.add(string);
     	}
