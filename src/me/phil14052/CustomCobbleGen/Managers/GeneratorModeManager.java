@@ -79,6 +79,9 @@ public class GeneratorModeManager {
 				if(section.contains(s + ".searchForPlayersNearby")) {
 					mode.setSearchForPlayersNearby(section.getBoolean(s + ".searchForPlayersNearby"));
 				}
+				if(section.contains(s + ".disabledWorlds")) {
+					mode.setDisabledWorlds(section.getStringList(s + ".disabledWorlds"));
+				}
 				if(mode.isValid()) {
 					this.generatorModes.add(mode);
 				}

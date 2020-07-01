@@ -62,7 +62,7 @@ public class BlockEvents implements Listener{
 		Material m = b.getType();
 		List<GenMode> modes = genModeManager.getModesContainingMaterial(m);
 		for(GenMode mode : modes) {
-			if(!mode.containsLiquidBlock() || !mode.isValid()) continue;
+			if(!mode.containsLiquidBlock() || !mode.isValid() || mode.isWorldDisabled(b.getLocation().getWorld())) continue;
 			Block toBlock = e.getToBlock();
 			Material toBlockMaterial = toBlock.getType();
 			if(toBlockMaterial.equals(Material.AIR) || mode.containsBlock(toBlockMaterial)){
@@ -299,20 +299,9 @@ public class BlockEvents implements Listener{
 			for(Entry<BlockFace, Material> entry : mode.getFixedBlocks().entrySet()) {
 				if(testedFaces.contains(entry.getKey())) continue;
 				testedFaces.add(entry.getKey());
-				if(entry.getValue().equals(fromM))  {
-					blocksFound++;
-					continue;
-				};
+				if(this.isSameMaterial(entry.getValue().name(), fromM.name())) continue;  // Should not check for the original block
 				Block r = toB.getRelative(entry.getKey(), 1);
-				/** Version 1.12 and under have multiple names for lava and water so both needs to be tested for */
-				if(!XMaterial.supports(13) 
-						&& ((this.isWater(r.getType().name()) && this.isWater(entry.getValue().name())) 
-						|| (this.isLava(r.getType().name()) && this.isLava(entry.getValue().name()))
-						)){
-					blocksFound++; /** This block is positioned correctly; */
-					continue;
-				}
-				 if(r.getType().equals(entry.getValue())) {
+				if(this.isSameMaterial(r.getType().name(), entry.getValue().name())){
 					blocksFound++; /** This block is positioned correctly; */
 				}else {
 					return false; /** This block is not positioned correctly so we stop testing */
@@ -324,33 +313,33 @@ public class BlockEvents implements Listener{
 				if(testedFaces.contains(face)) continue;
 				testedFaces.add(face);
 				Block r = toB.getRelative(face, 1);
-				if(r.getType().equals(fromM)) {
-					blocksFound++;
+				if(this.isSameMaterial(r.getType().name(), fromM.name())) { // Should not check for the original block
 					continue;
 				}
 				
 				for(Material mirrorMaterial : mode.getBlocks()) {
-					/** Version 1.12 and under have multiple names for lava and water so both needs to be tested for */
-					if(!XMaterial.supports(13) 
-							&& ((this.isWater(r.getType().name()) && this.isWater(mirrorMaterial.name())) 
-							|| (this.isLava(r.getType().name()) && this.isLava(mirrorMaterial.name()))
-							)){
+					if(this.isSameMaterial(r.getType().name(), mirrorMaterial.name())){
 						blocksFound++; /** This block is positioned correctly; */
-						continue;
 					}
-					 if(r.getType().equals(mirrorMaterial)) {
-						blocksFound++; /** This block is positioned correctly; */
-					}	
 				}
 			}
 		}
-		
+
+		blocksFound++;
 		int blocksNeeded = (mode.getBlocks().size() + mode.getFixedBlocks().size());
 		plugin.debug("Blocks found: " + blocksFound + " - Blocks needed " + blocksNeeded + " - Success?? " + (blocksFound == blocksNeeded));
 		
 		return blocksFound == blocksNeeded;
 	}
 	
+
+	private boolean isSameMaterial(String materialName1, String materialName2) {
+		/** Version 1.12 and under have multiple names for lava and water so both needs to be tested for */
+		if(materialName1.equalsIgnoreCase(materialName2)) return true;
+		else if(isWater(materialName1) && isWater(materialName2)) return true;
+		else if(isLava(materialName1) && isLava(materialName2)) return true;
+		else return false;
+	}
 	
 	private boolean isWater(String materialName) {
 		return materialName.equalsIgnoreCase("WATER") 

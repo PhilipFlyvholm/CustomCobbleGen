@@ -76,10 +76,6 @@ public class GUIManager {
 			}
 			int i = 0; //Current pos
 			Tier selectedTier = tm.getSelectedTier(p.getUniqueId());
-			//int numOfPreviousTiers = 0;
-			if(centerItems && tm.getTiersSize() < 9) {
-				i += Math.floor(4.5-((double) tm.getTiersSize()/2));
-			}
 			for(String tierClass : tiers.keySet()) {
 				int j = 0; //Current pos in class
 				List<Tier> classTiers = tiers.get(tierClass); //Tiers in current class
@@ -87,11 +83,11 @@ public class GUIManager {
 				for(Tier tier : classTiers) {
 					if(j == 0) {
 						if(newLines) {
-							plugin.debug(i);
 							if(i != 0 && i != 9) {
 								i += 9-((i)%9);	
 							}
-							if(centerItems) {
+							
+							if(centerItems && classTiers.size() < 9) {
 								i += Math.floor(4.5-(classTiers.size()/2));
 							}
 						}
@@ -200,7 +196,6 @@ public class GUIManager {
 		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
 			int rows = 0;
 			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
-			plugin.debug("NewLines: " + newLines);
 			if(newLines) {
 				for(String tierClass : tiers.keySet()) {
 					List<Tier> classTiers = tiers.get(tierClass);

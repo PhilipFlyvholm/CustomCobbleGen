@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
@@ -24,18 +26,18 @@ public class GenMode {
 	private List<Material> blocks = null;
 	private Map<BlockFace, Material> fixedBlocks = null;
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
-	private List<String> enabledWorlds = new ArrayList<>(); //TODO: ADD THIS
+	private List<String> disabledWorlds = new ArrayList<>();
 	private boolean valid = false;
 
 	public GenMode(List<Material> blocks) {
-		this(blocks, null, true);
+		this(blocks, null, true, null);
 	}
 	
 	public GenMode(List<Material> blocks, Map<BlockFace, Material> fixedBlocks) {
-		this(blocks, fixedBlocks, true);
+		this(blocks, fixedBlocks, true, null);
 	}
 	
-	public GenMode(List<Material> blocks, Map<BlockFace, Material> fixedBlocks, boolean searchForPlayersNearby) {
+	public GenMode(List<Material> blocks, Map<BlockFace, Material> fixedBlocks, boolean searchForPlayersNearby, List<String> disabledWorlds) {
 		if(blocks == null) { //CREATE A EMPTY LIST IF ONLY "FIXED BLOCKS" ARE USED
 			blocks = new ArrayList<>();
 		}
@@ -58,7 +60,8 @@ public class GenMode {
 			valid = false;
 			return;
 		}
-		//TODO: PUT ENABLED WORLDS IN
+		
+		this.setDisabledWorlds(disabledWorlds);
 		
 		//CONGRATZ IT LOOKS VALID
 		this.setBlocks(blocks);
@@ -144,14 +147,6 @@ public class GenMode {
 		this.searchForPlayersNearby = searchForPlayersNearby;
 	}
 
-	public List<String> getEnabledWorlds() {
-		return enabledWorlds;
-	}
-
-	public void setEnabledWorlds(List<String> enabledWorlds) {
-		this.enabledWorlds = enabledWorlds;
-	}
-
 	public Map<BlockFace, Material> getFixedBlocks() {
 		return fixedBlocks;
 	}
@@ -166,6 +161,25 @@ public class GenMode {
 
 	public void setBlocks(List<Material> blocks) {
 		this.blocks = blocks;
+	}
+
+	public List<String> getDisabledWorlds() {
+		return disabledWorlds;
+	}
+
+	public void setDisabledWorlds(List<String> disabledWorlds) {
+		this.disabledWorlds = disabledWorlds;
+	}
+	
+	public boolean isWorldDisabled(World world) {
+		if(this.getDisabledWorlds() == null || world == null) return false;
+		return this.getDisabledWorlds().contains(world.getName());
+		
+	}
+	
+	public boolean isWorldDisabled(String worldName) {
+		World world = Bukkit.getWorld(worldName);
+		return this.isWorldDisabled(world);
 	}
 	
 }
