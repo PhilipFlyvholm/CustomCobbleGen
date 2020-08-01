@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Managers.GenMode;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
@@ -31,6 +32,7 @@ public class Tier {
 	private List<String> description = null;
 	private String permission = null;
 	private PermissionManager pm = new PermissionManager();
+	private List<GenMode> supportedModes = new ArrayList<>();
 	
 	public Tier() {
 		this.name = "";
@@ -193,6 +195,27 @@ public class Tier {
 			if(!pm.hasPermission(p, this.getCustomPermission(), false)) return false;
 		}
 		return true;
+	}
+
+	public List<GenMode> getSupportedModes() {
+		return supportedModes;
+	}
+
+	public void setSupportedModes(List<GenMode> supportedModes) {
+		this.supportedModes = supportedModes;
+	}
+	
+	public void addSupportedMode(GenMode mode) {
+		if(!this.getSupportedModes().contains(mode)) this.getSupportedModes().add(mode);
+	}
+	
+	public void removeSupportMode(GenMode mode) {
+		if(this.getSupportedModes().contains(mode)) this.getSupportedModes().remove(mode);
+	}
+	
+	public boolean doesSupportMode(GenMode mode) {
+		if(this.getSupportedModes() == null || this.getSupportedModes().isEmpty()) return true; //SUPPORT ALL IF NO MODES ARE DEFINED
+		return this.getSupportedModes().contains(mode);
 	}
 }
 
