@@ -25,6 +25,4 @@ public interface ChatReturn {
 	
 	public String validInput(String input);
 	
-	
-	
 }

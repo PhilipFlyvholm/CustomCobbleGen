@@ -17,14 +17,17 @@ import me.phil14052.CustomCobbleGen.Managers.GenMode;
  *
  */
 public class SelectedTiers {
-
+	/**
+	 * THIS CLASS HELPS WITH CONTROLLING THAT THERE ONLY WILL BE ONE TIER PER GENMODE
+	 */
 	private HashMap<GenMode, Tier> selectedTiers;
 	private Player player;
 	
 	public SelectedTiers(Player p, List<Tier> tiers) {
 		this.player = p;
 		for(Tier tier : tiers) {
-			if()
+			if(tier == null || this.selectedTiers.containsKey(tier)) continue;
+			this.selectedTiers.put(tier.getSupportedMode(), tier);
 		}
 	}
 	
@@ -42,4 +45,23 @@ public class SelectedTiers {
 		this.player = player;
 	}
 	
+	public void addTier(Tier tier) {
+		if(this.selectedTiers.containsKey(tier.getSupportedMode())) this.removeTier(tier.getSupportedMode());
+		this.selectedTiers.put(tier.getSupportedMode(),tier);
+	}
+	
+	public void removeTier(Tier tier) {
+		this.removeTier(tier.getSupportedMode());
+	}
+	
+	public void removeTier(GenMode mode) {
+		if(this.selectedTiers.containsKey(mode)) this.selectedTiers.remove(mode);
+	}
+	
+	public boolean isTierSelected(Tier tier) {
+		if(this.getSelectedTiersMap().containsKey(tier.getSupportedMode())) {
+			if(this.getSelectedTiersMap().get(tier.getSupportedMode()).equals(tier)) return true;
+		}
+		return false;
+	}
 }

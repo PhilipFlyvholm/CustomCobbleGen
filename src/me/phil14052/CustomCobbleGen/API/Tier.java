@@ -32,7 +32,7 @@ public class Tier {
 	private List<String> description = null;
 	private String permission = null;
 	private PermissionManager pm = new PermissionManager();
-	private List<GenMode> supportedModes = new ArrayList<>();
+	private GenMode supportedMode = null;
 	
 	public Tier() {
 		this.name = "";
@@ -196,26 +196,17 @@ public class Tier {
 		}
 		return true;
 	}
-
-	public List<GenMode> getSupportedModes() {
-		return supportedModes;
-	}
-
-	public void setSupportedModes(List<GenMode> supportedModes) {
-		this.supportedModes = supportedModes;
-	}
-	
-	public void addSupportedMode(GenMode mode) {
-		if(!this.getSupportedModes().contains(mode)) this.getSupportedModes().add(mode);
-	}
-	
-	public void removeSupportMode(GenMode mode) {
-		if(this.getSupportedModes().contains(mode)) this.getSupportedModes().remove(mode);
-	}
 	
 	public boolean doesSupportMode(GenMode mode) {
-		if(this.getSupportedModes() == null || this.getSupportedModes().isEmpty()) return true; //SUPPORT ALL IF NO MODES ARE DEFINED
-		return this.getSupportedModes().contains(mode);
+		return this.getSupportedMode().equals(mode);
+	}
+
+	public GenMode getSupportedMode() {
+		return supportedMode;
+	}
+
+	public void setSupportedMode(GenMode supportedMode) {
+		this.supportedMode = supportedMode;
 	}
 }
 

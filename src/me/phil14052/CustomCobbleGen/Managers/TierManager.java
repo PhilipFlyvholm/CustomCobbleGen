@@ -23,12 +23,13 @@ import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.XpRequirement;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 public class TierManager {
 
 	private Map<UUID, List<Tier>> purchasedTiers;
-	private Map<UUID, Tier> selectedTier;
+	private Map<UUID, SelectedTiers> selectedTiers;
 	private static TierManager instance = null;
 	private CustomCobbleGen plugin = null;
 	private Map<String, List<Tier>> tiers;
@@ -39,7 +40,7 @@ public class TierManager {
 		plugin = CustomCobbleGen.getInstance();
 		bm = BlockManager.getInstance();
 		pm = new PermissionManager();
-		setSelectedTier(new HashMap<UUID, Tier>());
+		setSelectedTiers(new HashMap<UUID, Tier>());
 		setPurchasedTiers(new HashMap<UUID, List<Tier>>());
 	}
 	
@@ -148,38 +149,38 @@ public class TierManager {
 	}
 	
 	
-	public void addUUID(UUID uuid, Tier selectedTier){
-		if(!this.selectedTierContainsUUID(uuid)) this.selectedTier.put(uuid, selectedTier);
+	public void addUUID(UUID uuid, SelectedTiers selectedTiers){
+		if(!this.selectedTiersContainsUUID(uuid)) this.selectedTiers.put(uuid, selectedTiers);
 	}
 	
 	public void addUUID(UUID uuid, List<Tier> purchasedTiers){
 		if(!this.purchasedTiersContainsUUID(uuid)) this.purchasedTiers.put(uuid, purchasedTiers);
 	}
 	
-	public void addUUID(UUID uuid, Tier selectedTier, List<Tier> purchasedTiers){
-		if(selectedTier != null) this.addUUID(uuid, selectedTier);
+	public void addUUID(UUID uuid, SelectedTiers selectedTiers, List<Tier> purchasedTiers){
+		if(selectedTiers != null) this.addUUID(uuid, selectedTiers);
 		if(purchasedTiers != null && !purchasedTiers.isEmpty()) this.addUUID(uuid, purchasedTiers);
 	}
 	
-	public void setPlayerSelectedTier(UUID uuid, Tier tier){
-		if(this.selectedTierContainsUUID(uuid)) this.selectedTier.remove(uuid);
+	public void setPlayerSelectedTiers(UUID uuid, SelectedTiers tier){
+		if(this.selectedTiersContainsUUID(uuid)) this.selectedTiers.remove(uuid);
 		this.addUUID(uuid, tier);
 	}
 	
-	public boolean selectedTierContainsUUID(UUID uuid){
-		return selectedTier.containsKey(uuid);
+	public boolean selectedTiersContainsUUID(UUID uuid){
+		return selectedTiers.containsKey(uuid);
 	}
 	public boolean purchasedTiersContainsUUID(UUID uuid){
 		return purchasedTiers.containsKey(uuid);
 	}
 	
-	public Tier getSelectedTier(UUID uuid){
-		if(!this.selectedTierContainsUUID(uuid)) return null;
-		return getSelectedTierList().get(uuid);
+	public SelectedTiers getSelectedTiers(UUID uuid){
+		if(!this.selectedTiersContainsUUID(uuid)) return null;
+		return getselectedTiersList().get(uuid);
 	}
 	
-	public Map<UUID, Tier> getSelectedTierList() {
-		return selectedTier;
+	public Map<UUID, SelectedTiers> getselectedTiersList() {
+		return selectedTiers;
 	}
 	
 	public int getTiersSize() {
@@ -192,7 +193,7 @@ public class TierManager {
 	}
 	
 	public void loadAllPlayerData() {
-		selectedTier = new HashMap<UUID, Tier>();
+		selectedTiers = new HashMap<UUID, Tier>();
 		purchasedTiers = new HashMap<UUID, List<Tier>>();
 		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players");
 		for(String uuid : playerSection.getKeys(false)){
@@ -202,7 +203,7 @@ public class TierManager {
 	}
 	
 	public void loadPlayerData(UUID uuid){
-		if(this.selectedTierContainsUUID(uuid)) this.selectedTier.remove(uuid);
+		if(this.selectedTiersContainsUUID(uuid)) this.selectedTiers.remove(uuid);
 		if(this.purchasedTiersContainsUUID(uuid)) this.purchasedTiers.remove(uuid);
 		if(uuid == null) return;
 		Tier tier;
@@ -230,8 +231,8 @@ public class TierManager {
 	}
 	
 	public void saveAllPlayerData(){
-		for(UUID uuid : this.getSelectedTierList().keySet()){
-			this.saveSelectedTierPlayerData(uuid);
+		for(UUID uuid : this.getselectedTiersList().keySet()){
+			this.saveSelectedTiersPlayerData(uuid);
 		}
 		for(UUID uuid : this.getPurchasedTiers().keySet()) {
 			this.savePurchasedTiersPlayerData(uuid);
@@ -242,12 +243,12 @@ public class TierManager {
 	
 	public void savePlayerData(UUID uuid) {
 		this.savePurchasedTiersPlayerData(uuid);
-		this.saveSelectedTierPlayerData(uuid);
+		this.saveSelectedTiersPlayerData(uuid);
 	}
 	
-	public void saveSelectedTierPlayerData(UUID uuid) {
-		if(this.selectedTierContainsUUID(uuid)) {
-			Tier tier = getSelectedTier(uuid);
+	public void saveSelectedTiersPlayerData(UUID uuid) {
+		if(this.selectedTiersContainsUUID(uuid)) {
+			Tier tier = getselectedTiers(uuid);
 			plugin.debug("Saving selected tier for " + uuid + ". Currently selected level " + tier.getLevel() + " in class " + tier.getTierClass());
 			plugin.getPlayerConfig().set("players." + uuid + ".selected.class", tier.getTierClass());
 			plugin.getPlayerConfig().set("players." + uuid + ".selected.level", tier.getLevel());
@@ -345,10 +346,10 @@ public class TierManager {
 	
 	public void givePlayerStartSelect(UUID uuid) {
 		Tier tier = this.getTierByLevel("DEFAULT", 0);
-		if(this.selectedTierContainsUUID(uuid)) {
-			this.selectedTier.remove(uuid);
+		if(this.selectedTiersContainsUUID(uuid)) {
+			this.selectedTiers.remove(uuid);
 		}
-		this.setPlayerSelectedTier(uuid, tier);
+		this.setPlayerselectedTiers(uuid, tier);
 	}
 	
 	//If the Player  is new then the Player needs to have a tier they can use. So we give them the default 0
@@ -368,11 +369,11 @@ public class TierManager {
 	public void unload() {
 		this.saveAllPlayerData();
 		purchasedTiers = null;
-		selectedTier = null;
+		selectedTiers = null;
 		tiers = null;
 	}
 	public void load() {
-		setSelectedTier(new HashMap<UUID, Tier>());
+		setSelectedTiers(new HashMap<UUID, SelectedTiers>());
 		setPurchasedTiers(new HashMap<UUID, List<Tier>>());
 		tiers = new HashMap<String, List<Tier>>();
 		this.loadTiers();
@@ -420,12 +421,12 @@ public class TierManager {
 		this.purchasedTiers = purchasedTiers;
 	}
 
-	public Map<UUID, Tier> getSelectedTier() {
-		return selectedTier;
+	public Map<UUID, SelectedTiers> getselectedTiers() {
+		return selectedTiers;
 	}
 
-	public void setSelectedTier(Map<UUID, Tier> selectedTier) {
-		this.selectedTier = selectedTier;
+	public void setSelectedTiers(Map<UUID, SelectedTiers> selectedTiers) {
+		this.selectedTiers = selectedTiers;
 	}
 
 	public Tier getTierByLevel(String tierClass, int tierLevel){
