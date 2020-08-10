@@ -35,6 +35,7 @@ import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
 import me.phil14052.CustomCobbleGen.Utils.ItemLib;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 
 public class GUIManager {
 
@@ -75,7 +76,7 @@ public class GUIManager {
 				return;
 			}
 			int i = 0; //Current pos
-			Tier selectedTier = tm.getSelectedTier(p.getUniqueId());
+			SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 			for(String tierClass : tiers.keySet()) {
 				int j = 0; //Current pos in class
 				List<Tier> classTiers = tiers.get(tierClass); //Tiers in current class
@@ -96,10 +97,12 @@ public class GUIManager {
 					ItemStack item = tier.getIcon().clone();
 					ItemMeta itemMeta = item.getItemMeta();
 					List<String> lore = itemMeta.getLore();
+					lore.addAll(tier.getFormatetDescription(p));
+					if(plugin.getConfig().getBoolean("options.gui.showSupportedModes")) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
 					String emptyString = "&a ";
 					emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
 					lore.add(emptyString);
-					if(selectedTier != null && selectedTier.getLevel() == tier.getLevel() && selectedTier.getTierClass().equalsIgnoreCase(tier.getTierClass())) {
+					if(selectedTiers != null && selectedTiers.isTierSelected(tier)) {
 						if(XMaterial.supports(13)) {
 
 							GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
@@ -151,7 +154,9 @@ public class GUIManager {
 						public void execute(Player p) {
 							//Check if the player has purchased the level
 							if(tm.hasPlayerPurchasedLevel(p, tier)) {
-								tm.setPlayerSelectedTier(p.getUniqueId(), tier);
+								SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+								selectedTiers.addTier(tier);
+								tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 								p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 								p.closeInventory();
 							}else {
@@ -161,7 +166,9 @@ public class GUIManager {
 										new ConfirmGUI(p, tier).open();	
 									}else {
 										if(tm.purchaseTier(p, tier)) {
-											tm.setPlayerSelectedTier(p.getUniqueId(), tier);
+											SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+											selectedTiers.addTier(tier);
+											tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
 											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 											p.closeInventory();
@@ -266,7 +273,9 @@ public class GUIManager {
 				@Override
 				public void execute(Player p) {
 					if(tm.purchaseTier(p, tier)) {
-						tm.setPlayerSelectedTier(p.getUniqueId(), tier);
+						SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+						selectedTiers.addTier(tier);
+						tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
 						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 						p.closeInventory();
@@ -652,7 +661,7 @@ public class GUIManager {
 			int playerIndex = 0;
 			for(Player onlinePlayer : players) {
 				if(playerIndex < 45*pageIndex) continue;
-				ItemStack skull = createSkull(onlinePlayer.getName(), Lang.GUI_SELECT_PLAYER_SKULL_TITLE.toString(p), Lang.GUI_SELECT_PLAYER_SKULL_LORE.toStringList(p));
+				ItemStack skull = createSkull(onlinePlayer.getName(), Lang.GUI_SELECT_PLAYER_SKULL_TITLE.toString(onlinePlayer), Lang.GUI_SELECT_PLAYER_SKULL_LORE.toStringList(onlinePlayer));
 
 
 				if(plugin.getConfig().getBoolean("debug")) {
@@ -749,7 +758,7 @@ public class GUIManager {
 				failedLoad = true;
 				return;
 			}
-			Tier selectedTier = tm.getSelectedTier(selectedPlayer.getUniqueId());
+			SelectedTiers selectedTiers = tm.getSelectedTiers(selectedPlayer.getUniqueId());
 			for(String tierClass : tiers.keySet()) {
 				int j = 0;
 				List<Tier> classTiers = tiers.get(tierClass);
@@ -776,9 +785,8 @@ public class GUIManager {
 					lore.add(emptyString);
 					boolean clickable = true;
 					if(actionType.equals(GUIActionType.SETTIER) 
-							&& selectedTier != null 
-							&& selectedTier.getLevel() == tier.getLevel() 
-							&& selectedTier.getTierClass().equalsIgnoreCase(tier.getTierClass())) {
+							&& selectedTiers != null 
+							&& selectedTiers.isTierSelected(tier)) {
 						lore.add(Lang.GUI_SELECT_TIER_ALREADY_SELECTED.toString(p));
 						clickable = false;
 					}else if((actionType.equals(GUIActionType.GIVETIER) || actionType.equals(GUIActionType.FORCEBUY))

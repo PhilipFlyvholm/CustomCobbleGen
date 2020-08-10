@@ -1,7 +1,9 @@
 package me.phil14052.CustomCobbleGen.Commands;
 
 
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -17,6 +19,7 @@ import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 public class MainCommand implements CommandExecutor{
@@ -50,8 +53,8 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				Player p = (Player) sender;
-				Tier tier = tm.getSelectedTier(p.getUniqueId());
-				if(tier == null) {
+				Collection<Tier> tiers = tm.getSelectedTiers(p.getUniqueId()).getSelectedTiersMap().values();
+				if(tiers == null || tiers.isEmpty()) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_SELF.toString(p));
 					return false;
 				}
@@ -64,9 +67,9 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
 				}
-
-				Tier tier = tm.getSelectedTier(p.getUniqueId());
-				if(tier == null) {
+				
+				Collection<Tier> tiers = tm.getSelectedTiers(p.getUniqueId()).getSelectedTiersMap().values();
+				if(tiers == null || tiers.isEmpty()) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_OTHER.toString(p));
 					return false;
 				}
@@ -133,7 +136,9 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString(p));
 					return false;
 				}
-				tm.setPlayerSelectedTier(p.getUniqueId(), tier);
+				SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+				selectedTiers.addTier(tier);
+				tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGE_SUCCES.toString(p));
 				return true;
 			}else if(args[1].equalsIgnoreCase("givetier")) {
@@ -165,13 +170,57 @@ public class MainCommand implements CommandExecutor{
 				}
 
 				if(tm.hasPlayerPurchasedLevel(p, tier)) {
-					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_ALREADY_OWNS_TIER.toString());
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_ALREADY_OWNS_TIER.toString(p));
 					return false;
 				}
 				tm.getPlayersPurchasedTiers(p.getUniqueId()).add(tier);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_GIVEN.toString());
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_GOTTEN.toString());
-			}else if(args[1].equalsIgnoreCase("forcebuy")) {
+			}else if(args[1].equalsIgnoreCase("withdraw")) {
+				if(!pm.hasPermission(sender, "customcobblegen.admin.withdraw", true)) return false;
+				if(args.length < 5){
+					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin givetier (Player) (Class) (Level)");
+					return false;
+				}
+				Player p = (Player) Bukkit.getPlayer(args[2]);
+				if(p == null || !p.isOnline()) {
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
+					return false;
+				}
+				String tierClass = args[3].toUpperCase();
+				if(!tm.getTiers().containsKey(tierClass)) {
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_CLASS.toString(p));
+					return false;
+				}
+				String levelString = args[4];
+				if(!StringUtils.isInteger(levelString)) {
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString(p));
+					return false;
+				}
+				int tierLevel = Integer.parseInt(levelString);
+				Tier tier = tm.getTierByLevel(tierClass, tierLevel);
+				if(tier == null) {
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString(p));
+					return false;
+				}
+				UUID uuid = p.getUniqueId();
+				SelectedTiers selectedTiers = tm.getSelectedTiers(uuid);
+				if(selectedTiers != null && selectedTiers.isTierSelected(tier)) {
+					tm.getSelectedTiers(uuid).removeTier(tier);
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_UNSELECTED_SUCCESS_SELF.toString(p));
+					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_UNSELECTED_SUCCESS_OTHER.toString(p));
+				}
+				
+				if(!tm.hasPlayerPurchasedLevel(p, tier)) {
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_DOES_NOT_OWN_TIER.toString(p));
+					return false;
+				}
+				tm.withdrawPurchasedTier(uuid, tier);
+				sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_UNPURCHASED_SUCCESS_SELF.toString(p));
+				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_UNPURCHASED_SUCCESS_OTHER.toString(p));
+				tm.saveAllPlayerData();
+				
+			} else if(args[1].equalsIgnoreCase("forcebuy")) {
 				if(!pm.hasPermission(sender, "customcobblegen.admin.forcebuy", true)) return false;
 				if(args.length < 5){
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin forcebuy (Player) (Class) (Level)");
@@ -204,7 +253,9 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				tm.purchaseTier(p, tier, true);
-				tm.setPlayerSelectedTier(p.getUniqueId(), tier);
+				SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+				selectedTiers.addTier(tier);
+				tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.FORCE_PURCHASED.toString(p));
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
 			}else if(args[1].equalsIgnoreCase("debug")){

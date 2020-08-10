@@ -15,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Managers.GenMode;
+import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
@@ -31,6 +33,8 @@ public class Tier {
 	private List<String> description = null;
 	private String permission = null;
 	private PermissionManager pm = new PermissionManager();
+	private GenMode supportedMode = null;
+	private GeneratorModeManager gm = GeneratorModeManager.getInstance();
 	
 	public Tier() {
 		this.name = "";
@@ -43,7 +47,7 @@ public class Tier {
 		this.permission = null;
 	}
 	
-	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements, List<String> description, String permission){
+	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements, List<String> description, String permission, GenMode supportedMode){
 		this.name = name;
 		this.tierClass = tierClass;
 		this.level = level;
@@ -54,17 +58,14 @@ public class Tier {
 		im.setDisplayName(Lang.GUI_ITEM_NAME.toString(this));
 		List<String> lore = new ArrayList<String>();
 		lore.add(Lang.GUI_ITEM_LORE_TITLE.toString(this));
-		if(description == null) {
-			lore.addAll(this.getResultsLore(results));
-		}else {
-			lore.addAll(description);
-		}
+		
 		im.setLore(lore);
 		icon.setItemMeta(im);
 		this.icon = icon;
 		this.results = results;
 		this.description = description;
 		this.permission = permission;
+		this.supportedMode = supportedMode == null ? gm.getUniversalGenMode() : supportedMode;
 	}
 	
 	public String getName() {
@@ -159,8 +160,7 @@ public class Tier {
 		}
 		return lore;
 	}
-	
-	
+		
 	public boolean hasDescription() {
 		if(this.description == null || this.description.isEmpty()) return false;
 		return true;
@@ -184,8 +184,7 @@ public class Tier {
 	
 	public void setCustomPermission(String permission) {
 		this.permission = permission;
-	}
-	
+	}	
 	
 	public boolean doesPlayerHavePermission(Player p) {
 		if(!this.getTierClass().equalsIgnoreCase("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + this.tierClass, false)) return false;
@@ -193,6 +192,38 @@ public class Tier {
 			if(!pm.hasPermission(p, this.getCustomPermission(), false)) return false;
 		}
 		return true;
+	}
+	
+	public boolean doesSupportAllModes() {
+		return this.getSupportedMode() == null || this.getSupportedMode().getId() == -1; //-1 is the id of the universal generator created by the GeneratorModeManager Class
+	}
+	
+	public boolean doesSupportMode(GenMode mode) {
+		if(this.doesSupportAllModes()) return true;
+		return this.getSupportedMode().equals(mode);
+	}
+
+	public GenMode getSupportedMode() {
+		return supportedMode;
+	}
+
+	public void setSupportedMode(GenMode supportedMode) {
+		this.supportedMode = supportedMode;
+	}
+	
+	public List<String> getFormatetDescription(Player p){
+		if(this.getDescription() == null) {
+			return this.getResultsLore(results);
+		}else {
+			List<String> formatetDescription = new ArrayList<>();
+			for(String s : this.getDescription()) {
+				formatetDescription.add(Lang.replacePlaceholders(p, s));
+			}
+			if(formatetDescription.isEmpty()) {
+				return this.getResultsLore(results);	
+			}
+			return formatetDescription;
+		}
 	}
 }
 

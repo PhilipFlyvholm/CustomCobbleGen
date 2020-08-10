@@ -1,7 +1,9 @@
 package me.phil14052.CustomCobbleGen.Files;
  
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -13,6 +15,7 @@ import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
  
 /**
 * An enum for requesting strings from the language file.
@@ -31,8 +34,8 @@ public enum Lang {
     UNDIFINED_LEVEL("undifined-level", "&cThat level is not defined!"),
     NO_TIER_SELECTED_SELF("no-tier-selected.self", "&cYou have not selected a tier yet"),
     NO_TIER_SELECTED_OTHER("no-tier-selected.other", "&c%player_name% has not selected a tier yet"),
-    SHOW_TIER_SELF("show-tier.self", "You have currently selected level %selected_tier_class% in %selected_tier_level% class"),
-    SHOW_TIER_OTHER("show-tier.other", "%player_name% has currently selected level %selected_tier_class% in %selected_tier_level% class"),
+    SHOW_TIER_SELF("show-tier.self", "You have currently selected level %selected_tier_level% in %selected_tier_class% class"),
+    SHOW_TIER_OTHER("show-tier.other", "%player_name% has currently selected level %selected_tier_level% in %selected_tier_class% class"),
     TIER_CHANGE_SUCCES("tier-change-success", "&aSuccessfully changed %player_name% tier to %selected_tier_class% %selected_tier_level%"),
     NO_PERMS("no-permissions", "&cYou don't have permission for that!"),
     RELOAD_SUCCESS("reload-success", "&aReloaded the plugin in %time% seconds."),
@@ -49,6 +52,11 @@ public enum Lang {
     TIER_CHANGED("tier-changed", "You have now selected the %selected_tier_name% tier"),
     TIER_PURCHASED("tier-purchased", "You have now purchased the %selected_tier_name% tier"),
     PLAYER_ALREADY_OWNS_TIER("player-already-owns-tier", "The player already owns this tier"),
+    PLAYER_DOES_NOT_OWN_TIER("player-does-not-own-tier", "The player does not own this tier"),
+    TIER_UNSELECTED_SUCCESS_SELF("tier-unselected-success.self", "&aTier unselected for player"),
+    TIER_UNSELECTED_SUCCESS_OTHER("tier-unselected-success.other", "&cYour currently selected tier has been unselected by an admin"),
+    TIER_UNPURCHASED_SUCCESS_SELF("tier-unpurchased-success.self", "&aTier withdrawen from player"),
+    TIER_UNPURCHASED_SUCCESS_OTHER("tier-unpurchased-success.other", "&cA tier owned by you has been withdrawen by an admin"),
     TIER_GIVEN("tier-given", "Tier has been given to the player"),
     TIER_GOTTEN("tier-gotten", "You have unlocked a new tier"),
     TIER_NOT_PURCHASED("tier-not-purchased", "&cYou have not purchased this tier yet"),
@@ -56,7 +64,7 @@ public enum Lang {
     TIER_NOT_FOUND("tier-not-found", "&cTier not found"),
     TIER_CANT_AFFORD("tier-cant-afford", "&cYou can not afford this tier"),
     FORCE_PURCHASED("force-purchased", "You have now force bought %selected_tier_name% for %player_name%"),
-    ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, forcesave, settier, givetier, forcebuy]"),
+    ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, forcesave, settier, givetier, forcebuy, withdraw]"),
     GUI_BUY("gui.main.buy", "&aClick to buy"),
     GUI_CAN_NOT_AFFORD("gui.main.can-not-afford", "&cCan't afford"),
     GUI_SELECTED("gui.main.selected", "&aSelected"),
@@ -76,6 +84,7 @@ public enum Lang {
     GUI_ITEM_NAME("gui.item.name", "&6&l%tier_name%"),
     GUI_ITEM_LORE_TITLE("gui.item.lore.title", "&8&lThis tier will give the following results"),
     GUI_ITEM_LORE_RESULT("gui.item.lore.result", "&8%result_name%: &o%result_percentage%"),
+    GUI_ITEM_LORE_SUPPORTEDMODE("gui.item.lore.supportedMode", "&8Supports generator: &6&l&o%tier_supported_mode%"),
     GUI_CONFIRM_CANCEL("gui.confirm.cancel.name", "&cCancel"),
     GUI_CONFIRM_CANCEL_LORE("gui.confirm.cancel.lore", "&8Click to cancel the purchase"),
     GUI_CONFIRM_BUY("gui.confirm.buy.name", "&aBuy"),
@@ -160,7 +169,10 @@ public enum Lang {
     SIGN_NO_PERMISSION_3("signs.no-permission.3", "&ccreate this sign"),
     SIGN_SUCCESS("signs.success", "Successfully created a clickable sign"),
     SIGN_DELETED("signs.deleted", "&cSign deleted"),
-    CHATINPUT_INFO_RESULTS_MATERIAL("chatinput.info.results.material", "ARRAYLIST: &7Editing result &amaterial , &7Write the result &amaterial name , &cUse Bukkit material names!");
+    CHATINPUT_INFO_RESULTS_MATERIAL("chatinput.info.results.material", "ARRAYLIST: &7Editing result &amaterial , &7Write the result &amaterial name , &cUse Bukkit material names!"),
+    PLACEHOLDER_RESPONSE_OWNED("placeholders.response.owned", "owned"),
+    PLACEHOLDER_RESPONSE_NOT_OWNED("placeholders.response.not-owned", "not owned"),
+    PLACEHOLDER_RESPONSE_ALL("placeholder.response.all", "ALL");
     
     
     private String path;
@@ -197,22 +209,52 @@ public enum Lang {
         if (this == PREFIX) string = string + " ";
         return string;
     }
-    public String toString(Player p) {
-    	String string = this.toString();
+    
+    public static String replacePlaceholders(Player p, String string) {
     	if(p != null && p.isOnline()) {
     		if(CustomCobbleGen.getInstance().isUsingPlaceholderAPI) {
     			string = PlaceholderAPI.setPlaceholders(p, string);
     		}
     		string = string.replaceAll("%player_name%", p.getName());
-    		Tier tier = tm.getSelectedTier(p.getUniqueId());
-    		if(tier != null) {
-        		string = string.replaceAll("%selected_tier_level%", tier.getLevel() + "");
-        		string = string.replaceAll("%selected_tier_class%", tier.getTierClass() + "");	
-        		string = string.replaceAll("%selected_tier_name%", tier.getName() + "");		
-        		string = string.replaceAll("%selected_tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "");		
-        		string = string.replaceAll("%selected_tier_price_xp%", tier.getRequirementValue(RequirementType.XP) + "");	
+    		SelectedTiers selectedTiers = TierManager.getInstance().getSelectedTiers(p.getUniqueId());
+    		if(selectedTiers != null && selectedTiers.getSelectedTiersMap() != null && selectedTiers.getSelectedTiersMap().values() != null) {
+
+        		Collection<Tier> tiers = selectedTiers.getSelectedTiersMap().values();
+        		if(!tiers.isEmpty()) {
+            		StringJoiner levels = new StringJoiner(", ");
+            		StringJoiner classes = new StringJoiner(", ");
+            		StringJoiner names = new StringJoiner(", ");
+            		StringJoiner priceMoney = new StringJoiner(", ");
+            		StringJoiner priceXP = new StringJoiner(", ");
+            		StringJoiner priceLevel = new StringJoiner(", ");
+            		StringJoiner supportedModes = new StringJoiner(", ");
+            		for(Tier tier : tiers) {
+            			if(tier == null) continue;
+            			levels.add(tier.getLevel() + "");
+            			classes.add(tier.getTierClass());
+            			names.add(tier.getName());
+            			priceMoney.add(EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "");
+            			priceXP.add(tier.getRequirementValue(RequirementType.XP) + "");
+            			priceLevel.add(tier.getRequirementValue(RequirementType.LEVEL) + "");
+            			supportedModes.add(tier.getSupportedMode().getId() != -1 ? tier.getSupportedMode().getName() : Lang.PLACEHOLDER_RESPONSE_ALL.toString());
+            			
+            		}
+                	string = string.replaceAll("%selected_tier_level%", levels.toString());
+                	string = string.replaceAll("%selected_tier_class%", classes.toString());	
+                	string = string.replaceAll("%selected_tier_name%", names.toString());		
+                	string = string.replaceAll("%selected_tier_price_money%", priceMoney.toString());		
+                	string = string.replaceAll("%selected_tier_price_xp%", priceXP.toString());
+                	string = string.replaceAll("%selected_tier_price_level%", priceLevel.toString());	
+                	string = string.replaceAll("%selected_tier_supported_mode%", supportedModes.toString());	
+        		}
     		}
     	}
+    	return string;
+    }
+    
+    public String toString(Player p) {
+    	String string = this.toString();
+    	string = replacePlaceholders(p, string);
         return string;
     }
     public String toString(Tier tier) {
@@ -224,6 +266,16 @@ public enum Lang {
         	string = string.replaceAll("%tier_price_money%", tier.hasRequirement(RequirementType.MONEY) ? EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "" : "0?");
         	string = string.replaceAll("%tier_price_xp%", tier.hasRequirement(RequirementType.XP) ? tier.getRequirementValue(RequirementType.XP) + "" : "0");
         	string = string.replaceAll("%tier_price_level%", tier.hasRequirement(RequirementType.LEVEL) ? tier.getRequirementValue(RequirementType.LEVEL) + "" : "0");
+        	String placeholder = "%tier_supported_mode%";
+        	if(tier.getSupportedMode() == null) {        	
+        		string = string.replaceAll(placeholder, Lang.PLACEHOLDER_RESPONSE_ALL.toString());
+        	}else if(tier.getSupportedMode().getId() == -1) {
+        		string = string.replaceAll(placeholder, Lang.PLACEHOLDER_RESPONSE_ALL.toString());
+        	}else {
+        		string = string.replaceAll(placeholder, tier.getSupportedMode().getName());
+        		
+        	}
+        	
     	}
         return string;
     }
@@ -257,13 +309,37 @@ public enum Lang {
         			string = PlaceholderAPI.setPlaceholders(p, string);
         		}
         		string = string.replaceAll("%player_name%", p.getName());
-        		Tier tier = tm.getSelectedTier(p.getUniqueId());
-        		if(tier != null) {
-            		string = string.replaceAll("%selected_tier_level%", tier.getLevel() + "");
-            		string = string.replaceAll("%selected_tier_class%", tier.getTierClass() + "");	
-            		string = string.replaceAll("%selected_tier_name%", tier.getName() + "");		
-            		string = string.replaceAll("%selected_tier_price_money%", EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "");		
-            		string = string.replaceAll("%selected_tier_price_xp%", tier.getRequirementValue(RequirementType.XP) + "");	
+        		SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+
+        		if(selectedTiers != null && selectedTiers.getSelectedTiersMap() != null && selectedTiers.getSelectedTiersMap().values() != null) {
+        			Collection<Tier> tiers = selectedTiers.getSelectedTiersMap().values();
+            		if(!tiers.isEmpty()) {
+                		StringJoiner levels = new StringJoiner(", ");
+                		StringJoiner classes = new StringJoiner(", ");
+                		StringJoiner names = new StringJoiner(", ");
+                		StringJoiner priceMoney = new StringJoiner(", ");
+                		StringJoiner priceXP = new StringJoiner(", ");
+                		StringJoiner priceLevel = new StringJoiner(", ");
+                		StringJoiner supportedModes = new StringJoiner(", ");
+                		for(Tier tier : tiers) {
+                			if(tier == null) continue;
+                			levels.add(tier.getLevel() + "");
+                			classes.add(tier.getTierClass());
+                			names.add(tier.getName());
+                			priceMoney.add(EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "");
+                			priceXP.add(tier.getRequirementValue(RequirementType.XP) + "");
+                			priceLevel.add(tier.getRequirementValue(RequirementType.LEVEL) + "");
+                			supportedModes.add(tier.getSupportedMode().getId() != -1 ? tier.getSupportedMode().getName() : Lang.PLACEHOLDER_RESPONSE_ALL.toString());
+                			
+                		}
+                    	string = string.replaceAll("%selected_tier_level%", levels.toString());
+                    	string = string.replaceAll("%selected_tier_class%", classes.toString());	
+                    	string = string.replaceAll("%selected_tier_name%", names.toString());		
+                    	string = string.replaceAll("%selected_tier_price_money%", priceMoney.toString());		
+                    	string = string.replaceAll("%selected_tier_price_xp%", priceXP.toString());
+                    	string = string.replaceAll("%selected_tier_price_level%", priceLevel.toString());	
+                    	string = string.replaceAll("%selected_tier_supported_mode%", supportedModes.toString());	
+            		}
         		}
         	}
     		colored_s.add(string);

@@ -32,6 +32,8 @@ public class ConfigUpdater extends YamlConfiguration {
 			defaultMode.add("WATER");
 			defaultMode.add("LAVA");
 			config.addDefault("options.generationModes.0.blocks", defaultMode);
+			config.addDefault("options.generationModes.0.displayName", "Cobblestone generator");
+			config.addDefault("options.generationModes.0.fallback", "COBBLESTONE");
 		}
 		config.addDefault("options.playerSearchRadius", 4D);
 		config.addDefault("options.money.format", true);
@@ -41,11 +43,12 @@ public class ConfigUpdater extends YamlConfiguration {
 		config.addDefault("options.gui.admingui", true);
 		config.addDefault("options.gui.seperateClassesByLines", true);
 		config.addDefault("options.gui.centerTiers", true);
+		config.addDefault("options.gui.showSupportedModes", true);
 		config.addDefault("options.signs.enabled", true);
 		config.addDefault("options.automation.pistons", false);
+		config.addDefault("options.supportWaterloggedBlocks", true);
+		config.addDefault("options.saveOnTierPurchase", true);
 		List<String> disabledWorlds = new ArrayList<String>();
-		disabledWorlds.add("world");
-		disabledWorlds.add("world_nether");
 		disabledWorlds.add("world_the_end");
 		config.addDefault("options.disabled.worlds", disabledWorlds);
 		if(!config.contains("tiers")) {

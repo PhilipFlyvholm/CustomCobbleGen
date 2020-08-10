@@ -4,6 +4,8 @@
  */
 package me.phil14052.CustomCobbleGen.Utils;
 
+import java.util.Collection;
+import java.util.StringJoiner;
 import java.util.Map.Entry;
 
 import org.bukkit.Material;
@@ -12,6 +14,8 @@ import org.bukkit.entity.Player;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
 
@@ -22,6 +26,7 @@ import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
 public class TierPlaceholderExpansion extends PlaceholderExpansion {
 
     private CustomCobbleGen plugin;
+    private TierManager tm = TierManager.getInstance();
 
     /**
      * Since we register the expansion inside our own plugin, we
@@ -112,57 +117,85 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
     @Override
     public String onPlaceholderRequest(Player player, String identifier){
 
-        if(player == null){
+        if(player == null || !player.isOnline()){
             return "";
         }
+		SelectedTiers selectedTiers = tm.getSelectedTiers(player.getUniqueId());
+		String[] identifiers = identifier.split("_");
+		if(identifier.startsWith("selected_tier")) {
+			Collection<Tier> tiers = selectedTiers.getSelectedTiersMap().values();
+    		if(!tiers.isEmpty()) {
+        		StringJoiner levels = new StringJoiner(", ");
+        		StringJoiner classes = new StringJoiner(", ");
+        		StringJoiner names = new StringJoiner(", ");
+        		StringJoiner priceMoney = new StringJoiner(", ");
+        		StringJoiner priceXP = new StringJoiner(", ");
+        		StringJoiner priceLevel = new StringJoiner(", ");
+        		StringJoiner supportedModes = new StringJoiner(", ");
+        		for(Tier tier : tiers) {
+        			if(tier == null) continue;
+        			levels.add(tier.getLevel() + "");
+        			classes.add(tier.getTierClass());
+        			names.add(tier.getName());
+        			priceMoney.add(EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "");
+        			priceXP.add(tier.getRequirementValue(RequirementType.XP) + "");
+        			priceLevel.add(tier.getRequirementValue(RequirementType.LEVEL) + "");
+        			supportedModes.add(tier.getSupportedMode().getId() != -1 ? tier.getSupportedMode().getName() : Lang.PLACEHOLDER_RESPONSE_ALL.toString());
+        			
+        		}
 
-		Tier tier = TierManager.getInstance().getSelectedTier(player.getUniqueId());
-        // %customcobblegen_selected_tier_level%
-        if(identifier.equals("selected_tier_level")){
-        	if(tier == null) return "0";
-            return tier.getLevel() + "";
-        }
-
-        // %customcobblegen_selected_tier_class%
-        if(identifier.equals("selected_tier_class")){
-        	if(tier == null) return "default";
-            return tier.getTierClass() + "";
-        }
-
-        // %customcobblegen_selected_tier_name%
-        if(identifier.equals("selected_tier_name")){
-        	if(tier == null) return "";
-            return tier.getName() + "";
-        }
-
-        // %customcobblegen_selected_tier_price_money%
-        if(identifier.equals("selected_tier_price_money")){
-        	if(tier == null) return "0";
-            return tier.getRequirementValue(RequirementType.MONEY) + "";
-        }
-        
-        // %customcobblegen_selected_tier_price_xp%
-        if(identifier.equals("selected_tier_price_xp")){
-        	if(tier == null) return "0";
-            return tier.getRequirementValue(RequirementType.XP) + "";
-        }
-        // %customcobblegen_selected_tier_price_level%
-        if(identifier.equals("selected_tier_price_level")){
-        	if(tier == null) return "0";
-            return tier.getRequirementValue(RequirementType.LEVEL) + "";
-        }
-        // %customcobblegen_selected_tier_price_items%
-        if(identifier.equals("selected_tier_price_items")){
-        	if(tier == null) return "0";
-        	StringBuilder sb = new StringBuilder();
-        	boolean first = true;
-        	for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
-        		if(!first) sb.append(", ");
-        		else first = false;
-        		sb.append(entry.getValue() + "x" + entry.getKey().name()); 
-        	}
-            return sb.toString();
-        }
+    			switch (identifiers[2]) {
+    			case "level":
+    				if(levels.length() <= 0) return "0";
+    	            return levels.toString();
+    			case "class":
+    				if(classes.length() <= 0) return "default";
+    	            return classes.toString();
+    			case "name":
+    	        	if(names.length() <= 0) return "";
+    	            return names.toString();
+    			case "price":
+    				switch(identifiers[3]) {
+    				case "money":
+    		        	if(priceMoney.length() <= 0) return "0";
+    		            return priceMoney.toString();
+    				case "xp":
+    		        	if(priceXP.length() <= 0) return "0";
+    		            return priceXP.toString();
+    				case "level":
+    		        	if(priceLevel.length() <= 0) return "0";
+    		            return priceLevel.toString();
+    				case "items":
+    					Tier tier = tiers.iterator().next();
+    					if(tier == null) return "none";
+    		        	StringBuilder sb = new StringBuilder();
+    		        	boolean first = true;
+    		        	for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
+    		        		if(!first) sb.append(", ");
+    		        		else first = false;
+    		        		sb.append(entry.getValue() + "x" + entry.getKey().name()); 
+    		        	}
+    		            return sb.toString();
+    				}
+    				break;
+    			case "supportedMode":
+    				if(supportedModes.length() <= 0) return "null";
+    	        	return supportedModes.toString();
+    			}
+    		}
+		}else if(identifier.startsWith("is_tier") && identifiers[4].equals("purchased")) { //%customcobblegen_is_tier_<class>_<level>_purchased%
+			String tierClass = identifiers[2];
+			int tierLevel;
+			try {
+				tierLevel = Integer.parseInt(identifiers[3]);
+			}catch(NumberFormatException e) {
+				return "<Unknown Tier Level>";
+			}
+			
+			Tier tier = tm.getTierByLevel(tierClass, tierLevel);
+			if(tm.hasPlayerPurchasedLevel(player, tier)) return Lang.PLACEHOLDER_RESPONSE_OWNED.toString();
+			else return Lang.PLACEHOLDER_RESPONSE_NOT_OWNED.toString();
+		}
         // We return null if an invalid placeholder (f.e. %someplugin_placeholder3%) 
         // was provided
         return null;

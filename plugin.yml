@@ -1,6 +1,6 @@
 name: CustomCobbleGen
 main: me.phil14052.CustomCobbleGen.CustomCobbleGen
-version: 1.4.1
+version: 1.4.2
 author: phil14052
 description: Adds the ability to change the cobblestone generator
 api-version: 1.13
@@ -8,7 +8,7 @@ softdepend: [Vault, PlaceholderAPI, BentoBox, uSkyBlock, JetsMinions, ASkyBlock,
 commands:
   cobblegen:
     description: CustomCobbleGen Plugin Main Command
-    aliases: [oregen, cobblegenerator, oregenerator, ccg]
+    aliases: [oregen, cobblegenerator, oregenerator, ccg, generator, gen]
 permissions:
   customcobblegen.*:
     description: Gives access to all CustomCobbleGens commands

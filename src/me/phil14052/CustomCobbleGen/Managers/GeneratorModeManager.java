@@ -27,6 +27,8 @@ public class GeneratorModeManager {
 	private List<GenMode> generatorModes = null;
 	private String generatorSection = "options.generationModes";
 	private GenMode defaultGenMode = null;
+	private GenMode universalGenMode = null;
+	
 	
 	public GeneratorModeManager() {
 		plugin = CustomCobbleGen.getInstance();
@@ -34,7 +36,8 @@ public class GeneratorModeManager {
 		List<Material> defaultBlocks = new ArrayList<>();
 		defaultBlocks.add(Material.WATER);
 		defaultBlocks.add(Material.LAVA);
-		this.defaultGenMode = new GenMode(defaultBlocks);
+		this.defaultGenMode = new GenMode(0, defaultBlocks, "Cobblestone generator", Material.COBBLESTONE); //THE ID IS 0 SINCE IT WILL ONLY BE USED IF NO OTHER GENMODES ARE LOADED
+		this.universalGenMode = new GenMode(-1, defaultBlocks, "Universal generator", null);
 	}
 	
 	public void loadFromConfig() {
@@ -74,8 +77,29 @@ public class GeneratorModeManager {
 						fixedBlockMaterials.put(blockFace, m);
 					}
 				}
-				
-				GenMode mode = new GenMode(blockMaterials, fixedBlockMaterials);
+				int id;
+				try {
+					id = Integer.parseInt(s);
+				} catch(NumberFormatException e) {
+					plugin.log("&c&lUser error: &e" + s + " is not a valid generation mode id. MOST BE A NUMBER");
+					return;
+				}
+				if(id < 0) {
+					plugin.log("&c&lUser error: &e" + id + " is not a valid generation mode id. MOST BE A POSITIVE NUMBER");
+					return;
+				}
+				String name = null;
+				if(section.contains(s + ".displayName")) {
+					name = section.getString(s + ".displayName");
+				}
+				Material fallbackMaterial = null;
+				if(section.contains(s + ".fallback")) {
+					fallbackMaterial = Material.valueOf(section.getString(s + ".fallback").toUpperCase());
+					if(fallbackMaterial == null) {
+						plugin.log("&c&lUser error: &e" + section.getString(s + ".fallback") + " is not a valid fallback material");
+					}
+				}
+				GenMode mode = new GenMode(id, blockMaterials, fixedBlockMaterials, name, fallbackMaterial);
 				if(section.contains(s + ".searchForPlayersNearby")) {
 					mode.setSearchForPlayersNearby(section.getBoolean(s + ".searchForPlayersNearby"));
 				}
@@ -93,6 +117,14 @@ public class GeneratorModeManager {
 			this.generatorModes.add(this.defaultGenMode);
 		}
 		
+	}
+	
+	
+	public GenMode getModeById(int id) {
+		for(GenMode mode : this.getModes()) {
+			if(mode.getId() == id) return mode;
+		}
+		return null;
 	}
 	
 	public boolean isSupportedBlockFace(BlockFace blockFace) {
@@ -121,6 +153,10 @@ public class GeneratorModeManager {
 	public static GeneratorModeManager getInstance() {
 		if(instance == null) instance = new GeneratorModeManager();
 		return instance;
+	}
+
+	public GenMode getUniversalGenMode() {
+		return universalGenMode;
 	}
 	
 }

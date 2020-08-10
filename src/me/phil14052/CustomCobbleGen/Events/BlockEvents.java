@@ -16,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -45,6 +46,7 @@ import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
 import me.phil14052.CustomCobbleGen.Signs.GUISign;
 import me.phil14052.CustomCobbleGen.Signs.SelectSign;
 import me.phil14052.CustomCobbleGen.Signs.SignManager;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 
 public class BlockEvents implements Listener{
 
@@ -60,6 +62,12 @@ public class BlockEvents implements Listener{
 		Block b = e.getBlock();
 		if(isWorldDisabled(b.getLocation().getWorld())) return;
 		Material m = b.getType();
+		if(XMaterial.supports(13) && plugin.getConfig().getBoolean("options.supportWaterloggedBlocks")) { //Check for waterlogged block
+			if(b.getBlockData() instanceof Waterlogged) { //Checked separately so prev 1.13 do not try to use a class that does not exist
+				Waterlogged waterloggedBlock = (Waterlogged) b.getBlockData();
+				if(waterloggedBlock.isWaterlogged()) m = Material.WATER; //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
+			}
+		}
 		List<GenMode> modes = genModeManager.getModesContainingMaterial(m);
 		for(GenMode mode : modes) {
 			if(!mode.containsLiquidBlock() || !mode.isValid() || mode.isWorldDisabled(b.getLocation().getWorld())) continue;
@@ -100,8 +108,13 @@ public class BlockEvents implements Listener{
 							return;
 						}
 						UUID uuid = gb.getUUID(); //Get the player who broke the blocks tier
-						Tier tier = tm.getSelectedTier(uuid); // ^
-
+						SelectedTiers selectedTiers = tm.getSelectedTiers(uuid); // ^
+						Tier tier = null;
+						if(selectedTiers.getSelectedTiersMap().get(mode) == null) {
+							tier = selectedTiers.getSelectedTiersMap().get(genModeManager.getUniversalGenMode());
+						}else {
+							tier = selectedTiers.getSelectedTiersMap().get(mode);
+						}
 						if(tier != null) {
 							Material result = tier.getRandomResult();
 							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
@@ -113,6 +126,19 @@ public class BlockEvents implements Listener{
 							}
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
+							return;
+						}else if(mode.hasFallBackMaterial()){
+							Material fallback = mode.getFallbackMaterial();
+							plugin.log(fallback);
+							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, fallback, uuid, toBlock.getLocation(), true);
+							Bukkit.getPluginManager().callEvent(event);
+							if(event.isCancelled()) return;
+							if(event.getResult() == null) {
+								plugin.log("&cUnkown fallback material in " + mode.getId() + " mode.");
+								return;
+							}
+							e.setCancelled(true);
+							event.getGenerationLocation().getBlock().setType(fallback); //Get a random material and replace the block
 							return;
 						}
 					}else {
@@ -326,9 +352,7 @@ public class BlockEvents implements Listener{
 		}
 
 		blocksFound++;
-		int blocksNeeded = (mode.getBlocks().size() + mode.getFixedBlocks().size());
-		plugin.debug("Blocks found: " + blocksFound + " - Blocks needed " + blocksNeeded + " - Success?? " + (blocksFound == blocksNeeded));
-		
+		int blocksNeeded = (mode.getBlocks().size() + mode.getFixedBlocks().size());	
 		return blocksFound == blocksNeeded;
 	}
 	
