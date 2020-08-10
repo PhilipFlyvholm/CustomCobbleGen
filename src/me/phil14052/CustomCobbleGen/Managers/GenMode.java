@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.StringJoiner;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -16,6 +17,7 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
 /**
  * @author Philip
@@ -27,17 +29,20 @@ public class GenMode {
 	private Map<BlockFace, Material> fixedBlocks = null;
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	private List<String> disabledWorlds = new ArrayList<>();
+	private int id;
 	private boolean valid = false;
-
-	public GenMode(List<Material> blocks) {
-		this(blocks, null, true, null);
+	private String name = null;
+	private Material fallbackMaterial = null;
+	
+	public GenMode(int id, List<Material> blocks, String name, Material fallbackMaterial) {
+		this(id, blocks, null, true, null, name, fallbackMaterial);
 	}
 	
-	public GenMode(List<Material> blocks, Map<BlockFace, Material> fixedBlocks) {
-		this(blocks, fixedBlocks, true, null);
+	public GenMode(int id, List<Material> blocks, Map<BlockFace, Material> fixedBlocks, String name, Material fallbackMaterial) {
+		this(id, blocks, fixedBlocks, true, null, name, fallbackMaterial);
 	}
 	
-	public GenMode(List<Material> blocks, Map<BlockFace, Material> fixedBlocks, boolean searchForPlayersNearby, List<String> disabledWorlds) {
+	public GenMode(int id, List<Material> blocks, Map<BlockFace, Material> fixedBlocks, boolean searchForPlayersNearby, List<String> disabledWorlds, String name, Material fallbackMaterial) {
 		if(blocks == null) { //CREATE A EMPTY LIST IF ONLY "FIXED BLOCKS" ARE USED
 			blocks = new ArrayList<>();
 		}
@@ -64,9 +69,31 @@ public class GenMode {
 		this.setDisabledWorlds(disabledWorlds);
 		
 		//CONGRATZ IT LOOKS VALID
+		this.setId(id);
 		this.setBlocks(blocks);
 		this.setFixedBlocks(fixedBlocks);
 		this.setSearchForPlayersNearby(searchForPlayersNearby);
+		this.setFallbackMaterial(fallbackMaterial);
+		if(name != null && !name.trim().equals("")) {
+			this.setName(name);
+		}else {
+			StringJoiner sj = new StringJoiner(", ", "[", "]");
+			if(!blocks.isEmpty()) {
+				for(Material m : blocks) {
+					if(m != null) sj.add(StringUtils.toCamelCase(m.name()));
+					else sj.add("Unknown block");
+				}
+			}
+			if(!fixedBlocks.isEmpty()) {
+				for(Material m : fixedBlocks.values()) {
+					if(m != null) sj.add(StringUtils.toCamelCase(m.name()));
+					else sj.add("Unknown block");
+				}
+			}
+			String sjName = sj.toString();
+			this.setName(sjName);
+			plugin.log("&aNo displayname found for generator with id: " + id + " - Created name: " + sjName);
+		}
 		valid = true;
 		
 	
@@ -180,6 +207,34 @@ public class GenMode {
 	public boolean isWorldDisabled(String worldName) {
 		World world = Bukkit.getWorld(worldName);
 		return this.isWorldDisabled(world);
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Material getFallbackMaterial() {
+		return fallbackMaterial;
+	}
+
+	public boolean hasFallBackMaterial() {
+		return fallbackMaterial != null;
+	}
+	
+	public void setFallbackMaterial(Material fallbackMaterial) {
+		this.fallbackMaterial = fallbackMaterial;
 	}
 	
 }

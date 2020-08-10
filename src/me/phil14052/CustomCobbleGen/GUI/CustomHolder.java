@@ -8,8 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-
 public class CustomHolder implements InventoryHolder{
 
 	private final Map<Integer, Icon> icons = new HashMap<>();
@@ -36,7 +34,6 @@ public class CustomHolder implements InventoryHolder{
 
         
         for (Entry<Integer, Icon> entry : this.icons.entrySet()) {
-        	CustomCobbleGen.getInstance().debug(entry.getKey(),entry.getValue().itemStack.getType().name());
         	if(entry.getKey() > this.size) continue;
             inventory.setItem(entry.getKey(), entry.getValue().itemStack);
         }

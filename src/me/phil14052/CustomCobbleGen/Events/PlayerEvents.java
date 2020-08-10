@@ -52,8 +52,8 @@ public class PlayerEvents implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent e){
 		UUID uuid = e.getPlayer().getUniqueId();
 		// If the player has previously used the plugin, then load the player info.
-		if(!tm.selectedTierContainsUUID(uuid) && !tm.purchasedTiersContainsUUID(uuid)) tm.loadPlayerData(uuid);
-		if(!tm.selectedTierContainsUUID(uuid)) tm.givePlayerStartSelect(uuid);
+		if(!tm.selectedTiersContainsUUID(uuid) && !tm.purchasedTiersContainsUUID(uuid)) tm.loadPlayerData(uuid);
+		if(!tm.selectedTiersContainsUUID(uuid)) tm.givePlayerStartSelect(uuid);
 		if(!tm.purchasedTiersContainsUUID(uuid)) tm.givePlayerStartPurchases(e.getPlayer());
 	}
 	

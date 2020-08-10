@@ -48,9 +48,10 @@ public class MainTabComplete implements TabCompleter{
 			if(pm.hasPermission(sender, "customcobblegen.admin.settier", false)) subArgs.add("settier");
 			if(pm.hasPermission(sender, "customcobblegen.admin.givetier", false)) subArgs.add("givetier");
 			if(pm.hasPermission(sender, "customcobblegen.admin.forcebuy", false)) subArgs.add("forcebuy");
+			if(pm.hasPermission(sender, "customcobblegen.admin.withdraw", false)) subArgs.add("withdraw");
 			return subArgs;	
 		} else if(args.length < 4 && args[0].equalsIgnoreCase("admin")) {
-			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")) {
+			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")  || args[1].equalsIgnoreCase("withdraw")) {
 				List<String> subArgs = new ArrayList<>();
 				for(Player p : Bukkit.getOnlinePlayers()) {
 					subArgs.add(p.getName());
@@ -58,7 +59,7 @@ public class MainTabComplete implements TabCompleter{
 				return subArgs;	
 			}
 		} else if(args.length < 5 && args[0].equalsIgnoreCase("admin")) {
-			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")) {
+			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")  || args[1].equalsIgnoreCase("withdraw")) {
 				List<String> subArgs = new ArrayList<>();
 				Map<String, List<Tier>> tiers = tm.getTiers();
 				for(String className : tiers.keySet()) {
@@ -68,7 +69,7 @@ public class MainTabComplete implements TabCompleter{
 				return subArgs;	
 			}
 		} else if(args.length < 6 && args[0].equalsIgnoreCase("admin")) {
-			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")) {
+			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")  || args[1].equalsIgnoreCase("withdraw")) {
 				List<String> subArgs = new ArrayList<>();
 				List<Tier> tiers = tm.getTiers().get(args[3].toUpperCase());
 				if(tiers == null) return null;

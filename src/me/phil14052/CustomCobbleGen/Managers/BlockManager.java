@@ -173,7 +173,6 @@ public class BlockManager {
 				if(!locations.contains(serializedLoc)) locations.add(serializedLoc);
 			}
 			if(!locations.isEmpty()) plugin.getPlayerConfig().set("players." + pistonSet.getKey().toString() + ".pistons", locations);
-			plugin.debug(locations);
 		}
 		plugin.savePlayerConfig();
 	}

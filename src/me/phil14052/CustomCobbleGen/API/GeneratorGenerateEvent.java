@@ -28,6 +28,7 @@ public class GeneratorGenerateEvent extends Event implements Cancellable{
 	private Material result = null;
 	private UUID uuid = null;
 	private Location toBlock = null;
+	private boolean fallback = false;
     
     
     public GeneratorGenerateEvent(GenMode mode, Tier tier, Material result, UUID uuid, Location toBlock) {
@@ -36,6 +37,16 @@ public class GeneratorGenerateEvent extends Event implements Cancellable{
     	this.result = result;
     	this.uuid = uuid;
     	this.toBlock = toBlock;
+    	this.fallback = false;
+    }
+    
+    public GeneratorGenerateEvent(GenMode mode, Tier tier, Material result, UUID uuid, Location toBlock, boolean isFallback) {
+    	this.mode = mode;
+    	this.tier = tier;
+    	this.result = result;
+    	this.uuid = uuid;
+    	this.toBlock = toBlock;
+    	this.fallback = isFallback;
     }
     
     /**
@@ -113,5 +124,9 @@ public class GeneratorGenerateEvent extends Event implements Cancellable{
 	public static HandlerList getHandlerList() {
         return HANDLERS_LIST;
     }
+
+	public boolean isFallback() {
+		return fallback;
+	}
 	
 }
