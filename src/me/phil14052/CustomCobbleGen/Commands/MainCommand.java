@@ -21,8 +21,11 @@ import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
+import me.phil14052.CustomCobbleGen.Utils.FileUploader;
+import me.phil14052.CustomCobbleGen.Utils.Response;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import net.md_5.bungee.api.ChatColor;
 
 public class MainCommand implements CommandExecutor{
 
@@ -331,6 +334,21 @@ public class MainCommand implements CommandExecutor{
 				tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.FORCE_PURCHASED.toString(p));
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
+			}else if(args[1].equalsIgnoreCase("support")) {
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&7To get support join our discord: https://discord.gg/Dx6RJvZ"));
+			}else if(args[1].equalsIgnoreCase("pastebin")) {
+				if(!pm.hasPermission(sender, "customcobblegen.admin.pastebin", true)) return false;
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&7Getting contents of files..."));
+				
+	            final Response<String> postResult = new FileUploader().pastebinUpload("config.yml", "data//players.yml", "data//signs.yml", "lang.yml");
+
+				if (postResult.isError()) {
+					sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&cError pasting to pastebin: " + postResult.getResult()));
+					return false;
+				}
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&aSuccess pasting to pastebin! Send this link to the dev:"));
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&a" + postResult.getResult()));
+				
 			}else if(args[1].equalsIgnoreCase("debug")){
 				if(!pm.hasPermission(sender, "customcobblegen.debugger", true)) return false;
 				sender.sendMessage(" ");

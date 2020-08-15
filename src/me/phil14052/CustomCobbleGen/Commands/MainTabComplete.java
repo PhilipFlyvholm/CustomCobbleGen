@@ -50,6 +50,8 @@ public class MainTabComplete implements TabCompleter{
 			if(pm.hasPermission(sender, "customcobblegen.admin.givetier", false)) subArgs.add("givetier");
 			if(pm.hasPermission(sender, "customcobblegen.admin.forcebuy", false)) subArgs.add("forcebuy");
 			if(pm.hasPermission(sender, "customcobblegen.admin.withdraw", false)) subArgs.add("withdraw");
+			if(pm.hasPermission(sender, "customcobblegen.admin.pastebin", false)) subArgs.add("pastebin");
+			subArgs.add("support");
 			return subArgs;	
 		} else if(args.length < 4 && args[0].equalsIgnoreCase("admin")) {
 			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")  || args[1].equalsIgnoreCase("withdraw")) {
