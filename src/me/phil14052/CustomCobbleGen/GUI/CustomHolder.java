@@ -31,10 +31,10 @@ public class CustomHolder implements InventoryHolder{
 	@Override
 	public Inventory getInventory() {
 		Inventory inventory = Bukkit.createInventory(this, this.size, this.title);
-
         
         for (Entry<Integer, Icon> entry : this.icons.entrySet()) {
         	if(entry.getKey() > this.size) continue;
+
             inventory.setItem(entry.getKey(), entry.getValue().itemStack);
         }
    

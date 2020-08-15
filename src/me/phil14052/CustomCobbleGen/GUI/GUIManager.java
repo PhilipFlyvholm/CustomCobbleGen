@@ -157,7 +157,7 @@ public class GUIManager {
 								SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 								selectedTiers.addTier(tier);
 								tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
-								p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
+								p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
 								p.closeInventory();
 							}else {
 								//Player has not purchased the level. Now check if the player can buy the level
@@ -169,8 +169,8 @@ public class GUIManager {
 											SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 											selectedTiers.addTier(tier);
 											tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
-											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
-											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
+											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
+											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
 											p.closeInventory();
 										}
 									}
@@ -276,8 +276,8 @@ public class GUIManager {
 						SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 						selectedTiers.addTier(tier);
 						tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
-						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
-						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
+						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
+						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
 						p.closeInventory();
 					}
 					return;
@@ -311,6 +311,80 @@ public class GUIManager {
 			player.openInventory(inventory);
 		}
 		
+	}
+	
+	public class UpgradeGUI {
+		private int GUISize = 9;
+		private CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_UPGRADE_TITLE.toString());
+		private Player player;
+		
+		public UpgradeGUI(Player p, List<Tier> nextTiers) {
+			int i = 0;
+			boolean isEven = (nextTiers.size() % 2) == 0;
+			this.player = p;
+			for(Tier tier : nextTiers) {
+				ItemStack item = tier.getIcon().clone();
+				ItemMeta itemMeta = item.getItemMeta();
+				List<String> lore = itemMeta.getLore();
+				lore.addAll(tier.getFormatetDescription(p));
+				if(plugin.getConfig().getBoolean("options.gui.showSupportedModes")) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
+				String emptyString = "&a ";
+				emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
+				lore.add(emptyString);
+				if(tm.canPlayerBuyTier(p, tier)) {
+					lore.add(Lang.GUI_UPGRADE_LORE_UPGRADE.toString());
+					for(Requirement r : tier.getRequirements()) {
+						if(!tier.hasRequirement(r.getRequirementType())) continue;
+						lore = r.addAvailableString(tier, lore);
+					}
+				}else {
+					lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
+
+					for(Requirement r : tier.getRequirements()) {
+						if(!tier.hasRequirement(r.getRequirementType())) continue;
+						lore = r.addUnavailableString(tier, lore);
+					}
+				}
+				itemMeta.setLore(lore);
+				item.setItemMeta(itemMeta);
+				Icon icon = new Icon(item);
+				icon.addClickAction(new ClickAction() {
+					@Override
+					public void execute(Player p) {
+						//Check if the player has purchased the level
+						if(tm.hasPlayerPurchasedLevel(p, tier)) {
+							SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+							selectedTiers.addTier(tier);
+							tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
+							p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
+							p.closeInventory();
+						}else {
+							//Player has not purchased the level. Now check if the player can buy the level
+							if(tm.canPlayerBuyTier(p, tier)) {
+								if(tm.purchaseTier(p, tier)) {
+									SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+									selectedTiers.addTier(tier);
+									tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
+									p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
+									p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
+									p.closeInventory();
+								}
+							}
+						}
+					}
+				});
+				int position = i+(GUISize-nextTiers.size())/2;
+				if(isEven && i > (nextTiers.size()-1)/2) position++;
+				
+				ch.setIcon(position, icon);
+				i++;
+			}
+		}
+
+		public void open(){
+			Inventory inventory = ch.getInventory();
+			player.openInventory(inventory);
+		}
 	}
 	
 	public class AdminGUI {
@@ -911,7 +985,7 @@ public class GUIManager {
 	
 	public void addPlayerChatting(Player p, Tier tier, ChatReturnType type) {
 		if(type == null) {
-			plugin.log("&4ERROR: &cTYPE IS NULL IN GUIManager.addPlayerChatting(Player p, Tier tier, ChatReturnType type)");
+			plugin.error("&cTYPE IS NULL IN GUIManager.addPlayerChatting(Player p, Tier tier, ChatReturnType type)");
 			return;
 		}
 		ChatReturn chatReturn = null;
@@ -928,7 +1002,7 @@ public class GUIManager {
 		}else if(type.equals(ChatReturnType.ICON)) {
 			chatReturn = new ChatReturnTierIcon(p, tier);
 		}else {
-			plugin.log("&4ERROR: &c" + type.name() + " does not have a class yet!");
+			plugin.error( type.name() + " does not have a class yet!");
 			return;
 		}
 		

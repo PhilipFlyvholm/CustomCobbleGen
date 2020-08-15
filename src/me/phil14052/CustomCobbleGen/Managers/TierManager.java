@@ -55,7 +55,7 @@ public class TierManager {
 			List<Tier> tierLevelsList = new ArrayList<Tier>();
 			for(String tierLevelString : configTiers.getConfigurationSection(tierClass).getKeys(false)){
 				boolean levelNeedsUserChange = false;
-				if(!StringUtils.isInteger(tierLevelString)){plugin.log(tierClass + " has a text as level instead of a number."); continue;}
+				if(!StringUtils.isInteger(tierLevelString)){plugin.error(tierClass + " has a text as level instead of a number.", true); continue;}
 				ConfigurationSection tierSection = configTiers.getConfigurationSection(tierClass + "." + tierLevelString);
 				int tierLevel = Integer.parseInt(tierLevelString);
 				String name = tierSection.getString("name");
@@ -66,7 +66,7 @@ public class TierManager {
 				for(String resultMaterialString : tierSection.getConfigurationSection("contains").getKeys(false)){
 					Material resultMaterial = Material.matchMaterial(resultMaterialString.toUpperCase());
 					if(resultMaterial == null) {
-						plugin.log("&c&lUser Error: The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name");
+						plugin.error("The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name", true);
 						resultMaterial = Material.COBBLESTONE;
 						levelNeedsUserChange = true;
 						classNeedsUserChange = true;
@@ -76,10 +76,10 @@ public class TierManager {
 					results.put(resultMaterial, percentage);
 				}
 				if(totalPercentage > 100D) {
-					plugin.log("&c&lUser Error: Results total percentage is over 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
+					plugin.warning("&c&lUser Error: &7Results total percentage is over 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
 				}else if(totalPercentage < 100D) {
-					plugin.log("&c&lUser Error: Results total percentage is under 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
-					plugin.log("&c&lTHIS CAN GIVE NULL POINTER ERRORS! THESE ARE USER ERRORS AND NEED TO BE FIXED BY YOU!");
+					plugin.error("Results total percentage is under 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage, true);
+					plugin.error("&c&lTHIS CAN GIVE NULL POINTER ERRORS! THESE ARE USER ERRORS AND NEED TO BE FIXED BY YOU!", true);
 				}
 				
 				List<Requirement> requirements = new ArrayList<Requirement>();
@@ -142,7 +142,7 @@ public class TierManager {
 							int id = Integer.parseInt(tierSection.getString("supportedGenerationMode"));
 							supportedMode = gm.getModeById(id);
 						}catch(NumberFormatException e) {
-							plugin.log("&c&lUser error: &e" + supportedGenerationModeString + " is not a valid generation mode id. MOST BE A NUMBER or \"ALL\" - Fallback: Will allow all generators");
+							plugin.error(supportedGenerationModeString + " is not a valid generation mode id. MOST BE A NUMBER or \"ALL\" - Fallback: Will allow all generators", true);
 						}
 					}
 				}
@@ -233,7 +233,7 @@ public class TierManager {
 				String tierClass = playerSection.getString("selected." + s + ".class");
 				Tier tier = this.getTierByLevel(tierClass, tierLevel);
 				if(tier == null) {
-					plugin.log("&cERROR: selected tiers loaded incorrectly for " + uuid + " - Skipping load");
+					plugin.error("Selected tiers loaded incorrectly for " + uuid + " - Skipping load");
 				}else {
 					selectedTiers.addTier(tier);		
 				}
@@ -288,15 +288,17 @@ public class TierManager {
 	public void savePurchasedTiersPlayerData(UUID uuid) {
 		
 		if(this.purchasedTiersContainsUUID(uuid)) {
+			if(plugin.getPlayerConfig() == null){
+				plugin.error("MISSING PLAYER.YML FILE");
+				return;
+			}
 			List<Tier> purchasedTiers = this.getPurchasedTiers().get(uuid);
+			plugin.getPlayerConfig().set("players." + uuid + ".purchased", null);
 			for(Tier purchasedTier : purchasedTiers){
-				List<Integer> purchasedLevels = new ArrayList<Integer>();
-				if(plugin.getPlayerConfig() == null){
-					plugin.log("&cERROR: &7MISSING PLAYER.YML FILE");
-					return;
-				}
+				List<Integer> purchasedLevels = new ArrayList<>();
+				
 				if(purchasedTier == null) {
-					plugin.log("&c&lUser Error: Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!");
+					plugin.error("Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!", true);
 					plugin.log("&c&lIf not manually added then please report this to the dev");
 					continue;
 				}
@@ -314,7 +316,6 @@ public class TierManager {
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
 		if(!p.isOnline()) return false;
 		if(!tier.getTierClass().equals("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tier.getTierClass(), false)) return false;
-		plugin.log(tier.hasCustomPermission(), tier.getCustomPermission());
 		if(tier.hasCustomPermission() && !pm.hasPermission(p, tier.getCustomPermission(), false)) return false;
 		for(Requirement r : tier.getRequirements()) {
 			if(!r.furfillsRequirement(p)) return false;
@@ -342,7 +343,7 @@ public class TierManager {
 	}
 	
 	public void withdrawPurchasedTier(UUID uuid, Tier tier) {
-		if(this.getPlayersPurchasedTiers(uuid).contains(tier)) this.getPlayersPurchasedTiers(uuid).remove(tier);
+		if(this.getPlayersPurchasedTiers(uuid).contains(tier)) this.getPurchasedTiers().get(uuid).remove(tier);
 	}
 
 	public boolean hasPlayerPurchasedLevel(Player p, Tier tier) {
@@ -355,7 +356,7 @@ public class TierManager {
 		UUID uuid = p.getUniqueId();
 		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(uuid, tier.getTierClass());
 		if(purchasedTiersByClass == null) {
-			plugin.log("Unknown tier purchases from - " + p.getName());
+			plugin.warning("Unknown tier purchases from - " + p.getName());
 			return false;
 		}
 		for(Tier tierI : purchasedTiersByClass) {

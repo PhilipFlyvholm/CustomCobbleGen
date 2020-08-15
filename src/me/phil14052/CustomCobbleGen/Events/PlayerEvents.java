@@ -122,7 +122,7 @@ public class PlayerEvents implements Listener {
 					ItemStack icon = new ItemStack(Material.matchMaterial(input));
 					tier.setIcon(icon);
 				}else {
-					plugin.log("&4ERROR: &cUnkown ChatReturnType: " + type.name() + " in PlayerEvents.onPlayerChat()");
+					plugin.error("Unkown ChatReturnType: " + type.name() + " in PlayerEvents.onPlayerChat()");
 					guiManager.removePlayerChatting(p);
 					return;
 				}

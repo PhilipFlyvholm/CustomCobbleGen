@@ -121,24 +121,25 @@ public class BlockEvents implements Listener{
 							Bukkit.getPluginManager().callEvent(event);
 							if(event.isCancelled()) return;
 							if(event.getResult() == null) {
-								plugin.log("&cUnkown material in " + event.getTierUsed().getName() + " tier.");
+								plugin.error("&cUnkown material in " + event.getTierUsed().getName() + " tier.", true);
 								return;
 							}
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
+							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), 2.0F, 1.0F); //Play sound if configured
 							return;
 						}else if(mode.hasFallBackMaterial()){
 							Material fallback = mode.getFallbackMaterial();
-							plugin.log(fallback);
 							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, fallback, uuid, toBlock.getLocation(), true);
 							Bukkit.getPluginManager().callEvent(event);
 							if(event.isCancelled()) return;
 							if(event.getResult() == null) {
-								plugin.log("&cUnkown fallback material in " + mode.getId() + " mode.");
+								plugin.error("Unkown fallback material in " + mode.getId() + " mode.", true);
 								return;
 							}
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(fallback); //Get a random material and replace the block
+							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), 2.0F, 1.0F); //Play sound if configured
 							return;
 						}
 					}else {
@@ -353,7 +354,7 @@ public class BlockEvents implements Listener{
 
 		blocksFound++;
 		int blocksNeeded = (mode.getBlocks().size() + mode.getFixedBlocks().size());	
-		return blocksFound == blocksNeeded;
+		return blocksFound >= blocksNeeded;
 	}
 	
 

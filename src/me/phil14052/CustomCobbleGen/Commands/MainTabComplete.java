@@ -34,6 +34,7 @@ public class MainTabComplete implements TabCompleter{
 			subCommands.add("help");
 			if(pm.hasPermission(sender, "customcobblegen.tier", false)) subCommands.add("tier");
 			if(pm.hasPermission(sender, "customcobblegen.admin", false)) subCommands.add("admin");
+			if(pm.hasPermission(sender, "customcobblegen.upgrade", false)) subCommands.add("upgrade");
 			return subCommands;	
 		} else if(args.length < 3 && args[0].equalsIgnoreCase("tier") && pm.hasPermission(sender, "customcobblegen.tier.other", false)) {
 			List<String> subArgs = new ArrayList<>();

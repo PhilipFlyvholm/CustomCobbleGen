@@ -13,6 +13,7 @@ import java.util.StringJoiner;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
@@ -32,6 +33,7 @@ public class GenMode {
 	private int id;
 	private boolean valid = false;
 	private String name = null;
+	private Sound genSound = null;
 	private Material fallbackMaterial = null;
 	
 	public GenMode(int id, List<Material> blocks, String name, Material fallbackMaterial) {
@@ -50,18 +52,18 @@ public class GenMode {
 			fixedBlocks = new HashMap<>();
 		}
 		if(blocks.isEmpty() && fixedBlocks.isEmpty()) { //Throw user error if no blocks are defined
-			plugin.log("&c&lUser error: Invalid generation mode. Empty lists");
+			plugin.error("Invalid generation mode. Empty lists", true);
 			valid = false;
 			return;
 		}
 		int totalBlocks = blocks.size() + fixedBlocks.size(); //Get the amount of blocks specified
 		if(totalBlocks < 2) { // There needs to be at least two blocks. If not then throw error
-			plugin.log("&c&lUser error: Invalid generation mode. There needs to be at least two blocks specified");
+			plugin.error("Invalid generation mode. There needs to be at least two blocks specified", true);
 			valid = false;
 			return;
 		}
 		if(!this.containsLiquidBlock(blocks, fixedBlocks)) { // There needs to flow from a liquid block
-			plugin.log("&c&lUser error: Invalid generation mode. There needs to be at least one liquid block - i.e. LAVA or WATER");
+			plugin.error("Invalid generation mode. There needs to be at least one liquid block - i.e. LAVA or WATER", true);
 			valid = false;
 			return;
 		}
@@ -95,9 +97,8 @@ public class GenMode {
 			plugin.log("&aNo displayname found for generator with id: " + id + " - Created name: " + sjName);
 		}
 		valid = true;
-		
-	
 	}
+	
 	public List<Material> getMirrorMaterials(Material m, BlockFace blockFace) {
 		if(m == null) return null;
 		if(m.name().equals("LAVA") || m.name().equals("STATIONARY_LAVA")) m = Material.LAVA;
@@ -235,6 +236,21 @@ public class GenMode {
 	
 	public void setFallbackMaterial(Material fallbackMaterial) {
 		this.fallbackMaterial = fallbackMaterial;
+	}
+
+	public Sound getGenSound() {
+		return genSound;
+	}
+	public boolean hasGenSound() {
+		return this.getGenSound() != null;
+	}
+
+	public void setGenSound(Sound genSound) {
+		if(genSound == null) {
+			plugin.error("Unkown sound for generator with id: " + this.getId(), true);
+			return;
+		}
+		this.genSound = genSound;
 	}
 	
 }

@@ -8,6 +8,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginDescriptionFile;
 
+import com.cryptomorin.xseries.XMaterial;
+
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
 public class ConfigUpdater extends YamlConfiguration {
@@ -34,6 +36,7 @@ public class ConfigUpdater extends YamlConfiguration {
 			config.addDefault("options.generationModes.0.blocks", defaultMode);
 			config.addDefault("options.generationModes.0.displayName", "Cobblestone generator");
 			config.addDefault("options.generationModes.0.fallback", "COBBLESTONE");
+			config.addDefault("options.generationModes.generationSound", XMaterial.supports(9) ? "ENTITY_EXPERIENCE_ORB_PICKUP" : "ORB_PICKUP");
 		}
 		config.addDefault("options.playerSearchRadius", 4D);
 		config.addDefault("options.money.format", true);

@@ -14,6 +14,8 @@ import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
+import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
  
@@ -44,13 +46,14 @@ public enum Lang {
     		+ " , &3/%command%&8 - Show the GUI"
     		+ " , &3/%command% help&8 - Shows the help menu"
     		+ " , &3/%command% tier&8 - Shows the currently selected tier"
+    		+ " , &3/%command% upgrade&8 - Upgrade to the next tier"
     		+ " , &3/%command% admin&8 - Shows list of admin commands"
     		+ " , &8&l&m---------------------"),
     GUI_PREFIX("gui.prefix", "&3&lCustomCobbleGen menu"),
     NO_TIERS_DEFINED("no-tiers-defined", "&cThere are no tiers defined in the config"),
     MONEY_FORMAT("money-format", "###,###,###,###,###.##"),
-    TIER_CHANGED("tier-changed", "You have now selected the %selected_tier_name% tier"),
-    TIER_PURCHASED("tier-purchased", "You have now purchased the %selected_tier_name% tier"),
+    TIER_CHANGED("tier-changed", "You have now selected the %tier_name% tier"),
+    TIER_PURCHASED("tier-purchased", "You have now purchased the %tier_name% tier"),
     PLAYER_ALREADY_OWNS_TIER("player-already-owns-tier", "The player already owns this tier"),
     PLAYER_DOES_NOT_OWN_TIER("player-does-not-own-tier", "The player does not own this tier"),
     TIER_UNSELECTED_SUCCESS_SELF("tier-unselected-success.self", "&aTier unselected for player"),
@@ -63,6 +66,12 @@ public enum Lang {
     TIER_LOCKED("tier-not-locked", "&cThis tier is locked. Buy the previous tier first."),
     TIER_NOT_FOUND("tier-not-found", "&cTier not found"),
     TIER_CANT_AFFORD("tier-cant-afford", "&cYou can not afford this tier"),
+    NO_UPGRADES_AVAILABLE("no-upgrades-available", "&aYou do not have any upgrades available"),
+    UPGRADE_NOT_PURCHASABLE("upgrade-not-purchasable", "&cYou do not fulfill the requirements to upgrade:"),
+    UPGRADE_NOT_PURCHASABLE_MONEY("upgrade-not-purchasable-money", "&cYou need %tier_price_money%$ to buy the tier"),
+    UPGRADE_NOT_PURCHASABLE_XP("upgrade-not-purchasable-xp", "&cYou need %tier_price_xp% XP to buy the tier"),
+    UPGRADE_NOT_PURCHASABLE_LEVEL("upgrade-not-purchasable-level", "&cYou need a island level of atleast %tier_price_level% to buy the tier"),
+    UPGRADE_NOT_PURCHASABLE_ITEMS("upgrade-not-purchasable-items", "&cYou need %tier_price_items% to buy this tier"),
     FORCE_PURCHASED("force-purchased", "You have now force bought %selected_tier_name% for %player_name%"),
     ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, forcesave, settier, givetier, forcebuy, withdraw]"),
     GUI_BUY("gui.main.buy", "&aClick to buy"),
@@ -89,6 +98,8 @@ public enum Lang {
     GUI_CONFIRM_CANCEL_LORE("gui.confirm.cancel.lore", "&8Click to cancel the purchase"),
     GUI_CONFIRM_BUY("gui.confirm.buy.name", "&aBuy"),
     GUI_CONFIRM_BUY_LORE("gui.confirm.buy.lore", "&8Click to confirm the purchase"),
+    GUI_UPGRADE_TITLE("gui.upgrade.title", "&6&lChoose a tier to upgrade"),
+    GUI_UPGRADE_LORE_UPGRADE("gui.upgrade.lore.upgrade", "&aClick to upgrade"),
     GUI_ADMIN_TITLE("gui.admin.title", "&4&lCCG: &cAdmin"),
     GUI_ADMIN_RELOAD("gui.admin.reload.title", "&6&lReload config"),
     GUI_ADMIN_RELOAD_LORE("gui.admin.reload.lore", "ARRAYLIST: &8Reloads all files , &7- config.yml , &7- lang.yml , &7- data/players.yml , &7- data/signs.yml"),
@@ -273,6 +284,21 @@ public enum Lang {
         		string = string.replaceAll(placeholder, Lang.PLACEHOLDER_RESPONSE_ALL.toString());
         	}else {
         		string = string.replaceAll(placeholder, tier.getSupportedMode().getName());
+        		
+        	}
+        	if(string.contains("%tier_price_items%")) {
+        		String result = "None";
+        		if(tier.hasRequirements()) {
+
+            		List<Requirement> requirements = tier.getRequirements();
+            		for(Requirement requirement : requirements) {
+            			if(requirement instanceof ItemsRequirement) {
+            				result = requirement.toString();
+            			}
+            		}
+        		}
+        		string = string.replaceAll("%tier_price_items%", result);
+        		
         		
         	}
         	

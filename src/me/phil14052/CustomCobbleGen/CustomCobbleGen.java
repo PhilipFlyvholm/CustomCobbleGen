@@ -74,6 +74,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		plugin.debug("Enabling CustomCobbleGen plugin");
 		plugin.log("&cIF YOU ENCOUNTER ANY BUGS OR ERRORS PLEASE REPORT THEM ON SPIGOT!");
 		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub) and Fang_Zhijian (Chinese translation)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
+		plugin.log("&6&lIF YOU WANT TO SUPPORT US JOIN OUR PATERON: https://www.patreon.com/woollydevelopment");
 		// Setup config
 		new ConfigUpdater();
 		saveConfig();
@@ -117,8 +118,8 @@ public class CustomCobbleGen extends JavaPlugin {
 			public Integer call() throws Exception {
 				int numOfGenerators = BlockManager.getInstance().getKnownGenLocations().size();
 				if(numOfGenerators > 10000) { // Over 10000 generators found - Prob a mistake
-					plugin.log("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
-					plugin.log("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
+					plugin.warning("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
+					plugin.warning("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
 				}
 				return numOfGenerators;
 			}
@@ -314,7 +315,7 @@ public class CustomCobbleGen extends JavaPlugin {
                 f.set(null, true);
             }
             catch (Exception e) {
-            	plugin.log("&cFailed to create enchament: " + e.getMessage());
+            	plugin.error("Failed to create enchament: " + e.getMessage());
             }
             try {
                 GlowEnchant glow = new GlowEnchant(new NamespacedKey(this, "GlowEnchant"));
@@ -390,11 +391,28 @@ public class CustomCobbleGen extends JavaPlugin {
 				sb.append("[" + s.getClass().getTypeName() + ": " + s.toString() + "]");	
 			}
 		}
-		this.debug(sb.toString());
+		this.log(sb.toString());
 	}
 	
 	public void log(String message){
 		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &8&lLog &8-&7 " + message).replace("&", "\u00A7"));
+	}
+	
+	public void error(String message) {
+		this.error(message, false);
+	}
+	
+	public void error(String message, boolean userError) {
+		if(userError) {
+			Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &4&lUser error &8-&c " + message).replace("&", "\u00A7"));	
+		}else {
+
+			Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &4&lError &8-&c " + message).replace("&", "\u00A7"));
+		}
+	}
+	
+	public void warning(String message) {
+		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &4&lWarning &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	

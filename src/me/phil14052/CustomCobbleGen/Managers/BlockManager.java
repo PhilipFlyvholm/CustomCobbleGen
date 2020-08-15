@@ -165,7 +165,7 @@ public class BlockManager {
 					continue;
 				}
 				if(piston.getLoc().getBlock() == null) {
-					plugin.log("&cERROR: &7Can't confirm block is piston in players.yml under UUID: " + pistonSet.getKey().toString() + ".pistons at ", piston.getLoc());
+					plugin.error("Can't confirm block is piston in players.yml under UUID: " + pistonSet.getKey().toString() + ".pistons at " + piston.getLoc());
 				}
 				else if(!piston.getLoc().getBlock().getType().equals(XMaterial.PISTON.parseMaterial())) continue;
 				if(!piston.hasBeenUsed()) continue;
@@ -187,12 +187,12 @@ public class BlockManager {
 				for(String stringLoc : locations) {
 					Location loc = this.deserializeLoc(stringLoc);
 					if(loc == null) {
-						plugin.log("&cERROR: &7Unkown location in players.yml under UUID: " + uuid + ".pistons", stringLoc);
+						plugin.error("Unknown location in players.yml under UUID: " + uuid + ".pistons" + stringLoc);
 						continue;
 					}
 					Block block = loc.getWorld().getBlockAt(loc);
 					if(block == null) {
-						plugin.log("&cERROR: &7Can't confirm block is piston in players.yml under UUID: " + uuid + ".pistons at ", stringLoc);
+						plugin.error("Can't confirm block is piston in players.yml under UUID: " + uuid + ".pistons at " + stringLoc);
 						continue;
 					}
 					else if(loc.getWorld().getBlockAt(loc).getType()!= XMaterial.PISTON.parseMaterial()) continue;

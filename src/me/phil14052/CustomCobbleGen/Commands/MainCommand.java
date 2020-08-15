@@ -1,6 +1,7 @@
 package me.phil14052.CustomCobbleGen.Commands;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +20,7 @@ import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 
@@ -77,6 +79,77 @@ public class MainCommand implements CommandExecutor{
 				return true;
 				
 			}
+		}else if(args[0].equalsIgnoreCase("upgrade")){
+			if(!pm.hasPermission(sender, "customcobblegen.upgrade", true)) return false;
+
+			if(!(sender instanceof Player)){
+				sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_ONLY.toString());
+				return false;
+			}
+			Player p = (Player) sender;
+			SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+			if(selectedTiers == null || selectedTiers.getSelectedTiersMap().isEmpty()) {
+				p.performCommand("cobblegen"); //If no tiers selected then show them a GUI to select one
+				return true;
+			}
+			List<Tier> nextTiers = new ArrayList<>();
+			List<String> foundClasses = new ArrayList<>();
+			for(Tier tier : selectedTiers.getSelectedTiersMap().values()) {
+				boolean lookForNextTier = true;
+				Tier nextTier = null;
+				Tier testingTier = tier;
+				while(lookForNextTier) {
+					String tierClass = testingTier.getTierClass();
+					plugin.debug(foundClasses, foundClasses.contains(tierClass));
+					if(foundClasses.contains(tierClass)) {
+						lookForNextTier = false;
+						continue;
+					}
+					int tierLevel = testingTier.getLevel();
+					testingTier = tm.getTierByLevel(tierClass, (tierLevel + 1));
+					if(testingTier != null) {
+						//Tier exists
+						if(!tm.hasPlayerPurchasedLevel(p, testingTier)) {
+							nextTier = testingTier;
+							foundClasses.add(tierClass);
+							lookForNextTier = false;
+						}
+					}else {
+						lookForNextTier = false;
+					}
+				}
+				if(nextTier != null) nextTiers.add(nextTier);
+			}
+			if(nextTiers.size() > 1) { //Multiple tiers available
+				//Since the player has selected multiple tiers we need to know which one they want to upgrade
+
+				guiManager.new UpgradeGUI(p, nextTiers).open();
+				return true;
+			}else if(nextTiers.isEmpty()){ //No upgrades available
+				p.sendMessage(Lang.PREFIX.toString() + Lang.NO_UPGRADES_AVAILABLE.toString(p));
+				return true;
+			}else {
+				Tier nextTier = nextTiers.get(0);
+				if(tm.canPlayerBuyTier(p, nextTier)) {
+					tm.purchaseTier(p, nextTier); //Upgraded
+					selectedTiers.addTier(nextTier);
+					tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
+					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(nextTier));
+					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(nextTier));
+					p.closeInventory();
+					return true;
+				}else {
+					p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE.toString(p));
+					if(nextTier.hasRequirements()) {
+
+						if(nextTier.getRequirementValue(RequirementType.MONEY) != 0) p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE_MONEY.toString(nextTier));
+						if(nextTier.getRequirementValue(RequirementType.XP) != 0)p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE_XP.toString(nextTier));
+						if(nextTier.getRequirementValue(RequirementType.ITEMS) != 0)p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE_ITEMS.toString(nextTier));
+						if(nextTier.getRequirementValue(RequirementType.LEVEL) != 0)p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE_LEVEL.toString(nextTier));	
+					}
+				}
+			}
+			
 		}else if(args[0].equalsIgnoreCase("admin")){
 			if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
 			if(args.length < 2){
