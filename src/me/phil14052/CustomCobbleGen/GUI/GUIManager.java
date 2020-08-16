@@ -404,6 +404,7 @@ public class GUIManager {
 			Icon forceBuyIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_FORCEBUY.toString(p), Lang.GUI_ADMIN_FORCEBUY_LORE.toStringList(p)).create());
 			Icon giveTierIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_GIVETIER.toString(p), Lang.GUI_ADMIN_GIVETIER_LORE.toStringList(p)).create());
 			Icon setTierIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_SETTIER.toString(p), Lang.GUI_ADMIN_SETTIER_LORE.toStringList(p)).create());
+			Icon withdrawIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_WITHDRAW.toString(p), Lang.GUI_ADMIN_WITHDRAW_LORE.toStringList(p)).create());
 			
 			/*Icon createdTierIcon = new Icon(new ItemLib(XMaterial.PAPER.parseMaterial(), 1, (short) 0, Lang.GUI_ADMIN_CREATETIER.toString(p), Lang.GUI_ADMIN_CRAETETIER_LORE.toStringList(p)).create());
 			
@@ -432,9 +433,9 @@ public class GUIManager {
 					}
 					
 				});
-				ch.setIcon(11, reloadIcon);
+				ch.setIcon(10, reloadIcon);
 			}else {
-				ch.setIcon(11, getNoPermissionsIcon("customcobblegen.admin.reload"));
+				ch.setIcon(10, getNoPermissionsIcon("customcobblegen.admin.reload"));
 			}
 			
 			// FORCE SAVE
@@ -448,9 +449,9 @@ public class GUIManager {
 					}
 					
 				});
-				ch.setIcon(12, saveIcon);
+				ch.setIcon(11, saveIcon);
 			}else {
-				ch.setIcon(12, getNoPermissionsIcon("customcobblegen.admin.forcesave"));
+				ch.setIcon(11, getNoPermissionsIcon("customcobblegen.admin.forcesave"));
 			}
 			
 			// FORCE BUY
@@ -465,9 +466,9 @@ public class GUIManager {
 					
 				});
 				
-				ch.setIcon(13, forceBuyIcon);
+				ch.setIcon(12, forceBuyIcon);
 			}else {
-				ch.setIcon(13, getNoPermissionsIcon("customcobblegen.admin.forcebuy"));
+				ch.setIcon(12, getNoPermissionsIcon("customcobblegen.admin.forcebuy"));
 			}
 			
 			// GIVE TIER
@@ -501,6 +502,19 @@ public class GUIManager {
 				ch.setIcon(15, setTierIcon);
 			}else {
 				ch.setIcon(15, getNoPermissionsIcon("customcobblegen.admin.settier"));
+			}
+			// SET TIER
+			if(pm.hasPermission(p, "customcobblegen.admin.withdraw", false)) {
+				withdrawIcon.addClickAction(new ClickAction() {
+					@Override
+					public void execute(Player p) {	
+						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.WITHDRAW).open();
+					}
+								
+				});
+				ch.setIcon(16, withdrawIcon);
+			}else {
+				ch.setIcon(16, getNoPermissionsIcon("customcobblegen.admin.withdraw"));
 			}
 			
 			for(int i = 0; i < GUISize; i++) {
@@ -753,7 +767,12 @@ public class GUIManager {
 
 					@Override
 					public void execute(Player p) {
-						GUIManager.getInstance().new TierSelectGUI(p, onlinePlayer, actionType).open();;
+						if(actionType.equals(GUIActionType.WITHDRAW)) {
+
+							GUIManager.getInstance().new WithdrawGUI(p, onlinePlayer).open();
+						}else {
+							GUIManager.getInstance().new TierSelectGUI(p, onlinePlayer, actionType).open();	
+						}
 					}
 					
 				});
@@ -855,6 +874,7 @@ public class GUIManager {
 					ItemStack item = tier.getIcon().clone();
 					ItemMeta itemMeta = item.getItemMeta();
 					List<String> lore = itemMeta.getLore();
+					lore.addAll(tier.getFormatetDescription(selectedPlayer));
 					String emptyString = ChatColor.translateAlternateColorCodes('&', "&a ");
 					lore.add(emptyString);
 					boolean clickable = true;
@@ -933,8 +953,80 @@ public class GUIManager {
 		}
 	}
 	
+	public class WithdrawGUI {
+		private Map<String, List<Tier>> tiers = tm.getTiers();
+		int tiersSize = tm.getTiersSize();
+		int guiSize = getGUISize(tiers, false);
+		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_SELECT_TIER_TITLE.toString());	
+		private Player player;
+		private boolean failedLoad = false;
+		
+		public WithdrawGUI(Player p, Player selectedPlayer){
+			player = p;
+			int i = 0;
+			if(tiers == null) {
+				p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIERS_DEFINED.toString());
+				failedLoad = true;
+				return;
+			}
+			List<Tier> purchasedTiers = tm.getPlayersPurchasedTiers(selectedPlayer.getUniqueId());
+			for(Tier tier : purchasedTiers) {
+				ItemStack item = tier.getIcon().clone();
+				ItemMeta itemMeta = item.getItemMeta();
+				List<String> lore = itemMeta.getLore();
+				lore.addAll(tier.getFormatetDescription(selectedPlayer));
+				String emptyString = ChatColor.translateAlternateColorCodes('&', "&a ");
+				lore.add(emptyString);
+				lore.add(Lang.GUI_ADMIN_WITHDRAW_SELECT.toString());
+
+				if(plugin.getConfig().getBoolean("debug")) {
+					lore.add(" ");
+					lore.add("i: " + i);
+				}
+				itemMeta.setLore(lore);
+				item.setItemMeta(itemMeta);
+				Icon icon = new Icon(item);
+				icon.addClickAction(new ClickAction() {
+					@Override
+					public void execute(Player p) {
+						p.performCommand("ccg admin withdraw " + selectedPlayer.getName() + " " + tier.getTierClass() + " " + tier.getLevel());
+						p.closeInventory();
+					}
+				});
+
+				ch.setIcon(i, icon);
+				i++;
+			}
+			for(int j = 0; j < guiSize; j++) {
+				Icon icon = ch.getIcon(j);
+				if(icon == null || icon.itemStack.getType().equals(Material.AIR)) {
+					ch.setIcon(j, new Icon(backgroundItem));
+				}
+			}
+		}
+		public void open(){
+			if(failedLoad) return;
+			Inventory inventory = ch.getInventory();
+			player.openInventory(inventory);
+		}
+		
+		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
+			int rows = 0;
+			for(String tierClass : tiers.keySet()) {
+				List<Tier> classTiers = tiers.get(tierClass);
+				int classRows = classTiers.size()/9;
+				if(classTiers.size()%9 > 0D) classRows++;
+				rows += classRows;
+			}
+					if(closeLine) rows++;
+			if(rows > 6) rows = 6; //A GUI CAN MAX BE 6 ROWS
+			if(rows < 1) rows = 1;
+			return (rows*9);
+		}
+	}
+	
 	enum GUIActionType {
-		FORCEBUY, SETTIER, GIVETIER;
+		FORCEBUY, SETTIER, GIVETIER, WITHDRAW;
 	}
 	
 	@SuppressWarnings("deprecation")
