@@ -13,12 +13,13 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import world.bentobox.bentobox.BentoBox;
+import world.bentobox.bentobox.database.objects.Island;
 
 /**
  * @author Philip
  *
  */
-public class BentoboxHook implements IslandLevelHook{
+public class BentoboxHook implements IslandHook{
 
 	private BentoBox api;
 	
@@ -50,6 +51,22 @@ public class BentoboxHook implements IslandLevelHook{
 			}
 		});
 		return level[0];
+	}
+
+	private Island getIslandFromPlayer(Player p) {
+
+		return api.getIslands().getIsland(p.getWorld(), p.getUniqueId());
+	}
+	
+	@Override
+	public boolean isPlayerLeader(Player p) {
+		return this.getIslandLeaderFromPlayer(p).equals(p.getUniqueId());
+	}
+
+	@Override
+	public UUID getIslandLeaderFromPlayer(Player p) {
+		Island island = this.getIslandFromPlayer(p);
+		return island.getOwner();
 	}
 	
 }

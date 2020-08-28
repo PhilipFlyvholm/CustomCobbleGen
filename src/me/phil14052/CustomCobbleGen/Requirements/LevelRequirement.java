@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Hooks.IslandLevelHook;
+import me.phil14052.CustomCobbleGen.Hooks.IslandHook;
 
 /**
  * @author Philip
@@ -33,7 +33,7 @@ public class LevelRequirement implements Requirement {
 			plugin.log("&cThere is a island requirement in use, but there are no island/skyblock plugins installed. Returning true.");
 			return true;
 		}
-		IslandLevelHook hook = CustomCobbleGen.islandPluginHooked;
+		IslandHook hook = CustomCobbleGen.islandPluginHooked;
 		int currentLevel = hook.getIslandLevel(p);
 		plugin.debug(currentLevel);
 		return currentLevel >= this.getRequirementValue();

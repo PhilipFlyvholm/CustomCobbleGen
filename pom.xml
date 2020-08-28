@@ -43,6 +43,7 @@
 		  <name>bintray</name>
 		  <url>http://dl.bintray.com/tastybento/maven-repo</url>
 		</repository>
+		
 
 		
 	</repositories>
@@ -94,7 +95,10 @@
 		    <artifactId>commons-io</artifactId>
 		    <version>2.5</version>
 		</dependency>
-		
-
+        <dependency>
+            <groupId>com.github.OmerBenGera</groupId>
+            <artifactId>SuperiorSkyblockAPI</artifactId>
+            <version>b13</version>
+        </dependency>
 	</dependencies>
 </project>

@@ -36,7 +36,8 @@ import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
 import me.phil14052.CustomCobbleGen.Hooks.ASkyBlockHook;
 import me.phil14052.CustomCobbleGen.Hooks.BentoboxHook;
 import me.phil14052.CustomCobbleGen.Hooks.FabledHook;
-import me.phil14052.CustomCobbleGen.Hooks.IslandLevelHook;
+import me.phil14052.CustomCobbleGen.Hooks.IslandHook;
+import me.phil14052.CustomCobbleGen.Hooks.SuperiorSkyblock2Hook;
 import me.phil14052.CustomCobbleGen.Hooks.uSkyBlockHook;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
@@ -59,7 +60,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	private GeneratorModeManager generatorModeManager;
 	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
-	public static IslandLevelHook islandPluginHooked = null;
+	public static IslandHook islandPluginHooked = null;
 	private static String connectedMinionPlugin = "None";
 	private static String connectedIslandPlugin = "None";
 	
@@ -205,6 +206,10 @@ public class CustomCobbleGen extends JavaPlugin {
 			islandPluginHooked = new ASkyBlockHook();
 			connectedIslandPlugin = "ASkyBlock";
 			plugin.debug("Found ASkyBlock&2 \u2713");
+		}else if(pm.getPlugin("SuperiorSkyblock2") != null) {
+			islandPluginHooked = new SuperiorSkyblock2Hook();
+			connectedIslandPlugin = "SuperiorSkyblock2";
+			plugin.debug("Found SuperiorSkyblock2&2 \u2713");
 		}
 		
 	}
