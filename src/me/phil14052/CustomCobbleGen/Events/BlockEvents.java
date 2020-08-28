@@ -73,6 +73,14 @@ public class BlockEvents implements Listener{
 			if(!mode.containsLiquidBlock() || !mode.isValid() || mode.isWorldDisabled(b.getLocation().getWorld())) continue;
 			Block toBlock = e.getToBlock();
 			Material toBlockMaterial = toBlock.getType();
+			if(XMaterial.supports(13) && plugin.getConfig().getBoolean("options.supportWaterloggedBlocks")) { //Check for waterlogged block
+				if(toBlock.getBlockData() instanceof Waterlogged) { //Checked separately so prev 1.13 do not try to use a class that does not exist
+					Waterlogged waterloggedBlock = (Waterlogged) toBlock.getBlockData();
+					if(waterloggedBlock.isWaterlogged()) { //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
+						toBlockMaterial = Material.WATER;
+					}
+				}
+			}
 			if(toBlockMaterial.equals(Material.AIR) || mode.containsBlock(toBlockMaterial)){
 				if(isGenerating(mode, m, toBlock)){
 					Location l = toBlock.getLocation();
@@ -328,7 +336,14 @@ public class BlockEvents implements Listener{
 				testedFaces.add(entry.getKey());
 				if(this.isSameMaterial(entry.getValue().name(), fromM.name())) continue;  // Should not check for the original block
 				Block r = toB.getRelative(entry.getKey(), 1);
-				if(this.isSameMaterial(r.getType().name(), entry.getValue().name())){
+				Material rm = r.getType();
+				if(XMaterial.supports(13) && plugin.getConfig().getBoolean("options.supportWaterloggedBlocks")) { //Check for waterlogged block
+					if(r.getBlockData() instanceof Waterlogged) { //Checked separately so prev 1.13 do not try to use a class that does not exist
+						Waterlogged waterloggedBlock = (Waterlogged) r.getBlockData();
+						if(waterloggedBlock.isWaterlogged()) rm = Material.WATER; //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
+					}
+				}
+				if(this.isSameMaterial(rm.name(), entry.getValue().name())){
 					blocksFound++; /** This block is positioned correctly; */
 				}else {
 					return false; /** This block is not positioned correctly so we stop testing */
@@ -340,12 +355,19 @@ public class BlockEvents implements Listener{
 				if(testedFaces.contains(face)) continue;
 				testedFaces.add(face);
 				Block r = toB.getRelative(face, 1);
-				if(this.isSameMaterial(r.getType().name(), fromM.name())) { // Should not check for the original block
+				Material rm = r.getType();
+				if(XMaterial.supports(13) && plugin.getConfig().getBoolean("options.supportWaterloggedBlocks")) { //Check for waterlogged block
+					if(r.getBlockData() instanceof Waterlogged) { //Checked separately so prev 1.13 do not try to use a class that does not exist
+						Waterlogged waterloggedBlock = (Waterlogged) r.getBlockData();
+						if(waterloggedBlock.isWaterlogged()) rm = Material.WATER; //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
+					}
+				}
+				if(this.isSameMaterial(rm.name(), fromM.name())) { // Should not check for the original block
 					continue;
 				}
 				
 				for(Material mirrorMaterial : mode.getBlocks()) {
-					if(this.isSameMaterial(r.getType().name(), mirrorMaterial.name())){
+					if(this.isSameMaterial(rm.name(), mirrorMaterial.name())){
 						blocksFound++; /** This block is positioned correctly; */
 					}
 				}
