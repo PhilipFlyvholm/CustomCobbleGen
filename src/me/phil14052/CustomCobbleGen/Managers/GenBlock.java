@@ -1,26 +1,26 @@
 package me.phil14052.CustomCobbleGen.Managers;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
 public class GenBlock {
     private Location location;
-    private UUID uuid;
+    private Player player;
     private Instant timestamp;
     private boolean pistonPowered = false;
     private static CustomCobbleGen plugin = CustomCobbleGen.getInstance();
     
-    public GenBlock(Location l, UUID uuid) {
-    	this(l, uuid, false);
+    public GenBlock(Location l, Player player) {
+    	this(l, player, false);
     }
-    public GenBlock(Location l, UUID uuid, boolean pistonPowered) {
+    public GenBlock(Location l, Player player, boolean pistonPowered) {
 
     	this.location = l;
-        this.uuid = uuid;
+        this.player = player;
         this.timestamp = Instant.now();
         this.pistonPowered = pistonPowered;
     }
@@ -29,8 +29,8 @@ public class GenBlock {
         return location;
     }
 
-    public UUID getUUID() {
-        return uuid;
+    public Player getPlayer() {
+        return player;
     }
 
     public Instant getTimestamp() {

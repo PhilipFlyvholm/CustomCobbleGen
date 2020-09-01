@@ -239,6 +239,10 @@ public class CustomCobbleGen extends JavaPlugin {
 		return islandPluginHooked != null;
 	}
 	
+	public IslandHook getIslandHook() {
+		return islandPluginHooked;
+	}
+	
 	public void reloadPlugin() {
 		BlockManager.getInstance().saveGenPistonData();
 		this.reloadConfig();

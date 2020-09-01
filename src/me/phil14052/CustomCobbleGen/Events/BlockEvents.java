@@ -115,7 +115,12 @@ public class BlockEvents implements Listener{
 							bm.removeKnownGenLocation(l);
 							return;
 						}
-						UUID uuid = gb.getUUID(); //Get the player who broke the blocks tier
+						Player p = gb.getPlayer(); //Get the player who broke the blocks tier
+						UUID uuid = p.getUniqueId();
+						if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+							uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(p);
+						}
+						
 						SelectedTiers selectedTiers = tm.getSelectedTiers(uuid); // ^
 						Tier tier = null;
 						if(selectedTiers.getSelectedTiersMap().get(mode) == null) {
@@ -270,8 +275,13 @@ public class BlockEvents implements Listener{
 		if(isWorldDisabled(e.getBlock().getWorld())) return;
 		if(!plugin.getConfig().getBoolean("options.automation.pistons")) return;
 		if(e.getBlock().getType() != XMaterial.PISTON.parseMaterial()) return;
-		if(e.getPlayer() == null || !e.getPlayer().isOnline()) return;
-		GenPiston piston = new GenPiston(e.getBlock().getLocation(), e.getPlayer().getUniqueId());
+		Player p = e.getPlayer();
+		if(!p.isOnline()) return;
+		UUID uuid = p.getUniqueId();
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(p);
+		}
+		GenPiston piston = new GenPiston(e.getBlock().getLocation(), uuid);
 		bm.addKnownGenPiston(piston);
 	}
 	

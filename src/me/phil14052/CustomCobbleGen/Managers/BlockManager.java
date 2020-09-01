@@ -59,6 +59,8 @@ public class BlockManager {
 		this.knownGenLocations = knownGenLocations;
 	}
 
+	
+	
 	public void setPlayerForLocation(UUID uuid, Location l, boolean pistonPowered) {
 		this.addKnownGenLocation(l);
 		if(this.getGenBreaks().containsKey(l)) this.getGenBreaks().remove(l);

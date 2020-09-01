@@ -48,6 +48,7 @@ public class ConfigUpdater extends YamlConfiguration {
 		config.addDefault("options.gui.centerTiers", true);
 		config.addDefault("options.gui.showSupportedModes", true);
 		config.addDefault("options.signs.enabled", true);
+		config.addDefault("options.islands.usePerIslandUnlockedGenerators", false);
 		config.addDefault("options.automation.pistons", false);
 		config.addDefault("options.supportWaterloggedBlocks", true);
 		config.addDefault("options.saveOnTierPurchase", true);
