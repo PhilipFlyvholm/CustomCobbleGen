@@ -112,7 +112,8 @@ public class CustomCobbleGen extends JavaPlugin {
 		registerGlow();
         
 		// Connect to BStats
-		Metrics metrics = new Metrics(this);
+		int pluginId = 5454;
+		Metrics metrics = new Metrics(this, pluginId);
         Metrics.SingleLineChart genChart = new Metrics.SingleLineChart("generators", new Callable<Integer>() {
         	
 			@Override

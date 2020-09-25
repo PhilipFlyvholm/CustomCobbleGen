@@ -43,23 +43,25 @@ public class uSkyBlockHook implements IslandHook{
 	}
 
 	@Override
-	public int getIslandLevel(Player p) {
+	public int getIslandLevel(UUID uuid) {
+		Player p = plugin.getServer().getPlayer(uuid);
 		return (int) Math.floor(api.getIslandLevel(p));
 	}
 
 	@Override
-	public boolean isPlayerLeader(Player p) {
+	public boolean isPlayerLeader(UUID uuid) {
+		Player p = plugin.getServer().getPlayer(uuid);
 		return api.getIslandInfo(p).isLeader(p);
 	}
 
 	@Override
-	public UUID getIslandLeaderFromPlayer(Player player) {
-		String playerName = api.getIslandInfo(player).getLeader();
+	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		Player p = plugin.getServer().getPlayer(uuid);
+		String playerName = api.getIslandInfo(p).getLeader();
 		
 		if(playersUUID.containsKey(playerName)) {
 			return playersUUID.get(playerName);
 		}
-		Player p = Bukkit.getPlayer(playerName);
 		if(p != null) {
 			playersUUID.put(playerName, p.getUniqueId());
 			return p.getUniqueId();
@@ -69,7 +71,7 @@ public class uSkyBlockHook implements IslandHook{
 
 		if (uuidResult.isError()) {
 			plugin.error("Failed to connect to Mojang to get leader UUID");
-			return player.getUniqueId(); //If fail then fallback to player
+			return uuid; //If fail then fallback to player
 		}
 		String result = uuidResult.getResult();
 		result = result.replace("{", ""); /* Remove { */
@@ -78,10 +80,10 @@ public class uSkyBlockHook implements IslandHook{
 		String[] index = result.split(",");
 		String[] idIndex = index[1].split(":");
 		String uuidString = idIndex[1];
-		UUID uuid = UUID.fromString(uuidString);
-		if(uuid == null) {
+		UUID leaderUUID = UUID.fromString(uuidString);
+		if(leaderUUID == null) {
 			plugin.error("Unknown UUID " + uuidString + " for leader " + playerName);
-			return player.getUniqueId(); //If fail then fallback to player
+			return uuid; //If fail then fallback to player
 		}
 		else return uuid;
 		

@@ -58,7 +58,11 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				Player p = (Player) sender;
-				Collection<Tier> tiers = tm.getSelectedTiers(p.getUniqueId()).getSelectedTiersMap().values();
+				UUID uuid = p.getUniqueId();
+				if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+					uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+				}
+				Collection<Tier> tiers = tm.getSelectedTiers(uuid).getSelectedTiersMap().values();
 				if(tiers == null || tiers.isEmpty()) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_SELF.toString(p));
 					return false;
@@ -72,13 +76,17 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
 				}
+				UUID uuid = p.getUniqueId();
+				if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+					uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+				}
 				
-				Collection<Tier> tiers = tm.getSelectedTiers(p.getUniqueId()).getSelectedTiersMap().values();
+				Collection<Tier> tiers = tm.getSelectedTiers(uuid).getSelectedTiersMap().values();
 				if(tiers == null || tiers.isEmpty()) {
-					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_OTHER.toString(p));
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_OTHER.toString(p));
 					return false;
 				}
-				p.sendMessage(Lang.PREFIX.toString() + Lang.SHOW_TIER_OTHER.toString(p));
+				sender.sendMessage(Lang.PREFIX.toString() + Lang.SHOW_TIER_OTHER.toString(p));
 				return true;
 				
 			}
@@ -90,6 +98,7 @@ public class MainCommand implements CommandExecutor{
 				return false;
 			}
 			Player p = (Player) sender;
+			
 			SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 			if(selectedTiers == null || selectedTiers.getSelectedTiersMap().isEmpty()) {
 				p.performCommand("cobblegen"); //If no tiers selected then show them a GUI to select one

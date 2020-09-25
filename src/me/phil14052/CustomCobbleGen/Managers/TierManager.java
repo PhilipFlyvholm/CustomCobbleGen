@@ -315,6 +315,7 @@ public class TierManager {
 	
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
 		if(!p.isOnline()) return false;
+		
 		if(!tier.getTierClass().equals("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tier.getTierClass(), false)) return false;
 		if(tier.hasCustomPermission() && !pm.hasPermission(p, tier.getCustomPermission(), false)) return false;
 		for(Requirement r : tier.getRequirements()) {
@@ -336,7 +337,11 @@ public class TierManager {
 		}
 		//Buy the tier
 		if(this.hasPlayerPurchasedLevel(p, tier)) return false;
-		this.getPlayersPurchasedTiers(p.getUniqueId()).add(tier);
+		UUID uuid = p.getUniqueId();
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
+		this.getPlayersPurchasedTiers(uuid).add(tier);
 		//Save the players.yml file so players don't repay
 		if(plugin.getConfig().getBoolean("options.saveOnTierPurchase")) this.saveAllPlayerData();
 		return true;
@@ -352,8 +357,11 @@ public class TierManager {
 			return hasPlayerPurchasedLevel(p, tier);
 		}
 		if(tier == null) return false;
-		if(tier.getLevel() <= 0 && tier.getTierClass() == "DEFAULT") return true;
+		if(tier.getLevel() <= 0 && tier.getTierClass().equals("DEFAULT")) return true;
 		UUID uuid = p.getUniqueId();
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(uuid, tier.getTierClass());
 		if(purchasedTiersByClass == null) {
 			plugin.warning("Unknown tier purchases from - " + p.getName());
@@ -368,6 +376,9 @@ public class TierManager {
 	
 	public boolean hasPlayerPurchasedPreviousLevel(Player p, Tier nextTier) {
 		UUID uuid = p.getUniqueId();
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		if(this.purchasedTiers.size() == 0) {
 			this.givePlayerStartPurchases(p);
 			return hasPlayerPurchasedPreviousLevel(p, nextTier);

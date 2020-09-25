@@ -12,6 +12,8 @@ import com.songoda.skyblock.SkyBlock;
 import com.songoda.skyblock.api.SkyBlockAPI;
 import com.songoda.skyblock.island.Island;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+
 /**
  * @author Philip
  *
@@ -19,6 +21,7 @@ import com.songoda.skyblock.island.Island;
 public class FabledHook implements IslandHook{
 	
 	private SkyBlock fabledApi;
+	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	public FabledHook() {
 		fabledApi = SkyBlockAPI.getImplementation();
@@ -31,7 +34,8 @@ public class FabledHook implements IslandHook{
 	}
 	
 	@Override
-	public int getIslandLevel(Player p) {
+	public int getIslandLevel(UUID uuid) {
+		Player p = plugin.getServer().getPlayer(uuid);
 		Island is = this.getIslandFromPlayer(p);
 		if(is == null) return 0;
 		return (int) is.getLevel().getLevel();
@@ -39,13 +43,14 @@ public class FabledHook implements IslandHook{
 
 
 	@Override
-	public boolean isPlayerLeader(Player p) {
-		return this.getIslandLeaderFromPlayer(p).equals(p.getUniqueId());
+	public boolean isPlayerLeader(UUID uuid) {
+		return this.getIslandLeaderFromPlayer(uuid).equals(uuid);
 	}
 
 
 	@Override
-	public UUID getIslandLeaderFromPlayer(Player p) {
+	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		Player p = plugin.getServer().getPlayer(uuid);
 		Island is = this.getIslandFromPlayer(p);
 		if(is == null) return null;
 		return is.getOwnerUUID();

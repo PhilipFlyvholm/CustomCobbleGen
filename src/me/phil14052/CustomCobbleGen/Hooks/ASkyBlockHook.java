@@ -7,7 +7,6 @@ package me.phil14052.CustomCobbleGen.Hooks;
 import java.util.UUID;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
@@ -25,12 +24,12 @@ public class ASkyBlockHook implements IslandHook{
 	}
 
 	@Override
-	public int getIslandLevel(Player p) {
-		return (int) api.getLongIslandLevel(p.getUniqueId());
+	public int getIslandLevel(UUID uuid) {
+		return (int) api.getLongIslandLevel(uuid);
 	}
 
-	private Island getIslandFromPlayer(Player p) {
-		Location loc = api.getIslandLocation(p.getUniqueId());
+	private Island getIslandFromPlayer(UUID uuid) {
+		Location loc = api.getIslandLocation(uuid);
 		if(loc == null) return null;
 		Island island = api.getIslandAt(loc);
 		if(island == null) return null;
@@ -38,13 +37,13 @@ public class ASkyBlockHook implements IslandHook{
 	}
 	
 	@Override
-	public boolean isPlayerLeader(Player p) {
-		return this.getIslandLeaderFromPlayer(p).equals(p.getUniqueId());
+	public boolean isPlayerLeader(UUID uuid) {
+		return this.getIslandLeaderFromPlayer(uuid).equals(uuid);
 	}
 
 	@Override
-	public UUID getIslandLeaderFromPlayer(Player p) {
-		Island island = this.getIslandFromPlayer(p);
+	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		Island island = this.getIslandFromPlayer(uuid);
 		if(island == null) return null;
 		return island.getOwner();
 	}

@@ -5,8 +5,9 @@
 package me.phil14052.CustomCobbleGen.Utils;
 
 import java.util.Collection;
-import java.util.StringJoiner;
 import java.util.Map.Entry;
+import java.util.StringJoiner;
+import java.util.UUID;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -120,7 +121,11 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
         if(player == null || !player.isOnline()){
             return "";
         }
-		SelectedTiers selectedTiers = tm.getSelectedTiers(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
+		SelectedTiers selectedTiers = tm.getSelectedTiers(uuid);
 		String[] identifiers = identifier.split("_");
 		if(identifier.startsWith("selected_tier")) {
 			Collection<Tier> tiers = selectedTiers.getSelectedTiersMap().values();

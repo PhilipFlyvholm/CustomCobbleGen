@@ -34,7 +34,7 @@ public class LevelRequirement implements Requirement {
 			return true;
 		}
 		IslandHook hook = CustomCobbleGen.islandPluginHooked;
-		int currentLevel = hook.getIslandLevel(p);
+		int currentLevel = hook.getIslandLevel(p.getUniqueId());
 		plugin.debug(currentLevel);
 		return currentLevel >= this.getRequirementValue();
 	}

@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import world.bentobox.bentobox.BentoBox;
 import world.bentobox.bentobox.database.objects.Island;
 
@@ -22,13 +23,14 @@ import world.bentobox.bentobox.database.objects.Island;
 public class BentoboxHook implements IslandHook{
 
 	private BentoBox api;
+	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	public BentoboxHook() {
 		api = (BentoBox) Bukkit.getPluginManager().getPlugin("BentoBox");
 	}
 
 	@Override
-	public int getIslandLevel(Player p) {
+	public int getIslandLevel(UUID uuid) {
 //		TODO: Get the API version to work, instead of using reflections. The API currently only returns 0L...
 //		
 //		UUID uuid = p.getUniqueId();
@@ -36,9 +38,8 @@ public class BentoboxHook implements IslandHook{
 //			    .addMetaData(p.getLocation().getWorld().getName(), uuid)
 //			    .request();
 //		return Math.toIntExact(result);
-		
-		UUID uuid = p.getUniqueId();
 		int level[] = new int[]{0};
+		Player p = plugin.getServer().getPlayer(uuid);
 	
 		api.getAddonsManager().getAddonByName("Level").ifPresent(addon -> {
 			try {
@@ -53,19 +54,19 @@ public class BentoboxHook implements IslandHook{
 		return level[0];
 	}
 
-	private Island getIslandFromPlayer(Player p) {
-
-		return api.getIslands().getIsland(p.getWorld(), p.getUniqueId());
+	private Island getIslandFromPlayer(UUID uuid) {
+		Player p = plugin.getServer().getPlayer(uuid);
+		return api.getIslands().getIsland(p.getWorld(), uuid);
 	}
 	
 	@Override
-	public boolean isPlayerLeader(Player p) {
-		return this.getIslandLeaderFromPlayer(p).equals(p.getUniqueId());
+	public boolean isPlayerLeader(UUID uuid) {
+		return this.getIslandLeaderFromPlayer(uuid).equals(uuid);
 	}
 
 	@Override
-	public UUID getIslandLeaderFromPlayer(Player p) {
-		Island island = this.getIslandFromPlayer(p);
+	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		Island island = this.getIslandFromPlayer(uuid);
 		return island.getOwner();
 	}
 	

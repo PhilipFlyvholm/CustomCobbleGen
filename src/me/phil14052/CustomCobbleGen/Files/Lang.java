@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -193,6 +194,7 @@ public enum Lang {
     private String def;
     private static YamlConfiguration LANG;
     private TierManager tm;
+    private static CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 
     /**
     * Lang enum constructor.
@@ -229,8 +231,13 @@ public enum Lang {
     		if(CustomCobbleGen.getInstance().isUsingPlaceholderAPI) {
     			string = PlaceholderAPI.setPlaceholders(p, string);
     		}
-    		string = string.replaceAll("%player_name%", p.getName());
-    		SelectedTiers selectedTiers = TierManager.getInstance().getSelectedTiers(p.getUniqueId());
+    		string = string.replace("%player_name%", p.getName());
+
+            UUID uuid = p.getUniqueId();
+    		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+    			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+    		}
+    		SelectedTiers selectedTiers = TierManager.getInstance().getSelectedTiers(uuid);
     		if(selectedTiers != null && selectedTiers.getSelectedTiersMap() != null && selectedTiers.getSelectedTiersMap().values() != null) {
 
         		Collection<Tier> tiers = selectedTiers.getSelectedTiersMap().values();
@@ -253,13 +260,13 @@ public enum Lang {
             			supportedModes.add(tier.getSupportedMode().getId() != -1 ? tier.getSupportedMode().getName() : Lang.PLACEHOLDER_RESPONSE_ALL.toString());
             			
             		}
-                	string = string.replaceAll("%selected_tier_level%", levels.toString());
-                	string = string.replaceAll("%selected_tier_class%", classes.toString());	
-                	string = string.replaceAll("%selected_tier_name%", names.toString());		
-                	string = string.replaceAll("%selected_tier_price_money%", priceMoney.toString());		
-                	string = string.replaceAll("%selected_tier_price_xp%", priceXP.toString());
-                	string = string.replaceAll("%selected_tier_price_level%", priceLevel.toString());	
-                	string = string.replaceAll("%selected_tier_supported_mode%", supportedModes.toString());	
+                	string = string.replace("%selected_tier_level%", levels.toString());
+                	string = string.replace("%selected_tier_class%", classes.toString());	
+                	string = string.replace("%selected_tier_name%", names.toString());		
+                	string = string.replace("%selected_tier_price_money%", priceMoney.toString());		
+                	string = string.replace("%selected_tier_price_xp%", priceXP.toString());
+                	string = string.replace("%selected_tier_price_level%", priceLevel.toString());	
+                	string = string.replace("%selected_tier_supported_mode%", supportedModes.toString());	
         		}
     		}
     	}
@@ -274,12 +281,12 @@ public enum Lang {
     public String toString(Tier tier) {
     	String string = this.toString();
     	if(tier != null) {
-        	string = string.replaceAll("%tier_level%", tier.getLevel() + "");
-        	string = string.replaceAll("%tier_name%", tier.getName() + "");
-        	string = string.replaceAll("%tier_class%", tier.getTierClass() + "");
-        	string = string.replaceAll("%tier_price_money%", tier.hasRequirement(RequirementType.MONEY) ? EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "" : "0?");
-        	string = string.replaceAll("%tier_price_xp%", tier.hasRequirement(RequirementType.XP) ? tier.getRequirementValue(RequirementType.XP) + "" : "0");
-        	string = string.replaceAll("%tier_price_level%", tier.hasRequirement(RequirementType.LEVEL) ? tier.getRequirementValue(RequirementType.LEVEL) + "" : "0");
+        	string = string.replace("%tier_level%", tier.getLevel() + "");
+        	string = string.replace("%tier_name%", tier.getName() + "");
+        	string = string.replace("%tier_class%", tier.getTierClass() + "");
+        	string = string.replace("%tier_price_money%", tier.hasRequirement(RequirementType.MONEY) ? EconomyManager.getInstance().formatMoney(tier.getRequirementValue(RequirementType.MONEY)) + "" : "0?");
+        	string = string.replace("%tier_price_xp%", tier.hasRequirement(RequirementType.XP) ? tier.getRequirementValue(RequirementType.XP) + "" : "0");
+        	string = string.replace("%tier_price_level%", tier.hasRequirement(RequirementType.LEVEL) ? tier.getRequirementValue(RequirementType.LEVEL) + "" : "0");
         	String placeholder = "%tier_supported_mode%";
         	if(tier.getSupportedMode() == null) {        	
         		string = string.replaceAll(placeholder, Lang.PLACEHOLDER_RESPONSE_ALL.toString());
@@ -300,7 +307,7 @@ public enum Lang {
             			}
             		}
         		}
-        		string = string.replaceAll("%tier_price_items%", result);
+        		string = string.replace("%tier_price_items%", result);
         		
         		
         	}
@@ -330,15 +337,20 @@ public enum Lang {
     
     public List<String> toStringList(Player p){
     	List<String> s = LANG.getStringList(this.path);
-    	List<String> colored_s = new ArrayList<String>();
+    	List<String> colored_s = new ArrayList<>();
     	for(String string : s){
     		string = color(string);
     		if(p != null && p.isOnline()) {
         		if(CustomCobbleGen.getInstance().isUsingPlaceholderAPI) {
         			string = PlaceholderAPI.setPlaceholders(p, string);
         		}
-        		string = string.replaceAll("%player_name%", p.getName());
-        		SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+        		string = string.replace("%player_name%", p.getName());
+
+                UUID uuid = p.getUniqueId();
+        		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+        			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+        		}
+        		SelectedTiers selectedTiers = tm.getSelectedTiers(uuid);
 
         		if(selectedTiers != null && selectedTiers.getSelectedTiersMap() != null && selectedTiers.getSelectedTiersMap().values() != null) {
         			Collection<Tier> tiers = selectedTiers.getSelectedTiersMap().values();
@@ -361,13 +373,13 @@ public enum Lang {
                 			supportedModes.add(tier.getSupportedMode().getId() != -1 ? tier.getSupportedMode().getName() : Lang.PLACEHOLDER_RESPONSE_ALL.toString());
                 			
                 		}
-                    	string = string.replaceAll("%selected_tier_level%", levels.toString());
-                    	string = string.replaceAll("%selected_tier_class%", classes.toString());	
-                    	string = string.replaceAll("%selected_tier_name%", names.toString());		
-                    	string = string.replaceAll("%selected_tier_price_money%", priceMoney.toString());		
-                    	string = string.replaceAll("%selected_tier_price_xp%", priceXP.toString());
-                    	string = string.replaceAll("%selected_tier_price_level%", priceLevel.toString());	
-                    	string = string.replaceAll("%selected_tier_supported_mode%", supportedModes.toString());	
+                    	string = string.replace("%selected_tier_level%", levels.toString());
+                    	string = string.replace("%selected_tier_class%", classes.toString());	
+                    	string = string.replace("%selected_tier_name%", names.toString());		
+                    	string = string.replace("%selected_tier_price_money%", priceMoney.toString());		
+                    	string = string.replace("%selected_tier_price_xp%", priceXP.toString());
+                    	string = string.replace("%selected_tier_price_level%", priceLevel.toString());	
+                    	string = string.replace("%selected_tier_supported_mode%", supportedModes.toString());	
             		}
         		}
         	}

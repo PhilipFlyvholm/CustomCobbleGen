@@ -6,18 +6,16 @@ package me.phil14052.CustomCobbleGen.Hooks;
 
 import java.util.UUID;
 
-import org.bukkit.entity.Player;
-
 /**
  * @author Philip
  *
  */
 public interface IslandHook {
 	
-	public boolean isPlayerLeader(Player p);
+	public boolean isPlayerLeader(UUID uuid);
 	
-	public UUID getIslandLeaderFromPlayer(Player p);
+	public UUID getIslandLeaderFromPlayer(UUID uuid);
 	
-	public int getIslandLevel(Player p);
+	public int getIslandLevel(UUID uuid);
 	
 }
