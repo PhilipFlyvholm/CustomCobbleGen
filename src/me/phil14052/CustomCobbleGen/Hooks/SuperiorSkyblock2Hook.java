@@ -16,6 +16,7 @@ import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
  */
 public class SuperiorSkyblock2Hook implements IslandHook {
 
+	
 	private Island getIslandFromPlayer(UUID uuid)  {
 		SuperiorPlayer sp = SuperiorSkyblockAPI.getPlayer(uuid);
 		if(sp == null || sp.getIsland() == null) return null;
@@ -46,6 +47,11 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 		SuperiorPlayer leader = sp.getIslandLeader();
 		if(leader == null) return null;
 		return leader.getUniqueId();		
+	}
+
+	@Override
+	public boolean hasIsland(UUID uuid) {
+		return this.getIslandFromPlayer(uuid) != null;
 	}
 
 }

@@ -18,4 +18,6 @@ public interface IslandHook {
 	
 	public int getIslandLevel(UUID uuid);
 	
+	public boolean hasIsland(UUID uuid);
+	
 }

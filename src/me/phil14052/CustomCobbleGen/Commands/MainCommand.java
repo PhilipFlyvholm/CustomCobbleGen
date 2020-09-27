@@ -16,8 +16,6 @@ import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.GUI.GUIManager;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
@@ -36,6 +34,9 @@ public class MainCommand implements CommandExecutor{
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(args.length < 1){
+			if(plugin.getConfig().getBoolean("options.gui.permissionNeeded")) {
+				if(!pm.hasPermission(sender, "customcobblegen.gui", true)) return false;
+			}
 			if(!(sender instanceof Player)){
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_ONLY.toString());
 				return false;
@@ -342,7 +343,7 @@ public class MainCommand implements CommandExecutor{
 				selectedTiers.addTier(tier);
 				tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.FORCE_PURCHASED.toString(p));
-				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
+				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
 			}else if(args[1].equalsIgnoreCase("support")) {
 				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&7To get support join our discord: https://discord.gg/Dx6RJvZ"));
 			}else if(args[1].equalsIgnoreCase("pastebin")) {
@@ -359,11 +360,36 @@ public class MainCommand implements CommandExecutor{
 				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&a" + postResult.getResult()));
 				
 			}else if(args[1].equalsIgnoreCase("debug")){
-				if(!pm.hasPermission(sender, "customcobblegen.debugger", true)) return false;
-				sender.sendMessage(" ");
-				for(GenPiston piston : BlockManager.getInstance().getKnownGenPistons().values()) {
-					sender.sendMessage(piston.getLoc().toString());
+				if(sender instanceof Player) {
+					Player p = (Player) sender; //Giving my own user access so it is easier to help on servers. Pull requests adding own names will not be accepted
+					if(p.getName().equals("PhilPlays") && !pm.hasPermission(p, "customcobblegen.debugger", true)) return false;
+					UUID uuid = p.getUniqueId();
+					//Console or player with permission
+					if(args.length < 3) {
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCurrently no use for the /ccg admin debug command"));
+						return true;
+					}else if(args[2].equalsIgnoreCase("island")) {
+						if(plugin.getIslandHook() == null) {
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNo skyblock plugins available"));
+							return true;
+						}else if(!plugin.getIslandHook().hasIsland(uuid)) {
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou have no island"));
+							return true;
+						}
+						
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on island accessable by plugin"));
+						int level = plugin.getIslandHook().getIslandLevel(uuid);
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Your uuid: &8" + uuid));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6isLeader: &8" + plugin.getIslandHook().isPlayerLeader(uuid)));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Level: &8" + level));
+						
+						
+					}
+				}else {
+					sender.sendMessage(Lang.PLAYER_ONLY.toString());
+					return false;
 				}
+				
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));

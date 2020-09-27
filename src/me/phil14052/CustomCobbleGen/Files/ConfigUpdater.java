@@ -40,6 +40,7 @@ public class ConfigUpdater extends YamlConfiguration {
 		}
 		config.addDefault("options.playerSearchRadius", 4D);
 		config.addDefault("options.money.format", true);
+		config.addDefault("options.gui.permissionNeeded", false);
 		config.addDefault("options.gui.showBarrierBlockIfLocked", false);
 		config.addDefault("options.gui.hideInfoIfLocked", false);
 		config.addDefault("options.gui.confirmpurchases", true);
@@ -52,6 +53,7 @@ public class ConfigUpdater extends YamlConfiguration {
 		config.addDefault("options.automation.pistons", false);
 		config.addDefault("options.supportWaterloggedBlocks", true);
 		config.addDefault("options.saveOnTierPurchase", true);
+		config.addDefault("options.removeGravity", false);
 		List<String> disabledWorlds = new ArrayList<String>();
 		disabledWorlds.add("world_the_end");
 		config.addDefault("options.disabled.worlds", disabledWorlds);

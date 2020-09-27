@@ -104,7 +104,6 @@ public class GUIManager {
 					lore.add(emptyString);
 					if(selectedTiers != null && selectedTiers.isTierSelected(tier)) {
 						if(XMaterial.supports(13)) {
-
 							GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
 							itemMeta.addEnchant(glow, 1, true);	
 						}

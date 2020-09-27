@@ -6,11 +6,11 @@ package me.phil14052.CustomCobbleGen.Hooks;
 
 import java.util.UUID;
 
-import org.bukkit.entity.Player;
+import org.bukkit.Bukkit;
 
-import com.songoda.skyblock.SkyBlock;
 import com.songoda.skyblock.api.SkyBlockAPI;
-import com.songoda.skyblock.island.Island;
+import com.songoda.skyblock.api.island.Island;
+import com.songoda.skyblock.api.island.IslandManager;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
@@ -20,23 +20,22 @@ import me.phil14052.CustomCobbleGen.CustomCobbleGen;
  */
 public class FabledHook implements IslandHook{
 	
-	private SkyBlock fabledApi;
+	private IslandManager fabledApi;
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	public FabledHook() {
-		fabledApi = SkyBlockAPI.getImplementation();
+		fabledApi = SkyBlockAPI.getIslandManager();
 	}
-	
 
-	private Island getIslandFromPlayer(Player p) {
-		return fabledApi.getIslandManager().getIsland(p.getPlayer());
+	private Island getIslandFromPlayer(UUID uuid) {
 		
+		return fabledApi.getIsland(Bukkit.getOfflinePlayer(uuid));
 	}
 	
 	@Override
 	public int getIslandLevel(UUID uuid) {
-		Player p = plugin.getServer().getPlayer(uuid);
-		Island is = this.getIslandFromPlayer(p);
+//		Player p = plugin.getServer().getPlayer(uuid);
+		Island is = this.getIslandFromPlayer(uuid);
 		if(is == null) return 0;
 		return (int) is.getLevel().getLevel();
 	}
@@ -50,10 +49,18 @@ public class FabledHook implements IslandHook{
 
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
-		Player p = plugin.getServer().getPlayer(uuid);
-		Island is = this.getIslandFromPlayer(p);
+		plugin.debug("#getIslandLeaderFromPlayer - UUID:" + uuid);
+//		Player p = plugin.getServer().getPlayer(uuid);
+//		plugin.debug("Player:" + p);
+		Island is = this.getIslandFromPlayer(uuid);
+		plugin.debug("#getIslandLeaderFromPlayer -" + (is != null ? is.getOwnerUUID().toString() + "'s island" : "NULL"));
 		if(is == null) return null;
 		return is.getOwnerUUID();
+	}
+
+	@Override
+	public boolean hasIsland(UUID uuid) {
+		return IslandManager.hasIsland(Bukkit.getOfflinePlayer(uuid));
 	}
 
 }

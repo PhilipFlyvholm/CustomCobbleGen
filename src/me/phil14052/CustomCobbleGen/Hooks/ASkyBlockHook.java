@@ -48,4 +48,8 @@ public class ASkyBlockHook implements IslandHook{
 		return island.getOwner();
 	}
 	
+	public boolean hasIsland(UUID uuid) {
+		return api.hasIsland(uuid);
+	}
+	
 }

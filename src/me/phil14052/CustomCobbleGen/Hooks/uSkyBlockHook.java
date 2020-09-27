@@ -123,6 +123,12 @@ public class uSkyBlockHook implements IslandHook{
 	
 	    return responseBuilder.toString();
 	 }
+
+	@Override
+	public boolean hasIsland(UUID uuid) {
+		Player p = plugin.getServer().getPlayer(uuid);
+		return api.getIslandInfo(p) != null;
+	}
 	
 	
 }

@@ -179,19 +179,31 @@ public class TierManager {
 	}
 	
 	public void setPlayerSelectedTiers(UUID uuid, SelectedTiers tier){
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		if(this.selectedTiersContainsUUID(uuid)) this.selectedTiers.remove(uuid);
 		this.addUUID(uuid, tier);
 	}
 	
 	public boolean selectedTiersContainsUUID(UUID uuid){
 		if(uuid == null) return false;
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		return selectedTiers.containsKey(uuid);
 	}
 	public boolean purchasedTiersContainsUUID(UUID uuid){
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		return purchasedTiers.containsKey(uuid);
 	}
 	
 	public SelectedTiers getSelectedTiers(UUID uuid){
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		if(!this.selectedTiersContainsUUID(uuid)) return null;
 		return getselectedTiersList().get(uuid);
 	}
@@ -348,6 +360,9 @@ public class TierManager {
 	}
 	
 	public void withdrawPurchasedTier(UUID uuid, Tier tier) {
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		if(this.getPlayersPurchasedTiers(uuid).contains(tier)) this.getPurchasedTiers().get(uuid).remove(tier);
 	}
 
@@ -445,6 +460,10 @@ public class TierManager {
 	}
 	
 	public List<Tier> getPlayersPurchasedTiers(UUID uuid) {
+
+		if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		if(!this.getPurchasedTiers().containsKey(uuid)) {
 			List<Tier> emptyTierList = new ArrayList<Tier>();
 			return emptyTierList;

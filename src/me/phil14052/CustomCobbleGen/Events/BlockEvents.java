@@ -18,6 +18,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,6 +27,7 @@ import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 
 import com.cryptomorin.xseries.XMaterial;
 
@@ -161,6 +163,21 @@ public class BlockEvents implements Listener{
 					}
 				}
 			}
+		}
+	}
+	
+	@EventHandler
+	public void onBlockChange(EntityChangeBlockEvent e) { // Makes it possible to spawn sand, gravel and other falling blocks
+		if(!e.getEntityType().equals(EntityType.FALLING_BLOCK) 
+				|| !(e.getTo().equals(Material.AIR) 
+						|| e.getTo().name().contains("WATER")  
+						|| e.getTo().name().contains("LAVA"))) return;
+		if(!plugin.getConfig().getBoolean("options.saveOnTierPurchase")) return;
+		
+		Location loc = e.getBlock().getLocation();
+		if(bm.isGenLocationKnown(loc)) {
+			e.setCancelled(true);
+			e.getBlock().getState().update(false, false);
 		}
 	}
 	

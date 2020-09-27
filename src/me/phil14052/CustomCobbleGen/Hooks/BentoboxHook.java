@@ -69,5 +69,11 @@ public class BentoboxHook implements IslandHook{
 		Island island = this.getIslandFromPlayer(uuid);
 		return island.getOwner();
 	}
+
+	@Override
+	public boolean hasIsland(UUID uuid) {
+		Player p = plugin.getServer().getPlayer(uuid);
+		return api.getIslands().hasIsland(p.getWorld(), uuid);
+	}
 	
 }
