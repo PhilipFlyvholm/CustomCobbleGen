@@ -1,6 +1,9 @@
 ![alt text](https://www.spigotmc.org/attachments/headerv2-jpg.476352/)
 # CustomCobbleGen
 This is a Spigot plugin that changes cobblestone generators in Minecraft
+
+[![HitCount](http://hits.dwyl.com/phil14052/CustomCobbleGen.svg)](http://hits.dwyl.com/phil14052/CustomCobbleGen)
+
 ## 
 With this simple plugin can you change all aspects of the cobblestone generator, as known from Skyblocks servers. Compared to the alternatives, it runs on a custom tier system, which means you need to buy, with either money or XP, the next level.​
 You can also have different tier classes, which can be used to give players with certain permissions more tiers. This can, for example, be a VIP class for players with a VIP rank. You can read more about this on the wiki.
