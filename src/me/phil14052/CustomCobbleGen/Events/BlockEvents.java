@@ -142,6 +142,7 @@ public class BlockEvents implements Listener{
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
 							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), 2.0F, 1.0F); //Play sound if configured
+							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
 							return;
 						}else if(mode.hasFallBackMaterial()){
 							Material fallback = mode.getFallbackMaterial();
@@ -155,6 +156,8 @@ public class BlockEvents implements Listener{
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(fallback); //Get a random material and replace the block
 							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), 2.0F, 1.0F); //Play sound if configured
+							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
+							
 							return;
 						}
 					}else {

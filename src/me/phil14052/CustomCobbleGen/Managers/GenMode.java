@@ -9,9 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.StringJoiner;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -19,6 +21,7 @@ import org.bukkit.block.BlockFace;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import xyz.xenondevs.particle.ParticleEffect;
 
 /**
  * @author Philip
@@ -35,6 +38,7 @@ public class GenMode {
 	private String name = null;
 	private Sound genSound = null;
 	private Material fallbackMaterial = null;
+	private ParticleEffect particleEffect = null;
 	
 	public GenMode(int id, List<Material> blocks, String name, Material fallbackMaterial) {
 		this(id, blocks, null, true, null, name, fallbackMaterial);
@@ -251,6 +255,28 @@ public class GenMode {
 			return;
 		}
 		this.genSound = genSound;
+	}
+	
+	public boolean hasParticleEffect() {
+		return this.getParticleEffect() != null;
+	}
+
+	public ParticleEffect getParticleEffect() {
+		return particleEffect;
+	}
+
+	public void setParticleEffect(ParticleEffect particleEffect) {
+		this.particleEffect = particleEffect;
+	}
+	
+	public void displayGenerationParticles(Location loc) {
+//		loc = loc.add(0.5D, 1D, 0.5D);
+		for(int i = 0; i < 10; i++) {
+			Random rand = new Random();
+			Location tempLoc = loc.clone().add(rand.nextDouble(), 1D, rand.nextDouble());
+			float speed = 1/(i+1);
+			this.particleEffect.display(tempLoc, 0F, 0F, 0F, speed, 1, null);
+		}
 	}
 	
 }

@@ -193,29 +193,24 @@ public class CustomCobbleGen extends JavaPlugin {
 		PluginManager pm = Bukkit.getPluginManager();
 		if(pm.getPlugin("BentoBox") != null) {
 			islandPluginHooked = new BentoboxHook();
-			connectedIslandPlugin = "BentoBox";
-			plugin.debug("Found BentoBox&2 \u2713");
 		}else if(pm.getPlugin("uSkyBlock") != null) {
 			islandPluginHooked = new uSkyBlockHook();
-			connectedIslandPlugin = "uSkyBlock";
-			plugin.debug("Found uSkyBlock&2 \u2713");
 		}else if(pm.getPlugin("FabledSkyBlock") != null) {
 			islandPluginHooked = new FabledHook();
-			connectedIslandPlugin = "FabledSkyBlock";
-			plugin.debug("Found FabledSkyblock&2 \u2713");
 		}else if(pm.getPlugin("ASkyBlock") != null) {
 			islandPluginHooked = new ASkyBlockHook();
-			connectedIslandPlugin = "ASkyBlock";
-			plugin.debug("Found ASkyBlock&2 \u2713");
 		}else if(pm.getPlugin("SuperiorSkyblock2") != null) {
 			islandPluginHooked = new SuperiorSkyblock2Hook();
-			connectedIslandPlugin = "SuperiorSkyblock2";
-			plugin.debug("Found SuperiorSkyblock2&2 \u2713");
 		}
-		
+		if(islandPluginHooked != null) {
+			connectedIslandPlugin = islandPluginHooked.getHookName();
+			plugin.debug("Found " + islandPluginHooked.getHookName() + "&2 \u2713");
+			if(!islandPluginHooked.supportsIslandBalance()
+				&& plugin.getConfig().getBoolean("options.islans.useIslandBalance")) {
+				plugin.error("Option 'options -> islands -> useIslandBalance' has been selected in the config, but " +  islandPluginHooked.getHookName() + " does not support island balances. Using player balances instead");
+			}
+		} 
 	}
-	
-	
 	
 	public void connectToPlaceholderAPI() {
 		// Connect to PlaceholderAPI

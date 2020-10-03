@@ -6,11 +6,15 @@ package me.phil14052.CustomCobbleGen.Hooks;
 
 import java.util.UUID;
 
+import org.bukkit.entity.Player;
+
 /**
  * @author Philip
  *
  */
 public interface IslandHook {
+	
+	public String getHookName();
 	
 	public boolean isPlayerLeader(UUID uuid);
 	
@@ -19,5 +23,16 @@ public interface IslandHook {
 	public int getIslandLevel(UUID uuid);
 	
 	public boolean hasIsland(UUID uuid);
+	
+	public Player[] getArrayOfIslandMembers(UUID uuid);
+	
+	public void sendMessageToIslandMembers(String message, UUID uuid);
+	
+	public void sendMessageToIslandMembers(String message, UUID uuid, boolean withoutSender);
+	
+	public double getBalance(UUID uuid);
+	
+	public void removeFromBalance(UUID uuid, double amount);
+	public boolean supportsIslandBalance();
 	
 }

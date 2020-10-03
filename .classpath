@@ -18,5 +18,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/Minecraft Servere/#3Server - FabledSkyblock version/plugins/Minions.jar"/>
 	<classpathentry kind="lib" path="D:/Minecraft Servere/#3Server - FabledSkyblock version/plugins/fabledskyblock-2.1.1.jar"/>
+	<classpathentry kind="lib" path="D:/Minecraft Servere/Plugin resources/ParticleLib-Headless.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

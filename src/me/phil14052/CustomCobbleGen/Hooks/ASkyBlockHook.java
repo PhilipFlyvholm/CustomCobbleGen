@@ -4,9 +4,13 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
@@ -50,6 +54,61 @@ public class ASkyBlockHook implements IslandHook{
 	
 	public boolean hasIsland(UUID uuid) {
 		return api.hasIsland(uuid);
+	}
+
+	@Override
+	public Player[] getArrayOfIslandMembers(UUID uuid) {
+		if(!this.hasIsland(uuid)) return new Player[0];
+		Island island = this.getIslandFromPlayer(uuid);
+		if(island == null) return new Player[0];
+		List<Player> onlinePlayers = new ArrayList<>();
+		for(UUID pUUID : island.getMembers()) {
+			Player p = Bukkit.getServer().getPlayer(pUUID);
+			if(p != null && p.isOnline()) onlinePlayers.add(p);
+		}
+		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+	}
+
+
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid) {
+		this.sendMessageToIslandMembers(message, uuid, false);
+	}
+	
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid, boolean withoutSender) {
+		Player[] players = this.getArrayOfIslandMembers(uuid);
+		if(players == null) return;
+		for(Player p : players) {
+
+			if(p.getUniqueId().equals(uuid) && withoutSender) continue;
+			p.sendMessage(message);
+		}
+	}
+
+	public boolean supportsIslandBalance() {
+		return false;
+	}
+	
+	/**
+	 * ASkyBlock does not support balance
+	 */
+	@Override
+	public double getBalance(UUID uuid) {
+		return 0;
+	}
+	
+	/**
+	 * ASkyBlock does not support balance
+	 */
+	@Override
+	public void removeFromBalance(UUID uuid, double amount) {
+		return;
+	}
+	
+	@Override
+	public String getHookName() {
+		return "ASkyBlock";
 	}
 	
 }

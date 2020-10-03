@@ -2,6 +2,7 @@ package me.phil14052.CustomCobbleGen.Commands;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -99,7 +100,12 @@ public class MainCommand implements CommandExecutor{
 				return false;
 			}
 			Player p = (Player) sender;
-			
+			if(plugin.isConnectedToIslandPlugin() 
+					&& plugin.getConfig().getBoolean("options.islands.onlyOwnerCan.select") 
+					&& !plugin.getIslandHook().isPlayerLeader(p.getUniqueId())) {
+				p.sendMessage(Lang.PREFIX.toString() + Lang.GUI_BUY_LEADER_ONLY.toString());
+				return false;
+			}
 			SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 			if(selectedTiers == null || selectedTiers.getSelectedTiersMap().isEmpty()) {
 				p.performCommand("cobblegen"); //If no tiers selected then show them a GUI to select one
@@ -149,6 +155,11 @@ public class MainCommand implements CommandExecutor{
 					tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(nextTier));
 					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(nextTier));
+					if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.getConfig().getBoolean("options.islands.sendMessagesToTeam")) {
+						plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_UPGRADED_BY_TEAM.toString(p, nextTier),
+								p.getUniqueId(),
+								true);
+					}
 					p.closeInventory();
 					return true;
 				}else {
@@ -382,7 +393,7 @@ public class MainCommand implements CommandExecutor{
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Your uuid: &8" + uuid));
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6isLeader: &8" + plugin.getIslandHook().isPlayerLeader(uuid)));
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Level: &8" + level));
-						
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Players online: &8" + Arrays.toString(plugin.getIslandHook().getArrayOfIslandMembers(uuid))));
 						
 					}
 				}else {

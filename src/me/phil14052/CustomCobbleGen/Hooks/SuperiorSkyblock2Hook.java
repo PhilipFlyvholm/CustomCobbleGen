@@ -4,10 +4,17 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
 import com.bgsoftware.superiorskyblock.api.island.Island;
+import com.bgsoftware.superiorskyblock.api.island.bank.IslandBank;
 import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
 
 /**
@@ -54,4 +61,60 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 		return this.getIslandFromPlayer(uuid) != null;
 	}
 
+	@Override
+	public Player[] getArrayOfIslandMembers(UUID uuid) {
+		if(!this.hasIsland(uuid)) return new Player[0];
+		Island island = this.getIslandFromPlayer(uuid);
+		if(island == null) return new Player[0];
+		List<Player> onlinePlayers = new ArrayList<>();
+		for(SuperiorPlayer superiorPlayer : island.getCoopPlayers()) {
+			Player p = Bukkit.getServer().getPlayer(superiorPlayer.getUniqueId());
+			if(p != null && p.isOnline()) onlinePlayers.add(p);
+		}
+		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+	}
+
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid) {
+		this.sendMessageToIslandMembers(message, uuid, false);
+	}
+
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid, boolean withoutSender) {
+		Player[] players = this.getArrayOfIslandMembers(uuid);
+		if(players == null) return;
+		for(Player p : players) {
+			if(p.getUniqueId().equals(uuid) && withoutSender) continue;
+			p.sendMessage(message);
+		}
+	}
+
+	@Override
+	public double getBalance(UUID uuid) {
+		Island island = this.getIslandFromPlayer(uuid);
+		if(island == null) return 0;
+		IslandBank bank = island.getIslandBank();
+		if(bank == null) return 0;
+		return bank.getBalance().doubleValue();
+	}
+
+	@Override
+	public void removeFromBalance(UUID uuid, double amount) {
+		Island island = this.getIslandFromPlayer(uuid);
+		if(island == null) return;
+		IslandBank bank = island.getIslandBank();
+		if(bank == null) return;
+		BigDecimal amountBig = BigDecimal.valueOf(amount);
+		bank.withdrawAdminMoney(Bukkit.getConsoleSender(), amountBig);
+	}
+
+	@Override
+	public boolean supportsIslandBalance() {
+		return true;
+	}
+	
+	@Override
+	public String getHookName() {
+		return "SuperiorSkyBlock2";
+	}
 }

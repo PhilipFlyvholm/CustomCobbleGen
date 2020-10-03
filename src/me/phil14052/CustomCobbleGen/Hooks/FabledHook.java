@@ -4,9 +4,12 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import com.songoda.skyblock.api.SkyBlockAPI;
 import com.songoda.skyblock.api.island.Island;
@@ -28,7 +31,6 @@ public class FabledHook implements IslandHook{
 	}
 
 	private Island getIslandFromPlayer(UUID uuid) {
-		
 		return fabledApi.getIsland(Bukkit.getOfflinePlayer(uuid));
 	}
 	
@@ -52,7 +54,7 @@ public class FabledHook implements IslandHook{
 		plugin.debug("#getIslandLeaderFromPlayer - UUID:" + uuid);
 //		Player p = plugin.getServer().getPlayer(uuid);
 //		plugin.debug("Player:" + p);
-		Island is = this.getIslandFromPlayer(uuid);
+		com.songoda.skyblock.island.Island is = this.getIslandFromPlayer(uuid).getIsland();
 		plugin.debug("#getIslandLeaderFromPlayer -" + (is != null ? is.getOwnerUUID().toString() + "'s island" : "NULL"));
 		if(is == null) return null;
 		return is.getOwnerUUID();
@@ -61,6 +63,57 @@ public class FabledHook implements IslandHook{
 	@Override
 	public boolean hasIsland(UUID uuid) {
 		return IslandManager.hasIsland(Bukkit.getOfflinePlayer(uuid));
+	}
+
+	@Override
+	public Player[] getArrayOfIslandMembers(UUID uuid) {
+		com.songoda.skyblock.island.Island island = this.getIslandFromPlayer(uuid).getIsland();
+		plugin.debug(island);
+		if(island == null) return new Player[0];
+		if(island.getCoopPlayers() == null || island.getCoopPlayers().isEmpty()) return new Player[0];
+		List<Player> onlinePlayers = new ArrayList<>();
+		for(UUID pUUID : island.getCoopPlayers().keySet()) {
+			plugin.debug(pUUID);
+			Player p = Bukkit.getServer().getPlayer(pUUID);
+			if(p != null && p.isOnline()) onlinePlayers.add(p);
+		}
+		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+	}
+	
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid, boolean withoutSender) {
+		Player[] players = this.getArrayOfIslandMembers(uuid);
+		if(players == null) return;
+		for(Player p : players) {
+
+			if(p.getUniqueId().equals(uuid) && withoutSender) continue;
+			p.sendMessage(message);
+		}
+	}
+
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid) {
+		this.sendMessageToIslandMembers(message, uuid, false);
+	}
+
+	@Override
+	public double getBalance(UUID uuid) {
+		return this.getIslandFromPlayer(uuid).getIsland().getBankBalance();
+	}
+
+	@Override
+	public void removeFromBalance(UUID uuid, double amount) {
+		this.getIslandFromPlayer(uuid).getIsland().removeFromBank(amount);
+	}
+
+	@Override
+	public boolean supportsIslandBalance() {
+		return true;
+	}
+
+	@Override
+	public String getHookName() {
+		return "FabledSkyBlock";
 	}
 
 }

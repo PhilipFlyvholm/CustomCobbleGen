@@ -36,6 +36,7 @@ public class ConfigUpdater extends YamlConfiguration {
 			config.addDefault("options.generationModes.0.blocks", defaultMode);
 			config.addDefault("options.generationModes.0.displayName", "Cobblestone generator");
 			config.addDefault("options.generationModes.0.fallback", "COBBLESTONE");
+			config.addDefault("options.generationModes.particleEffect", "SMOKE_LARGE");
 			config.addDefault("options.generationModes.generationSound", XMaterial.supports(9) ? "ENTITY_EXPERIENCE_ORB_PICKUP" : "ORB_PICKUP");
 		}
 		config.addDefault("options.playerSearchRadius", 4D);
@@ -50,6 +51,9 @@ public class ConfigUpdater extends YamlConfiguration {
 		config.addDefault("options.gui.showSupportedModes", true);
 		config.addDefault("options.signs.enabled", true);
 		config.addDefault("options.islands.usePerIslandUnlockedGenerators", false);
+		config.addDefault("options.islands.sendMessagesToTeam", true);
+		config.addDefault("options.islands.onlyOwnerCan.buy", false);
+		config.addDefault("options.islands.onlyOwnerCan.select", false);
 		config.addDefault("options.automation.pistons", false);
 		config.addDefault("options.supportWaterloggedBlocks", true);
 		config.addDefault("options.saveOnTierPurchase", true);

@@ -15,6 +15,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import xyz.xenondevs.particle.ParticleEffect;
 
 /**
  * @author Philip
@@ -109,7 +110,15 @@ public class GeneratorModeManager {
 				}
 				if(section.contains(s + ".generationSound")) {
 					Sound sound = Sound.valueOf(section.getString(s+ ".generationSound"));
-					mode.setGenSound(sound);
+					if(sound != null) {
+						mode.setGenSound(sound);	
+					}
+				}
+				if(section.contains(s + ".particleEffect")) {
+					ParticleEffect effect = ParticleEffect.valueOf(section.getString(s+ ".particleEffect"));
+					if(effect != null) {
+						mode.setParticleEffect(effect);	
+					}
 				}
 				if(mode.isValid()) {
 					this.generatorModes.add(mode);

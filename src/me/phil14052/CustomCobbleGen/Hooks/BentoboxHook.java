@@ -6,6 +6,8 @@ package me.phil14052.CustomCobbleGen.Hooks;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -74,6 +76,61 @@ public class BentoboxHook implements IslandHook{
 	public boolean hasIsland(UUID uuid) {
 		Player p = plugin.getServer().getPlayer(uuid);
 		return api.getIslands().hasIsland(p.getWorld(), uuid);
+	}
+	
+	@Override
+	public Player[] getArrayOfIslandMembers(UUID uuid) {
+		if(!this.hasIsland(uuid)) return new Player[0];
+		Island island = this.getIslandFromPlayer(uuid);
+		if(island == null) return new Player[0];
+		List<Player> onlinePlayers = new ArrayList<>();
+		for(UUID pUUID : island.getMembers().keySet()) {
+			Player p = Bukkit.getServer().getPlayer(pUUID);
+			if(p != null && p.isOnline()) onlinePlayers.add(p);
+		}
+		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+	}
+
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid) {
+		this.sendMessageToIslandMembers(message, uuid, false);
+	}
+	
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid, boolean withoutSender) {
+		Player[] players = this.getArrayOfIslandMembers(uuid);
+		if(players == null) return;
+		for(Player p : players) {
+			if(p.getUniqueId().equals(uuid) && withoutSender) continue;
+			p.sendMessage(message);
+		}
+	}
+
+
+	/**
+	 * BentoBox does not support balance. At least not known to me
+	 */
+	@Override
+	public double getBalance(UUID uuid) {
+		return 0;
+	}
+
+	/**
+	 * BentoBox does not support balance. At least not known to me
+	 */
+	@Override
+	public void removeFromBalance(UUID uuid, double amount) {
+		return;
+	}
+
+	@Override
+	public boolean supportsIslandBalance() {
+		return false;
+	}
+	
+	@Override
+	public String getHookName() {
+		return "BentoBox";
 	}
 	
 }

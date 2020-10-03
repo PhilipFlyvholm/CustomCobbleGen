@@ -11,7 +11,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Utils.Response;
+import us.talabrek.ultimateskyblock.api.IslandInfo;
 import us.talabrek.ultimateskyblock.api.uSkyBlockAPI;
 
 /**
@@ -127,8 +130,64 @@ public class uSkyBlockHook implements IslandHook{
 	@Override
 	public boolean hasIsland(UUID uuid) {
 		Player p = plugin.getServer().getPlayer(uuid);
+		if(p == null || !p.isOnline()) return false;
 		return api.getIslandInfo(p) != null;
 	}
 	
+	@Override
+	public Player[] getArrayOfIslandMembers(UUID uuid) {
+		if(!this.hasIsland(uuid)) return new Player[0];
+		Player player = Bukkit.getServer().getPlayer(uuid);
+		if(player == null || !player.isOnline()) return new Player[0];
+		IslandInfo island = api.getIslandInfo(player);
+		if(island == null) return new Player[0];
+		List<Player> onlinePlayers = new ArrayList<>();
+		for(String pName : island.getMembers()) {
+			Player p = Bukkit.getServer().getPlayer(pName);
+			if(p != null && p.isOnline()) onlinePlayers.add(p);
+		}
+		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+	}
+
+
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid) {
+		this.sendMessageToIslandMembers(message, uuid, false);
+	}
+	@Override
+	public void sendMessageToIslandMembers(String message, UUID uuid, boolean withoutSender) {
+		Player[] players = this.getArrayOfIslandMembers(uuid);
+		if(players == null) return;
+		for(Player p : players) {
+
+			if(p.getUniqueId().equals(uuid) && withoutSender) continue;
+			p.sendMessage(message);
+		}
+	}
+
+	/**
+	 * uSkyBlock does not support per island balances
+	 */
+	@Override
+	public double getBalance(UUID uuid) {
+		return 0;
+	}
+
+	/**
+	 * uSkyBlock does not support per island balances
+	 */
+	@Override
+	public void removeFromBalance(UUID uuid, double amount) {
+		return;
+	}
+
+	@Override
+	public boolean supportsIslandBalance() {
+		return false;
+	}
+	@Override
+	public String getHookName() {
+		return "uSkyBlock";
+	}
 	
 }

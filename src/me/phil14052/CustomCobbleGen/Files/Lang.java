@@ -54,7 +54,10 @@ public enum Lang {
     NO_TIERS_DEFINED("no-tiers-defined", "&cThere are no tiers defined in the config"),
     MONEY_FORMAT("money-format", "###,###,###,###,###.##"),
     TIER_CHANGED("tier-changed", "You have now selected the %tier_name% tier"),
+    TIER_CHANGED_BY_TEAM("tier-changed-team", "%player_name% changed the islands selected tier to %tier_name%"),
     TIER_PURCHASED("tier-purchased", "You have now purchased the %tier_name% tier"),
+    TIER_PURCHASED_BY_TEAM("tier-purchased-team", "%player_name% purchased the tier %tier_name% for the island"),
+    TIER_UPGRADED_BY_TEAM("tier-upgraded-team", "%player_name% upgraded the selected tier"),
     PLAYER_ALREADY_OWNS_TIER("player-already-owns-tier", "The player already owns this tier"),
     PLAYER_DOES_NOT_OWN_TIER("player-does-not-own-tier", "The player does not own this tier"),
     TIER_UNSELECTED_SUCCESS_SELF("tier-unselected-success.self", "&aTier unselected for player"),
@@ -76,9 +79,11 @@ public enum Lang {
     FORCE_PURCHASED("force-purchased", "You have now force bought %selected_tier_name% for %player_name%"),
     ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, forcesave, settier, givetier, forcebuy, withdraw]"),
     GUI_BUY("gui.main.buy", "&aClick to buy"),
+    GUI_BUY_LEADER_ONLY("gui.main.buy-leader-only", "&cOnly leaders of the island can buy"),
     GUI_CAN_NOT_AFFORD("gui.main.can-not-afford", "&cCan't afford"),
     GUI_SELECTED("gui.main.selected", "&aSelected"),
     GUI_SELECT("gui.main.select", "&aClick to select"),
+    GUI_SELECT_LEADER_ONLY("gui.main.select-leader-only", "&cOnly leaders of the island can select"),
     GUI_LOCKED_PERMISSION("gui.locked.missing-permission", "&cLocked - Missing permissions"),
     GUI_LOCKED_PREV("gui.locked.prev-unowned", "&cLocked - Buy the previous level first"),
     GUI_PRICE_MONEY_AFFORD("gui.price.money.afford", "&a$%tier_price_money%"),
@@ -314,6 +319,10 @@ public enum Lang {
         	
     	}
         return string;
+    }
+    
+    public String toString(Player p, Tier tier) {
+    	return replacePlaceholders(p, this.toString(tier));
     }
     
     public String toString(String... strings) {
