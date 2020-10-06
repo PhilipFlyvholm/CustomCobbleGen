@@ -8,6 +8,7 @@ package me.phil14052.CustomCobbleGen;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
@@ -21,6 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.cryptomorin.xseries.XMaterial;
 
+import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Commands.MainCommand;
 import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
 import me.phil14052.CustomCobbleGen.Events.BlockEvents;
@@ -31,6 +33,7 @@ import me.phil14052.CustomCobbleGen.Files.Files;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Files.LangFileUpdater;
 import me.phil14052.CustomCobbleGen.Files.PlayerFileUpdater;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.Files.SignsFileUpdater;
 import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
 import me.phil14052.CustomCobbleGen.Hooks.ASkyBlockHook;
@@ -63,22 +66,24 @@ public class CustomCobbleGen extends JavaPlugin {
 	public static IslandHook islandPluginHooked = null;
 	private static String connectedMinionPlugin = "None";
 	private static String connectedIslandPlugin = "None";
+	private String consolePrefix = "&8[&3&lCustomCobbleGen&8]: ";
 	
 	
 	@Override
 	public void onEnable(){
 		double time = System.currentTimeMillis();
 		plugin = this;
-		generatorModeManager = GeneratorModeManager.getInstance();
 		tierManager = TierManager.getInstance();
 		signManager = SignManager.getInstance();
+		Setting.setFile(plugin.getConfig());
+		new ConfigUpdater();
+		saveConfig();
 		plugin.debug("Enabling CustomCobbleGen plugin");
 		plugin.log("&cIF YOU ENCOUNTER ANY BUGS OR ERRORS PLEASE REPORT THEM ON SPIGOT!");
 		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub) and Fang_Zhijian (Chinese translation)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
 		plugin.log("&6&lIF YOU WANT TO SUPPORT US JOIN OUR PATERON: https://www.patreon.com/woollydevelopment");
 		// Setup config
-		new ConfigUpdater();
-		saveConfig();
+		generatorModeManager = GeneratorModeManager.getInstance();
 		generatorModeManager.loadFromConfig();
 		this.debug("The config is now setup&2 \u2713");
 		// Setup lang file
@@ -131,7 +136,7 @@ public class CustomCobbleGen extends JavaPlugin {
         	
 			@Override
 			public String call() throws Exception {
-				return plugin.getConfig().getBoolean("options.automation.pistons") ? "Enabled" : "Disabled";
+				return Setting.AUTOMATION_PISTONS.getBoolean() ? "Enabled" : "Disabled";
 			}
         	
         });
@@ -139,7 +144,7 @@ public class CustomCobbleGen extends JavaPlugin {
         	
 			@Override
 			public String call() throws Exception {
-				return plugin.getConfig().getBoolean("options.signs.enabled") ? "Enabled" : "Disabled";
+				return Setting.SIGNS_ENABLED.getBoolean() ? "Enabled" : "Disabled";
 			}
         	
         });
@@ -159,11 +164,45 @@ public class CustomCobbleGen extends JavaPlugin {
 			}
         	
         });
+
+        Metrics.SimplePie selectOptionChart = new Metrics.SimplePie("tier_unlock_system", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				return Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() ? "Island based" : "Player based";
+			}
+        	
+        });
+        
+        Metrics.SimplePie tiersActiveChart = new Metrics.SimplePie("tiers_active", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				int numOfTiers = 0;
+				for(List<Tier> tiers : tierManager.getTiers().values()) {
+					numOfTiers += tiers.size();
+				}
+				return numOfTiers + " tiers active";
+			}
+        	
+        });
+        
+        Metrics.SimplePie modesActiveChart = new Metrics.SimplePie("modes_active", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				return generatorModeManager.getModes().size() + " generation modes active";
+			}
+        	
+        });
         metrics.addCustomChart(genChart);
         metrics.addCustomChart(pistonChart);
         metrics.addCustomChart(signChart);
         metrics.addCustomChart(minionChart);
         metrics.addCustomChart(islandChart);
+        metrics.addCustomChart(selectOptionChart);
+        metrics.addCustomChart(tiersActiveChart);
+        metrics.addCustomChart(modesActiveChart);
         
 		plugin.log("CustomCobbleGen is now enabled&2 \u2713");
 		double time2 = System.currentTimeMillis();
@@ -206,7 +245,7 @@ public class CustomCobbleGen extends JavaPlugin {
 			connectedIslandPlugin = islandPluginHooked.getHookName();
 			plugin.debug("Found " + islandPluginHooked.getHookName() + "&2 \u2713");
 			if(!islandPluginHooked.supportsIslandBalance()
-				&& plugin.getConfig().getBoolean("options.islans.useIslandBalance")) {
+				&& Setting.ISLANDS_USEISLANDBALANCE.getBoolean()) {
 				plugin.error("Option 'options -> islands -> useIslandBalance' has been selected in the config, but " +  islandPluginHooked.getHookName() + " does not support island balances. Using player balances instead");
 			}
 		} 
@@ -377,7 +416,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		this.debug(message, false);
 	}
 	public void debug(String message, boolean overrideConfigOption){
-		if(overrideConfigOption == false && plugin.getConfig().getBoolean("debug") == false) return;
+		if(!overrideConfigOption && !Setting.DEBUG.getBoolean()) return;
 		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
@@ -400,7 +439,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	
 	public void log(String message){
-		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &8&lLog &8-&7 " + message).replace("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage((consolePrefix + "&8&lLog &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	public void error(String message) {
@@ -409,15 +448,15 @@ public class CustomCobbleGen extends JavaPlugin {
 	
 	public void error(String message, boolean userError) {
 		if(userError) {
-			Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &4&lUser error &8-&c " + message).replace("&", "\u00A7"));	
+			Bukkit.getConsoleSender().sendMessage((consolePrefix + "&4&lUser error &8-&c " + message).replace("&", "\u00A7"));	
 		}else {
 
-			Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &4&lError &8-&c " + message).replace("&", "\u00A7"));
+			Bukkit.getConsoleSender().sendMessage((consolePrefix + "&4&lError &8-&c " + message).replace("&", "\u00A7"));
 		}
 	}
 	
 	public void warning(String message) {
-		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &4&lWarning &8-&7 " + message).replace("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage((consolePrefix + "&4&lWarning &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	

@@ -15,6 +15,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import xyz.xenondevs.particle.ParticleEffect;
 
 /**
@@ -27,7 +28,6 @@ public class GeneratorModeManager {
 	private static CustomCobbleGen plugin = null;
 	
 	private List<GenMode> generatorModes = null;
-	private String generatorSection = "options.generationModes";
 	private GenMode defaultGenMode = null;
 	private GenMode universalGenMode = null;
 	
@@ -44,9 +44,9 @@ public class GeneratorModeManager {
 	
 	public void loadFromConfig() {
 		this.generatorModes = new ArrayList<>();
-		if(plugin.getConfig().contains(this.generatorSection)) {
+		if(plugin.getConfig().contains(Setting.SECTION_GENERATIONMODES.getPath())) {
 
-			ConfigurationSection section = plugin.getConfig().getConfigurationSection(this.generatorSection);
+			ConfigurationSection section = plugin.getConfig().getConfigurationSection(Setting.SECTION_GENERATIONMODES.getPath());
 			for(String s : section.getKeys(false)) {
 				List<String> blockNames = section.getStringList(s + ".blocks");
 				List<Material> blockMaterials = null;
