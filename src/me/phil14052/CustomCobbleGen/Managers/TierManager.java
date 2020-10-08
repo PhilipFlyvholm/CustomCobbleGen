@@ -308,7 +308,9 @@ public class TierManager {
 	}
 	
 	public void savePurchasedTiersPlayerData(UUID uuid) {
-		
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		if(this.purchasedTiersContainsUUID(uuid)) {
 			if(plugin.getPlayerConfig() == null){
 				plugin.error("MISSING PLAYER.YML FILE");
