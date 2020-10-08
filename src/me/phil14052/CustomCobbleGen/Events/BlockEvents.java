@@ -119,11 +119,8 @@ public class BlockEvents implements Listener{
 						}
 						
 						UUID uuid = gb.getUUID(); //Get the uuid of the player who broke the blocks tier
-						if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
-							uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
-						}
-						
 						SelectedTiers selectedTiers = tm.getSelectedTiers(uuid); // ^
+						if(selectedTiers == null) return;
 						Tier tier = null;
 						if(selectedTiers.getSelectedTiersMap().get(mode) == null) {
 							tier = selectedTiers.getSelectedTiersMap().get(genModeManager.getUniversalGenMode());

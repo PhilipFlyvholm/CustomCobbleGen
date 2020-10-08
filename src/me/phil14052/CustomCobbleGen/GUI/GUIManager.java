@@ -123,14 +123,21 @@ public class GUIManager {
 						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
 						lore.add(Lang.GUI_LOCKED_PERMISSION.toString());
 					}else if(!tm.hasPlayerPurchasedPreviousLevel(p, tier)){
-						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
-						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
-					
-						lore.add(Lang.GUI_LOCKED_PREV.toString());
+						if(plugin.isConnectedToIslandPlugin() 
+								&& plugin.getConfig().getBoolean("options.islands.onlyOwnerCan.buy") 
+								&& !isLeader) {
+							//Only owners can select and player is not a owner/leader
+							lore.add(Lang.GUI_BUY_LEADER_ONLY.toString());
+						}else {
+							if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
+							if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
+						
+							lore.add(Lang.GUI_LOCKED_PREV.toString());
 
-						for(Requirement r : tier.getRequirements()) {
-							if(!tier.hasRequirement(r.getRequirementType())) continue;
-							lore = r.addUnavailableString(tier, lore);
+							for(Requirement r : tier.getRequirements()) {
+								if(!tier.hasRequirement(r.getRequirementType())) continue;
+								lore = r.addUnavailableString(tier, lore);
+							}
 						}
 					}else {
 						if(plugin.isConnectedToIslandPlugin() 

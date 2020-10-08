@@ -50,6 +50,7 @@ public enum Lang {
     		+ " , &3/%command% upgrade&8 - Upgrade to the next tier"
     		+ " , &3/%command% admin&8 - Shows list of admin commands"
     		+ " , &8&l&m---------------------"),
+    PLAYER_NO_ISLAND("player.has-no-island", "&cCreate a island to control generators"),
     GUI_PREFIX("gui.prefix", "&3&lCustomCobbleGen menu"),
     NO_TIERS_DEFINED("no-tiers-defined", "&cThere are no tiers defined in the config"),
     MONEY_FORMAT("money-format", "###,###,###,###,###.##"),

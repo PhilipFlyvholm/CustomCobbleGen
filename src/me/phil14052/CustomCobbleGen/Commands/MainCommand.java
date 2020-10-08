@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.GUI.GUIManager;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
@@ -43,6 +45,12 @@ public class MainCommand implements CommandExecutor{
 				return false;
 			}
 			Player p = (Player) sender;
+			if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() 
+					&& plugin.isConnectedToIslandPlugin() 
+					&& !plugin.getIslandHook().hasIsland(p.getUniqueId())) {
+				p.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_NO_ISLAND.toString());
+				return false;
+			}
 			guiManager.new MainGUI(p).open();
 			return true;
 		}else if(args[0].equalsIgnoreCase("help")) {
@@ -394,6 +402,28 @@ public class MainCommand implements CommandExecutor{
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6isLeader: &8" + plugin.getIslandHook().isPlayerLeader(uuid)));
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Level: &8" + level));
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Players online: &8" + Arrays.toString(plugin.getIslandHook().getArrayOfIslandMembers(uuid))));
+						
+					}else if(args[2].equalsIgnoreCase("selected")) {
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on selected tiers accessable by plugin"));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8Number of selected tiers loaded: &6" + tm.getselectedTiers().size()));
+						
+						SelectedTiers tiers = tm.getSelectedTiers(p.getUniqueId());
+						if(tiers == null) sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNo tiers selected"));
+						else{
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Your uuid: &8" + uuid));
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Stored in uuid: &8" + tiers.getUUID()));
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cSelected tiers: &8"));
+							if(tiers.getSelectedTiersMap().isEmpty()) {
+								sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNone"));
+							}else {
+								StringJoiner sj = new StringJoiner("&8, &6","&8[&6","&8]&6");
+								for(Tier tier : tiers.getSelectedTiersMap().values()) {
+									sj.add(tier.getTierClass() + ":" + tier.getLevel());
+								}
+								sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6" + sj.toString()));	
+							}
+						}
+						
 						
 					}
 				}else {

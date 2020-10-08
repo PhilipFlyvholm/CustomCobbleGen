@@ -54,20 +54,43 @@ public class uSkyBlockHook implements IslandHook{
 	@Override
 	public boolean isPlayerLeader(UUID uuid) {
 		Player p = plugin.getServer().getPlayer(uuid);
-		return api.getIslandInfo(p).isLeader(p);
+		IslandInfo info = api.getIslandInfo(p);
+		if(info == null) return false;
+		return info.isLeader(p);
 	}
 
+	private boolean playerUUIDContainsValue(UUID value) {
+		for(UUID uuid : this.playersUUID.values()) {
+			if(uuid.equals(value)) return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		if(this.playerUUIDContainsValue(uuid)) return uuid;
+		
 		Player p = plugin.getServer().getPlayer(uuid);
-		String playerName = api.getIslandInfo(p).getLeader();
+		IslandInfo info = api.getIslandInfo(p);
+		if(info == null) return null;
+		
+		String playerName = info.getLeader();
 		
 		if(playersUUID.containsKey(playerName)) {
+			plugin.debug("Returned stored UUID");
 			return playersUUID.get(playerName);
 		}
-		if(p != null) {
+		if(playerName != null && !playerName.trim().equals("") && p.getName().equals(playerName)) {
+			plugin.debug("Returned player uuid from parameter");
 			playersUUID.put(playerName, p.getUniqueId());
 			return p.getUniqueId();
+		}else if(playerName != null){
+			Player leader = plugin.getServer().getPlayer(playerName);
+			if(leader != null) {
+				plugin.debug("Returned leader uuid");
+				playersUUID.put(playerName, leader.getUniqueId());
+				return leader.getUniqueId();
+			}
 		}
 		
 		final Response<String> uuidResult = this.getUUIDFromMojang(playerName);
@@ -83,12 +106,18 @@ public class uSkyBlockHook implements IslandHook{
 		String[] index = result.split(",");
 		String[] idIndex = index[1].split(":");
 		String uuidString = idIndex[1];
-		UUID leaderUUID = UUID.fromString(uuidString);
+		uuidString = uuidString.substring(0, 8) + "-" + uuidString.substring(8, 12) + "-" + uuidString.substring(12, 16) + "-" + uuidString.substring(16, 20) + "-" + uuidString.substring(20);
+		plugin.debug(uuidString);
+		UUID leaderUUID = UUID.fromString(uuidString.trim());
 		if(leaderUUID == null) {
 			plugin.error("Unknown UUID " + uuidString + " for leader " + playerName);
 			return uuid; //If fail then fallback to player
 		}
-		else return uuid;
+		else {
+			plugin.debug("Returned uuid from mojang: " + leaderUUID, playerName);
+			playersUUID.put(playerName, leaderUUID);
+			return leaderUUID;
+		}
 		
 	}
 	
