@@ -1,16 +1,14 @@
 package me.phil14052.CustomCobbleGen.Files;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginDescriptionFile;
 
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConfigUpdater extends YamlConfiguration {
 	

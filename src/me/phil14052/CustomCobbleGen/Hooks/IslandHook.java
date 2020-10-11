@@ -4,9 +4,9 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
-import java.util.UUID;
-
 import org.bukkit.entity.Player;
+
+import java.util.UUID;
 
 /**
  * @author Philip

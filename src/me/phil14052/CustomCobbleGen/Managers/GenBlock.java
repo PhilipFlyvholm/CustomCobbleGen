@@ -1,11 +1,10 @@
 package me.phil14052.CustomCobbleGen.Managers;
 
-import java.time.Instant;
-import java.util.UUID;
-
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import org.bukkit.Location;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import java.time.Instant;
+import java.util.UUID;
 
 public class GenBlock {
     private Location location;

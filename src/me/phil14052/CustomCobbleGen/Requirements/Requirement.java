@@ -1,10 +1,9 @@
 package me.phil14052.CustomCobbleGen.Requirements;
 
-import java.util.List;
-
+import me.phil14052.CustomCobbleGen.API.Tier;
 import org.bukkit.entity.Player;
 
-import me.phil14052.CustomCobbleGen.API.Tier;
+import java.util.List;
 
 public interface Requirement {
 	

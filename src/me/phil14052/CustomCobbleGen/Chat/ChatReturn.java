@@ -4,9 +4,8 @@
  */
 package me.phil14052.CustomCobbleGen.Chat;
 
-import org.bukkit.entity.Player;
-
 import me.phil14052.CustomCobbleGen.API.Tier;
+import org.bukkit.entity.Player;
 
 /**
  * @author Philip

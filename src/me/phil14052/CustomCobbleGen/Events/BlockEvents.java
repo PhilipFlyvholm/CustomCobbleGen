@@ -4,12 +4,15 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.UUID;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.GeneratorGenerateEvent;
+import me.phil14052.CustomCobbleGen.API.PlayerBreakGeneratedBlock;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Managers.*;
+import me.phil14052.CustomCobbleGen.Signs.*;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,33 +25,14 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFromToEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.GeneratorGenerateEvent;
-import me.phil14052.CustomCobbleGen.API.PlayerBreakGeneratedBlock;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.GenBlock;
-import me.phil14052.CustomCobbleGen.Managers.GenMode;
-import me.phil14052.CustomCobbleGen.Managers.GenPiston;
-import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Signs.BuySign;
-import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
-import me.phil14052.CustomCobbleGen.Signs.GUISign;
-import me.phil14052.CustomCobbleGen.Signs.SelectSign;
-import me.phil14052.CustomCobbleGen.Signs.SignManager;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 public class BlockEvents implements Listener{
 

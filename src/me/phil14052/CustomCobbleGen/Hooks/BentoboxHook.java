@@ -4,19 +4,19 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import world.bentobox.bentobox.BentoBox;
+import world.bentobox.bentobox.api.user.User;
+import world.bentobox.bentobox.database.objects.Island;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import world.bentobox.bentobox.BentoBox;
-import world.bentobox.bentobox.database.objects.Island;
 
 /**
  * @author Philip
@@ -49,16 +49,16 @@ public class BentoboxHook implements IslandHook{
 				long rawLevel = (long) method.invoke(addon, p.getWorld(), uuid);
 				level[0] = Math.toIntExact(rawLevel);
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				plugin.error("Level addon needed for BentoBox for level requirement to work", true);
 			}
 		});
 		return level[0];
 	}
 
 	private Island getIslandFromPlayer(UUID uuid) {
-		Player p = plugin.getServer().getPlayer(uuid);
-		return api.getIslands().getIsland(p.getWorld(), uuid);
+
+		User user = api.getPlayers().getUser(uuid);
+		return api.getIslands().getIsland(user.getWorld(), user);
 	}
 	
 	@Override
@@ -74,8 +74,8 @@ public class BentoboxHook implements IslandHook{
 
 	@Override
 	public boolean hasIsland(UUID uuid) {
-		Player p = plugin.getServer().getPlayer(uuid);
-		return api.getIslands().hasIsland(p.getWorld(), uuid);
+		Island island = this.getIslandFromPlayer(uuid);
+		return island != null;
 	}
 	
 	@Override

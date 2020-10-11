@@ -4,10 +4,10 @@
  */
 package me.phil14052.CustomCobbleGen.Files;
 
-import java.util.List;
-
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+
+import java.util.List;
 
 /**
  * @author Philip

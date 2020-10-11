@@ -4,18 +4,17 @@
  */
 package me.phil14052.CustomCobbleGen.Managers;
 
-import java.text.DecimalFormat;
-import java.util.UUID;
-
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
+import java.text.DecimalFormat;
+import java.util.UUID;
 
 public class EconomyManager {
 	private static EconomyManager instance = null;

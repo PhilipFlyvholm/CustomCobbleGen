@@ -4,6 +4,15 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Utils.Response;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+import us.talabrek.ultimateskyblock.api.IslandInfo;
+import us.talabrek.ultimateskyblock.api.uSkyBlockAPI;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,21 +20,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Utils.Response;
-import us.talabrek.ultimateskyblock.api.IslandInfo;
-import us.talabrek.ultimateskyblock.api.uSkyBlockAPI;
+import java.util.*;
 
 /**
  * @author Philip

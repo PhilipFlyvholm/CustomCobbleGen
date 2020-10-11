@@ -4,28 +4,18 @@
  */
 package me.phil14052.CustomCobbleGen.Managers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import me.phil14052.CustomCobbleGen.Requirements.*;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Files.Setting;
-import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.Requirement;
-import me.phil14052.CustomCobbleGen.Requirements.XpRequirement;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import java.util.*;
 
 public class TierManager {
 

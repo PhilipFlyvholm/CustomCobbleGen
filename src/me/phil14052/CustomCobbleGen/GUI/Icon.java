@@ -1,9 +1,9 @@
 package me.phil14052.CustomCobbleGen.GUI;
 
+import org.bukkit.inventory.ItemStack;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.bukkit.inventory.ItemStack;
 
 public class Icon {
 	public final ItemStack itemStack;

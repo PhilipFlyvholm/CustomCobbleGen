@@ -4,22 +4,15 @@
  */
 package me.phil14052.CustomCobbleGen.Utils;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
-import org.jetbrains.annotations.NotNull;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
 /**
  * @author Philip

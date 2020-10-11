@@ -59,14 +59,6 @@
 						<goals>
 							<goal>shade</goal>
 						</goals>
-						<configuration>
-							<artifactSet>
-								<includes>
-									<include>me.phil14052.CustomCobbleGen**</include>
-									<include>xyz.xenondevs:particle</include>
-								</includes>
-							</artifactSet>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -118,7 +110,7 @@
 		<dependency>
 			<groupId>world.bentobox</groupId>
 			<artifactId>bentobox</artifactId>
-			<version>1.9.2</version>
+			<version>1.15.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

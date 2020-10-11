@@ -4,13 +4,12 @@
  */
 package me.phil14052.CustomCobbleGen.Signs;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import me.phil14052.CustomCobbleGen.GUI.GUIManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import me.phil14052.CustomCobbleGen.GUI.GUIManager;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Philip

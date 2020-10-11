@@ -1,13 +1,12 @@
 package me.phil14052.CustomCobbleGen.Requirements;
 
-import java.util.List;
-
-import org.bukkit.entity.Player;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
+import org.bukkit.entity.Player;
+
+import java.util.List;
 
 public class MoneyRequirement implements Requirement{
 	

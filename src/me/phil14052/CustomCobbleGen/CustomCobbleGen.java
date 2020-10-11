@@ -5,13 +5,24 @@
 package me.phil14052.CustomCobbleGen;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Commands.MainCommand;
+import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
+import me.phil14052.CustomCobbleGen.Events.BlockEvents;
+import me.phil14052.CustomCobbleGen.Events.MinionEvents;
+import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
+import me.phil14052.CustomCobbleGen.Files.*;
+import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
+import me.phil14052.CustomCobbleGen.Hooks.*;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
+import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.SignManager;
+import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
+import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
+import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -20,36 +31,12 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Commands.MainCommand;
-import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
-import me.phil14052.CustomCobbleGen.Events.BlockEvents;
-import me.phil14052.CustomCobbleGen.Events.MinionEvents;
-import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
-import me.phil14052.CustomCobbleGen.Files.ConfigUpdater;
-import me.phil14052.CustomCobbleGen.Files.Files;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Files.LangFileUpdater;
-import me.phil14052.CustomCobbleGen.Files.PlayerFileUpdater;
-import me.phil14052.CustomCobbleGen.Files.Setting;
-import me.phil14052.CustomCobbleGen.Files.SignsFileUpdater;
-import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
-import me.phil14052.CustomCobbleGen.Hooks.ASkyBlockHook;
-import me.phil14052.CustomCobbleGen.Hooks.BentoboxHook;
-import me.phil14052.CustomCobbleGen.Hooks.FabledHook;
-import me.phil14052.CustomCobbleGen.Hooks.IslandHook;
-import me.phil14052.CustomCobbleGen.Hooks.SuperiorSkyblock2Hook;
-import me.phil14052.CustomCobbleGen.Hooks.uSkyBlockHook;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
-import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Signs.SignManager;
-import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
-import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
-import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 
 public class CustomCobbleGen extends JavaPlugin {
 	private static CustomCobbleGen plugin;

@@ -1,12 +1,16 @@
 package me.phil14052.CustomCobbleGen.GUI;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Chat.*;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Requirements.Requirement;
+import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
+import me.phil14052.CustomCobbleGen.Utils.ItemLib;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,24 +22,7 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierClass;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierDescription;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierIcon;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierLevel;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierName;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Requirements.Requirement;
-import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
-import me.phil14052.CustomCobbleGen.Utils.ItemLib;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import java.util.*;
 
 public class GUIManager {
 

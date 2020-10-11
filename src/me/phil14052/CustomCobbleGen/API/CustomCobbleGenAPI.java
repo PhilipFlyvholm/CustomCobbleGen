@@ -4,10 +4,10 @@
  */
 package me.phil14052.CustomCobbleGen.API;
 
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+
 import java.util.List;
 import java.util.Map;
-
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
 
 /**
  * @author Philip

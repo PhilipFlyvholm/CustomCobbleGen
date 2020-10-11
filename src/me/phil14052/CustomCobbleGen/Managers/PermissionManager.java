@@ -1,9 +1,8 @@
 package me.phil14052.CustomCobbleGen.Managers;
 
+import me.phil14052.CustomCobbleGen.Files.Lang;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import me.phil14052.CustomCobbleGen.Files.Lang;
 
 public class PermissionManager {
 	public boolean hasPermission(Player p, String permission, boolean withMessage){

@@ -1,18 +1,17 @@
 package me.phil14052.CustomCobbleGen.Requirements;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.StringJoiner;
-
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.StringJoiner;
 
 public class ItemsRequirement implements Requirement{
 	

@@ -1,9 +1,5 @@
 package me.phil14052.CustomCobbleGen.Files;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,6 +8,10 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
 
 /**
  * Copyright (c) 2015 nverdier
