@@ -3,6 +3,7 @@ package me.phil14052.CustomCobbleGen.Requirements;
 import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import org.bukkit.entity.Player;
 
@@ -22,7 +23,7 @@ public class MoneyRequirement implements Requirement{
 	
 	@Override
 	public boolean furfillsRequirement(Player p) {
-		if(plugin.getIslandHook() != null && plugin.getIslandHook().supportsIslandBalance() && plugin.getConfig().getBoolean("options.islands.useIslandBalance")) {
+		if(plugin.getIslandHook() != null && plugin.getIslandHook().supportsIslandBalance() && Setting.ISLANDS_USEISLANDBALANCE.getBoolean()) {
 			return plugin.getIslandHook().getBalance(p.getUniqueId()) >= this.getRequirementValue();
 		}
 		if(econManager.isConnectedToVault()) {
@@ -55,7 +56,7 @@ public class MoneyRequirement implements Requirement{
 
 	@Override
 	public void onPurchase(Player p) {
-		if(plugin.getIslandHook() != null && plugin.getIslandHook().supportsIslandBalance() && plugin.getConfig().getBoolean("options.islands.useIslandBalance")) {
+		if(plugin.getIslandHook() != null && plugin.getIslandHook().supportsIslandBalance() && Setting.ISLANDS_USEISLANDBALANCE.getBoolean()) {
 			plugin.getIslandHook().removeFromBalance(p.getUniqueId(), this.getRequirementValue());
 		}
 		if(econManager.isConnectedToVault()) {

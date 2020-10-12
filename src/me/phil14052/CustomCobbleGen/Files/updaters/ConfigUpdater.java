@@ -1,7 +1,8 @@
-package me.phil14052.CustomCobbleGen.Files;
+package me.phil14052.CustomCobbleGen.Files.updaters;
 
 import com.cryptomorin.xseries.XMaterial;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

@@ -2,7 +2,7 @@
  * CustomCobbleGen By @author Philip Flyvholm
  * HttpParametersUtils.java
  */
-package me.phil14052.CustomCobbleGen.Utils;
+package me.phil14052.CustomCobbleGen.Utils.pastebin;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

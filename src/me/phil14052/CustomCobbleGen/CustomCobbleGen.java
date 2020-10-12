@@ -13,6 +13,10 @@ import me.phil14052.CustomCobbleGen.Events.BlockEvents;
 import me.phil14052.CustomCobbleGen.Events.MinionEvents;
 import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
 import me.phil14052.CustomCobbleGen.Files.*;
+import me.phil14052.CustomCobbleGen.Files.updaters.ConfigUpdater;
+import me.phil14052.CustomCobbleGen.Files.updaters.LangFileUpdater;
+import me.phil14052.CustomCobbleGen.Files.updaters.PlayerFileUpdater;
+import me.phil14052.CustomCobbleGen.Files.updaters.SignsFileUpdater;
 import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
 import me.phil14052.CustomCobbleGen.Hooks.*;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
@@ -93,7 +97,12 @@ public class CustomCobbleGen extends JavaPlugin {
 		signManager.loadSignsFromFile(true);
 		this.debug("Signs is now setup&2 \u2713");
 		this.setupHooks();
-	 
+
+		if(Setting.AUTO_SAVE_ENABLED.getBoolean()){
+			tierManager.startAutoSave();
+			plugin.debug("Auto saver started&2 \u2713");
+		}
+
 		registerEvents();
 		plugin.debug("Events loaded&2 \u2713");
 		plugin.getCommand("cobblegen").setExecutor(new MainCommand());
@@ -201,6 +210,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		// Unload everything
 		
 		tierManager.unload();
+		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
 		this.savePlayerConfig();
     	signManager.saveSignsToFile();
 		tierManager = null;
@@ -266,6 +276,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	
 	public void reloadPlugin() {
+		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
 		BlockManager.getInstance().saveGenPistonData();
 		this.reloadConfig();
 		this.lang.reload();
@@ -275,6 +286,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		signManager.loadSignsFromFile(true);
 		tierManager.reload();
 		tierManager = TierManager.getInstance();
+		if(Setting.AUTO_SAVE_ENABLED.getBoolean()) tierManager.startAutoSave();
 	}
 	
 	public void reloadPlayerConfig(){

@@ -65,13 +65,11 @@ public class FabledHook implements IslandHook{
 
 	@Override
 	public Player[] getArrayOfIslandMembers(UUID uuid) {
-		com.songoda.skyblock.island.Island island = this.getIslandFromPlayer(uuid).getIsland();
-		plugin.debug(island);
+		Island island = this.getIslandFromPlayer(uuid);
+
 		if(island == null) return new Player[0];
-		if(island.getCoopPlayers() == null || island.getCoopPlayers().isEmpty()) return new Player[0];
 		List<Player> onlinePlayers = new ArrayList<>();
-		for(UUID pUUID : island.getCoopPlayers().keySet()) {
-			plugin.debug(pUUID);
+		for(UUID pUUID : fabledApi.getMembersOnline(island)) {
 			Player p = Bukkit.getServer().getPlayer(pUUID);
 			if(p != null && p.isOnline()) onlinePlayers.add(p);
 		}

@@ -9,8 +9,8 @@ import me.phil14052.CustomCobbleGen.GUI.GUIManager;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
-import me.phil14052.CustomCobbleGen.Utils.FileUploader;
-import me.phil14052.CustomCobbleGen.Utils.Response;
+import me.phil14052.CustomCobbleGen.Utils.pastebin.FileUploader;
+import me.phil14052.CustomCobbleGen.Utils.pastebin.Response;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -31,7 +31,7 @@ public class MainCommand implements CommandExecutor{
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(args.length < 1){
-			if(plugin.getConfig().getBoolean("options.gui.permissionNeeded")) {
+			if(Setting.GUI_PERMISSIONNEEDED.getBoolean()) {
 				if(!pm.hasPermission(sender, "customcobblegen.gui", true)) return false;
 			}
 			if(!(sender instanceof Player)){
@@ -52,7 +52,7 @@ public class MainCommand implements CommandExecutor{
 			sendHelp(sender, label);
 			return true;
 		}else if(args[0].equalsIgnoreCase("v")){
-			sender.sendMessage("CCG V: " + plugin.getDescription().getVersion());
+			sender.sendMessage("CCG Version: " + plugin.getDescription().getVersion());
 		}else if(args[0].equalsIgnoreCase("tier")) {
 			if(!pm.hasPermission(sender, "customcobblegen.tier", true)) return false;
 			if(args.length < 2) {
@@ -63,11 +63,11 @@ public class MainCommand implements CommandExecutor{
 				}
 				Player p = (Player) sender;
 				UUID uuid = p.getUniqueId();
-				if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+				if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean()  && plugin.isConnectedToIslandPlugin()) {
 					uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
 				}
 				Collection<Tier> tiers = tm.getSelectedTiers(uuid).getSelectedTiersMap().values();
-				if(tiers == null || tiers.isEmpty()) {
+				if(tiers.isEmpty()) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_SELF.toString(p));
 					return false;
 				}
@@ -81,12 +81,12 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				UUID uuid = p.getUniqueId();
-				if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.isConnectedToIslandPlugin()) {
+				if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
 					uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
 				}
 				
 				Collection<Tier> tiers = tm.getSelectedTiers(uuid).getSelectedTiersMap().values();
-				if(tiers == null || tiers.isEmpty()) {
+				if(tiers.isEmpty()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_OTHER.toString(p));
 					return false;
 				}
@@ -103,7 +103,7 @@ public class MainCommand implements CommandExecutor{
 			}
 			Player p = (Player) sender;
 			if(plugin.isConnectedToIslandPlugin() 
-					&& plugin.getConfig().getBoolean("options.islands.onlyOwnerCan.select") 
+					&& Setting.ISLANDS_ONLYOWNER_SELECT.getBoolean()
 					&& !plugin.getIslandHook().isPlayerLeader(p.getUniqueId())) {
 				p.sendMessage(Lang.PREFIX.toString() + Lang.GUI_BUY_LEADER_ONLY.toString());
 				return false;
@@ -157,7 +157,7 @@ public class MainCommand implements CommandExecutor{
 					tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(nextTier));
 					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(nextTier));
-					if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.getConfig().getBoolean("options.islands.sendMessagesToTeam")) {
+					if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
 						plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_UPGRADED_BY_TEAM.toString(p, nextTier),
 								p.getUniqueId(),
 								true);
@@ -179,7 +179,7 @@ public class MainCommand implements CommandExecutor{
 		}else if(args[0].equalsIgnoreCase("admin")){
 			if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
 			if(args.length < 2){
-				if(plugin.getConfig().getBoolean("options.gui.admingui") && sender instanceof Player) {
+				if(Setting.GUI_ADMINGUI.getBoolean() && sender instanceof Player) {
 					Player p = (Player) sender;
 					guiManager.new AdminGUI(p).open();
 				}else {

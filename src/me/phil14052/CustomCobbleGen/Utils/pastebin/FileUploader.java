@@ -2,7 +2,7 @@
  * CustomCobbleGen By @author Philip Flyvholm
  * FileUploader.java
  */
-package me.phil14052.CustomCobbleGen.Utils;
+package me.phil14052.CustomCobbleGen.Utils.pastebin;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import org.jetbrains.annotations.NotNull;

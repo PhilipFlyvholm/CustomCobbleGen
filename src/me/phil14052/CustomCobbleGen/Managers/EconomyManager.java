@@ -6,6 +6,7 @@ package me.phil14052.CustomCobbleGen.Managers;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
@@ -56,7 +57,7 @@ public class EconomyManager {
 	}
 	public String formatMoney(double money){
 		String m = "";
-		if(plugin.getConfig().getBoolean("options.money.format")){
+		if(Setting.MONEY_FORMAT.getBoolean()){
 			DecimalFormat df = new DecimalFormat(Lang.MONEY_FORMAT.toString());
 			m = df.format(money);
 		}else{

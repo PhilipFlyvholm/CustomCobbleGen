@@ -5,7 +5,7 @@
 package me.phil14052.CustomCobbleGen.Hooks;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Utils.Response;
+import me.phil14052.CustomCobbleGen.Utils.pastebin.Response;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;

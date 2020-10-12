@@ -17,7 +17,7 @@ import org.bukkit.event.Listener;
  */
 public class MinionEvents implements Listener{
 
-	private BlockManager bm = BlockManager.getInstance();
+	private final BlockManager bm = BlockManager.getInstance();
 
 	@EventHandler
 	public void onMinionBreak(MinerBlockBreakEvent e) {

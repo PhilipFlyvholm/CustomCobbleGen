@@ -1,4 +1,4 @@
-package me.phil14052.CustomCobbleGen.Files;
+package me.phil14052.CustomCobbleGen.Files.updaters;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import org.bukkit.plugin.PluginDescriptionFile;

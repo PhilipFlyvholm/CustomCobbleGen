@@ -39,12 +39,12 @@ import java.util.regex.Pattern;
  */
 public class PlayerEvents implements Listener {
 
-	private TierManager tm = TierManager.getInstance();
-	private BlockManager bm = BlockManager.getInstance();
-	private SignManager signManager = SignManager.getInstance();
-	private PermissionManager pm =  new PermissionManager();
-	private GUIManager guiManager = GUIManager.getInstance();
-	private static CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final TierManager tm = TierManager.getInstance();
+	private final BlockManager bm = BlockManager.getInstance();
+	private final SignManager signManager = SignManager.getInstance();
+	private final PermissionManager pm =  new PermissionManager();
+	private final GUIManager guiManager = GUIManager.getInstance();
+	private final static CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
@@ -69,6 +69,7 @@ public class PlayerEvents implements Listener {
 	public void onPlayerInteract(PlayerInteractEvent e) {
 		if(!signManager.areSignsEnabled()) return;
 		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+		if(e.getClickedBlock() == null) return;
 		if(isSign(e.getClickedBlock().getType())) {
 			ClickableSign sign = signManager.getSignFromLocation(e.getClickedBlock().getLocation());
 			if(sign == null) return;

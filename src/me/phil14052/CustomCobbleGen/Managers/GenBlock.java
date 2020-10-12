@@ -1,6 +1,7 @@
 package me.phil14052.CustomCobbleGen.Managers;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import org.bukkit.Location;
 
 import java.time.Instant;
@@ -41,7 +42,7 @@ public class GenBlock {
     }
 
     public boolean hasExpired() {
-    	if(this.pistonPowered && plugin.getConfig().getBoolean("options.automation.pistons")) return false;
+    	if(this.pistonPowered && Setting.AUTOMATION_PISTONS.getBoolean()) return false;
         // Expire entries 4 seconds after they were created
         // It only needs enough time for lava/water to flow and generator a new block
         if (Instant.now().getEpochSecond() >= (timestamp.getEpochSecond() + 4)) {

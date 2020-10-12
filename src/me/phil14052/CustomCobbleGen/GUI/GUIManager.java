@@ -5,6 +5,7 @@ import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Chat.*;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
@@ -54,10 +55,10 @@ public class GUIManager {
 		private boolean failedLoad = false;
 		
 		public MainGUI(Player p){
-			boolean centerItems = plugin.getConfig().getBoolean("options.gui.centerTiers");
-			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
+			boolean centerItems = Setting.GUI_CENTERTIERS.getBoolean();
+			boolean newLines = Setting.GUI_SEPERATECLASSESBYLINES.getBoolean();
 			player = p;
-			boolean isLeader = plugin.isConnectedToIslandPlugin() ? plugin.getIslandHook().isPlayerLeader(p.getUniqueId()) : true; //Return true if there is no island plugin connected
+			boolean isLeader = !plugin.isConnectedToIslandPlugin() || plugin.getIslandHook().isPlayerLeader(p.getUniqueId()); //Return true if there is no island plugin connected
 			if(tiers == null) {
 				p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIERS_DEFINED.toString());
 				failedLoad = true;
@@ -84,9 +85,10 @@ public class GUIManager {
 					
 					ItemStack item = tier.getIcon().clone();
 					ItemMeta itemMeta = item.getItemMeta();
+					if(itemMeta == null) continue;
 					List<String> lore = itemMeta.getLore();
-					lore.addAll(tier.getFormatetDescription(p));
-					if(plugin.getConfig().getBoolean("options.gui.showSupportedModes")) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
+					if(lore != null) lore.addAll(tier.getFormatetDescription(p));
+					if(Setting.GUI_SHOWSUPPORTEDMODES.getBoolean()) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
 					String emptyString = "&a ";
 					emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
 					lore.add(emptyString);
@@ -98,7 +100,7 @@ public class GUIManager {
 						lore.add(Lang.GUI_SELECTED.toString());
 					}else if(tm.hasPlayerPurchasedLevel(p, tier)){
 						if(plugin.isConnectedToIslandPlugin() 
-								&& plugin.getConfig().getBoolean("options.islands.onlyOwnerCan.select") 
+								&& Setting.ISLANDS_ONLYOWNER_SELECT.getBoolean()
 								&& !isLeader) {
 							//Only owners can select and player is not a owner/leader
 							lore.add(Lang.GUI_SELECT_LEADER_ONLY.toString());
@@ -106,18 +108,18 @@ public class GUIManager {
 							lore.add(Lang.GUI_SELECT.toString());	
 						}
 					}else if(!tier.doesPlayerHavePermission(p)){
-						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
-						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
+						if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+						if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
 						lore.add(Lang.GUI_LOCKED_PERMISSION.toString());
 					}else if(!tm.hasPlayerPurchasedPreviousLevel(p, tier)){
 						if(plugin.isConnectedToIslandPlugin() 
-								&& plugin.getConfig().getBoolean("options.islands.onlyOwnerCan.buy") 
+								&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
 								&& !isLeader) {
 							//Only owners can select and player is not a owner/leader
 							lore.add(Lang.GUI_BUY_LEADER_ONLY.toString());
 						}else {
-							if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
-							if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
+							if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+							if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
 						
 							lore.add(Lang.GUI_LOCKED_PREV.toString());
 
@@ -128,7 +130,7 @@ public class GUIManager {
 						}
 					}else {
 						if(plugin.isConnectedToIslandPlugin() 
-								&& plugin.getConfig().getBoolean("options.islands.onlyOwnerCan.buy") 
+								&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
 								&& !isLeader) {
 							//Only owners can select and player is not a owner/leader
 							lore.add(Lang.GUI_BUY_LEADER_ONLY.toString());
@@ -151,7 +153,7 @@ public class GUIManager {
 						
 					}
 
-					if(plugin.getConfig().getBoolean("debug")) {
+					if(Setting.DEBUG.getBoolean()){
 						lore.add(" ");
 						lore.add("i: " + i);
 					}
@@ -164,7 +166,7 @@ public class GUIManager {
 							//Check if the player has purchased the level
 							if(tm.hasPlayerPurchasedLevel(p, tier)) {
 								if(plugin.isConnectedToIslandPlugin() 
-										&& plugin.getConfig().getBoolean("options.islands.onlyOwnerCan.select") 
+										&& Setting.ISLANDS_ONLYOWNER_SELECT.getBoolean()
 										&& !isLeader) {
 									return;
 								}
@@ -172,7 +174,7 @@ public class GUIManager {
 								selectedTiers.addTier(tier);
 								tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 								p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
-								if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.getConfig().getBoolean("options.islands.sendMessagesToTeam")) {
+								if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
 									plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_CHANGED_BY_TEAM.toString(p, tier),
 													p.getUniqueId(),
 													true);
@@ -180,13 +182,13 @@ public class GUIManager {
 								p.closeInventory();
 							}else {
 								if(plugin.isConnectedToIslandPlugin() 
-										&& plugin.getConfig().getBoolean("options.islands.onlyOwnerCan.buy") 
+										&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
 										&& !isLeader) {
 									return;
 								}
 								//Player has not purchased the level. Now check if the player can buy the level
 								if(tm.canPlayerBuyTier(p, tier)) {
-									if(plugin.getConfig().getBoolean("options.gui.confirmpurchases")) {
+									if(Setting.GUI_CONFIRMPURCHASES.getBoolean()) {
 										new ConfirmGUI(p, tier).open();	
 									}else {
 										if(tm.purchaseTier(p, tier)) {
@@ -195,7 +197,7 @@ public class GUIManager {
 											tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
 											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
-											if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.getConfig().getBoolean("options.islands.sendMessagesToTeam")) {
+											if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
 												plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_PURCHASED_BY_TEAM.toString(p, tier),
 														p.getUniqueId(),
 														true);
@@ -234,7 +236,7 @@ public class GUIManager {
 		
 		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
 			int rows = 0;
-			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
+			boolean newLines = Setting.GUI_SEPERATECLASSESBYLINES.getBoolean();
 			if(newLines) {
 				for(String tierClass : tiers.keySet()) {
 					List<Tier> classTiers = tiers.get(tierClass);
@@ -262,17 +264,17 @@ public class GUIManager {
 	public class ConfirmGUI {
 		int tiersSize = tm.getTiersSize();
 		int guiSize = 3*9;
-		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
-		private Player player;
+		private final CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());
+		private final Player player;
 		
 		@SuppressWarnings("deprecation")
 		public ConfirmGUI(Player p, Tier tier){
 			player = p;
 			ItemStack cancelItem;
 			if(!XMaterial.supports(13)) {
-				cancelItem = new ItemStack(Material.matchMaterial("INK_SACK"), 1, (short) 1);
+				cancelItem = new ItemStack(Objects.requireNonNull(Material.matchMaterial("INK_SACK")), 1, (short) 1);
 			}else {
-				cancelItem = new ItemStack(XMaterial.RED_DYE.parseMaterial());
+				cancelItem = new ItemStack(Objects.requireNonNull(XMaterial.RED_DYE.parseMaterial()));
 			}
 			ItemMeta cancelItemMeta = cancelItem.getItemMeta();
 			cancelItemMeta.setDisplayName(Lang.GUI_CONFIRM_CANCEL.toString());
@@ -287,7 +289,6 @@ public class GUIManager {
 				public void execute(Player p) {
 					p.closeInventory();
 					new MainGUI(p).open();
-					return;
 				}
 			});
 			
@@ -310,7 +311,7 @@ public class GUIManager {
 						tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
 						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
-						if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.getConfig().getBoolean("options.islands.sendMessagesToTeam")) {
+						if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
 							plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_PURCHASED_BY_TEAM.toString(p, tier),
 									p.getUniqueId(),
 									true);
@@ -367,7 +368,7 @@ public class GUIManager {
 				ItemMeta itemMeta = item.getItemMeta();
 				List<String> lore = itemMeta.getLore();
 				lore.addAll(tier.getFormatetDescription(p));
-				if(plugin.getConfig().getBoolean("options.gui.showSupportedModes")) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
+				if(Setting.GUI_SHOWSUPPORTEDMODES.getBoolean()) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
 				String emptyString = "&a ";
 				emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
 				lore.add(emptyString);
@@ -407,7 +408,7 @@ public class GUIManager {
 									tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 									p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
 									p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
-									if(plugin.getConfig().getBoolean("options.islands.usePerIslandUnlockedGenerators") && plugin.getConfig().getBoolean("options.islands.sendMessagesToTeam")) {
+									if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
 										plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_UPGRADED_BY_TEAM.toString(p, tier),
 												p.getUniqueId(),
 												true);
@@ -433,9 +434,9 @@ public class GUIManager {
 	}
 	
 	public class AdminGUI {
-		private int GUISize = 27;
-		private CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_ADMIN_TITLE.toString());
-		private Player player;
+		private final int GUISize = 27;
+		private final CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_ADMIN_TITLE.toString());
+		private final Player player;
 		public AdminGUI(Player p) {
 			this.player = p;
 			Material redstoneTorch = null;
@@ -797,7 +798,7 @@ public class GUIManager {
 				ItemStack skull = createSkull(onlinePlayer.getName(), Lang.GUI_SELECT_PLAYER_SKULL_TITLE.toString(onlinePlayer), Lang.GUI_SELECT_PLAYER_SKULL_LORE.toStringList(onlinePlayer));
 
 
-				if(plugin.getConfig().getBoolean("debug")) {
+				if(Setting.DEBUG.getBoolean()) {
 					ItemMeta skullMeta = skull.getItemMeta();
 					List<String> lore = skullMeta.getLore();
 					lore.add(" ");
@@ -936,7 +937,7 @@ public class GUIManager {
 						lore.add(Lang.GUI_SELECT.toString());
 					}
 
-					if(plugin.getConfig().getBoolean("debug")) {
+					if(Setting.DEBUG.getBoolean()) {
 						lore.add(" ");
 						lore.add("i: " + i);
 					}
@@ -1024,7 +1025,7 @@ public class GUIManager {
 				lore.add(emptyString);
 				lore.add(Lang.GUI_ADMIN_WITHDRAW_SELECT.toString());
 
-				if(plugin.getConfig().getBoolean("debug")) {
+				if(Setting.DEBUG.getBoolean()) {
 					lore.add(" ");
 					lore.add("i: " + i);
 				}

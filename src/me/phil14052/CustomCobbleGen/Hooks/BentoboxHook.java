@@ -14,9 +14,7 @@ import world.bentobox.bentobox.database.objects.Island;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Philip
@@ -26,8 +24,14 @@ public class BentoboxHook implements IslandHook{
 
 	private BentoBox api;
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	/**
+	 * LEFT SIDE UUID IS THE MEMBER
+	 * RIGHT SIDE UUID IS THE OWNER
+	 */
+	private Map<UUID, UUID> boundUUIDs;
 	
 	public BentoboxHook() {
+		this.boundUUIDs = new HashMap<>();
 		api = (BentoBox) Bukkit.getPluginManager().getPlugin("BentoBox");
 	}
 
@@ -56,23 +60,44 @@ public class BentoboxHook implements IslandHook{
 	}
 
 	private Island getIslandFromPlayer(UUID uuid) {
-
 		User user = api.getPlayers().getUser(uuid);
 		return api.getIslands().getIsland(user.getWorld(), user);
 	}
 	
 	@Override
 	public boolean isPlayerLeader(UUID uuid) {
+		Player p = Bukkit.getPlayer(uuid);
+		if(api.getIslands().hasIsland(p.getWorld(), uuid)) return true;
 		return this.getIslandLeaderFromPlayer(uuid).equals(uuid);
 	}
 
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
-		Island island = this.getIslandFromPlayer(uuid);
-		return island.getOwner();
+		if(uuid == null) {
+			plugin.error("UUID given is null in BentoboxHook#getIslandLeaderFromPlayer(UUID uuid);");
+			return null;
+		}
+		Player p = Bukkit.getPlayer(uuid);
+		if(p != null && api.getIslands().hasIsland(p.getWorld(), uuid)) return uuid;
+
+		if(this.boundUUIDs.containsKey(uuid)) return this.boundUUIDs.get(uuid);
+
+		User user = api.getPlayers().getUser(uuid);
+		if(user == null){
+			plugin.debug(uuid + " user returns null BentoBox#getIslandFromPlayer()");
+			return null;
+		}
+
+		UUID ownerUUID = api.getIslands().getOwner(user.getWorld(), user.getUniqueId());
+		this.boundUUIDs.put(uuid, ownerUUID);
+		return ownerUUID;
 	}
 
 	@Override
+	/**
+	 * hasIsland = if they are member or owner of a island. NOT ONLY IF THEY ARE OWNER WHICH IS WHY I AM NOT USING
+	 * THE hasIsland function in the API
+	 */
 	public boolean hasIsland(UUID uuid) {
 		Island island = this.getIslandFromPlayer(uuid);
 		return island != null;

@@ -2,7 +2,7 @@
  * CustomCobbleGen By @author Philip Flyvholm
  * Response.java
  */
-package me.phil14052.CustomCobbleGen.Utils;
+package me.phil14052.CustomCobbleGen.Utils.pastebin;
 
 /**
  * @author Philip
