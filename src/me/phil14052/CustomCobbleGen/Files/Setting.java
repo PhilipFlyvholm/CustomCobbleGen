@@ -42,9 +42,9 @@ public enum Setting {
 	DISABLEDWORLDS("options.disabled.worlds", new String[] {"world_the_end"}),
 	SECTION_TIERS("tiers", "", true);
 
-	private String path;
-	private Object defaultValue;
-	private boolean section;
+	private final String path;
+	private final Object defaultValue;
+	private final boolean section;
 	private static FileConfiguration CONFIG;
 
 	Setting(String path, Object defaultValue) {

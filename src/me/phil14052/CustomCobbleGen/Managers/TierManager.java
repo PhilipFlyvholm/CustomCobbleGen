@@ -202,12 +202,10 @@ public class TierManager {
 			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
 			if(ownerUUID != null) uuid = ownerUUID;
 		}
-		plugin.debug(uuid, purchasedTiers.values().toString());
 		return purchasedTiers.containsKey(uuid);
 	}
 	
 	public SelectedTiers getSelectedTiers(UUID uuid){
-		plugin.debug(uuid.toString());
 		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
 			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
 			if(ownerUUID != null) uuid = ownerUUID;
@@ -216,7 +214,6 @@ public class TierManager {
 			return null;
 		}
 		if(!this.selectedTiersContainsUUID(uuid)) return null;
-		plugin.debug(getselectedTiersList().get(uuid).getSelectedTiersMap().size());
 		return getselectedTiersList().get(uuid);
 	}
 	

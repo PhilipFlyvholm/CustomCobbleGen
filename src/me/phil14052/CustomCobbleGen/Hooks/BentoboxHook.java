@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * BentoboxHook.java
- */
 package me.phil14052.CustomCobbleGen.Hooks;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
@@ -17,18 +13,20 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
+ * CustomCobbleGen By @author Philip Flyvholm
+ * BentoboxHook.java
  * @author Philip
  *
  */
 public class BentoboxHook implements IslandHook{
 
-	private BentoBox api;
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final BentoBox api;
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	/**
 	 * LEFT SIDE UUID IS THE MEMBER
 	 * RIGHT SIDE UUID IS THE OWNER
 	 */
-	private Map<UUID, UUID> boundUUIDs;
+	private final Map<UUID, UUID> boundUUIDs;
 	
 	public BentoboxHook() {
 		this.boundUUIDs = new HashMap<>();
@@ -44,9 +42,9 @@ public class BentoboxHook implements IslandHook{
 //			    .addMetaData(p.getLocation().getWorld().getName(), uuid)
 //			    .request();
 //		return Math.toIntExact(result);
-		int level[] = new int[]{0};
+		int[] level = new int[]{0};
 		Player p = plugin.getServer().getPlayer(uuid);
-	
+		if(p == null) return 0;
 		api.getAddonsManager().getAddonByName("Level").ifPresent(addon -> {
 			try {
 				Method method = addon.getClass().getMethod("getIslandLevel", World.class, UUID.class);
@@ -67,6 +65,7 @@ public class BentoboxHook implements IslandHook{
 	@Override
 	public boolean isPlayerLeader(UUID uuid) {
 		Player p = Bukkit.getPlayer(uuid);
+		if(p == null) return false;
 		if(api.getIslands().hasIsland(p.getWorld(), uuid)) return true;
 		return this.getIslandLeaderFromPlayer(uuid).equals(uuid);
 	}
@@ -93,11 +92,12 @@ public class BentoboxHook implements IslandHook{
 		return ownerUUID;
 	}
 
-	@Override
+
 	/**
 	 * hasIsland = if they are member or owner of a island. NOT ONLY IF THEY ARE OWNER WHICH IS WHY I AM NOT USING
 	 * THE hasIsland function in the API
 	 */
+	@Override
 	public boolean hasIsland(UUID uuid) {
 		Island island = this.getIslandFromPlayer(uuid);
 		return island != null;
@@ -144,9 +144,7 @@ public class BentoboxHook implements IslandHook{
 	 * BentoBox does not support balance. At least not known to me
 	 */
 	@Override
-	public void removeFromBalance(UUID uuid, double amount) {
-		return;
-	}
+	public void removeFromBalance(UUID uuid, double amount) {}
 
 	@Override
 	public boolean supportsIslandBalance() {

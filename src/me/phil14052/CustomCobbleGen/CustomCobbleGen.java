@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * CustomCobbleGen.java
- */
 package me.phil14052.CustomCobbleGen;
 
 
@@ -42,6 +38,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
+/**
+ * CustomCobbleGen By @author Philip Flyvholm
+ * CustomCobbleGen.java
+ */
 public class CustomCobbleGen extends JavaPlugin {
 	private static CustomCobbleGen plugin;
 	public Files lang;
@@ -57,7 +57,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	public static IslandHook islandPluginHooked = null;
 	private static String connectedMinionPlugin = "None";
 	private static String connectedIslandPlugin = "None";
-	private String consolePrefix = "&8[&3&lCustomCobbleGen&8]: ";
+	private final String CONSOLEPREFIX = "&8[&3&lCustomCobbleGen&8]: ";
 	
 	
 	@Override
@@ -279,6 +279,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
 		BlockManager.getInstance().saveGenPistonData();
 		this.reloadConfig();
+		Setting.setFile(this.getConfig());
 		this.lang.reload();
 		this.reloadPlayerConfig();
 		this.reloadSignsConfig();
@@ -438,7 +439,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	
 	public void log(String message){
-		Bukkit.getConsoleSender().sendMessage((consolePrefix + "&8&lLog &8-&7 " + message).replace("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&8&lLog &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	public void error(String message) {
@@ -447,15 +448,15 @@ public class CustomCobbleGen extends JavaPlugin {
 	
 	public void error(String message, boolean userError) {
 		if(userError) {
-			Bukkit.getConsoleSender().sendMessage((consolePrefix + "&4&lUser error &8-&c " + message).replace("&", "\u00A7"));	
+			Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&4&lUser error &8-&c " + message).replace("&", "\u00A7"));
 		}else {
 
-			Bukkit.getConsoleSender().sendMessage((consolePrefix + "&4&lError &8-&c " + message).replace("&", "\u00A7"));
+			Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&4&lError &8-&c " + message).replace("&", "\u00A7"));
 		}
 	}
 	
 	public void warning(String message) {
-		Bukkit.getConsoleSender().sendMessage((consolePrefix + "&4&lWarning &8-&7 " + message).replace("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&4&lWarning &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	

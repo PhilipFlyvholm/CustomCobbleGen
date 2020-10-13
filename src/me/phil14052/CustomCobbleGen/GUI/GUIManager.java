@@ -29,10 +29,10 @@ public class GUIManager {
 
 	private static GUIManager instance = null;
 	private final ItemStack backgroundItem = new ItemLib(XMaterial.GRAY_STAINED_GLASS_PANE.parseMaterial(), 1, (short) 7, " ").create();
-	private TierManager tm = TierManager.getInstance();
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
-	private PermissionManager pm = new PermissionManager();
-	private Map<Player, ChatReturn> playerChatting = new HashMap<Player, ChatReturn>();
+	private final TierManager tm = TierManager.getInstance();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final PermissionManager pm = new PermissionManager();
+	private Map<Player, ChatReturn> playerChatting = new HashMap<>();
 	
 	public Icon getNoPermissionsIcon(String permission) {
 		return new Icon(
@@ -47,11 +47,11 @@ public class GUIManager {
 	}
 	
 	public class MainGUI {
-		private Map<String, List<Tier>> tiers = tm.getTiers();
-		int tiersSize = tm.getTiersSize();
+		private final Map<String, List<Tier>> tiers = tm.getTiers();
+		//int tiersSize = tm.getTiersSize();
 		int guiSize = getGUISize(tiers, false);
-		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
-		private Player player;
+		private final CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());
+		private final Player player;
 		private boolean failedLoad = false;
 		
 		public MainGUI(Player p){
@@ -87,7 +87,8 @@ public class GUIManager {
 					ItemMeta itemMeta = item.getItemMeta();
 					if(itemMeta == null) continue;
 					List<String> lore = itemMeta.getLore();
-					if(lore != null) lore.addAll(tier.getFormatetDescription(p));
+					if(lore == null) lore = new ArrayList<>();
+					lore.addAll(tier.getFormatetDescription(p));
 					if(Setting.GUI_SHOWSUPPORTEDMODES.getBoolean()) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
 					String emptyString = "&a ";
 					emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
@@ -115,6 +116,9 @@ public class GUIManager {
 						if(plugin.isConnectedToIslandPlugin() 
 								&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
 								&& !isLeader) {
+
+							if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+							if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
 							//Only owners can select and player is not a owner/leader
 							lore.add(Lang.GUI_BUY_LEADER_ONLY.toString());
 						}else {

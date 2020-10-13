@@ -19,17 +19,18 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class MainCommand implements CommandExecutor{
 
-	private GUIManager guiManager = GUIManager.getInstance();
-	private TierManager tm = TierManager.getInstance();
-	private PermissionManager pm = new PermissionManager();
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final GUIManager guiManager = GUIManager.getInstance();
+	private final TierManager tm = TierManager.getInstance();
+	private final PermissionManager pm = new PermissionManager();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
 		if(args.length < 1){
 			if(Setting.GUI_PERMISSIONNEEDED.getBoolean()) {
 				if(!pm.hasPermission(sender, "customcobblegen.gui", true)) return false;
@@ -72,10 +73,9 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				p.sendMessage(Lang.PREFIX.toString() + Lang.SHOW_TIER_SELF.toString(p));
-				return true;
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.tier.other", true)) return false;
-				Player p = (Player) Bukkit.getPlayer(args[1]);
+				Player p = Bukkit.getPlayer(args[1]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -92,7 +92,7 @@ public class MainCommand implements CommandExecutor{
 				}
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.SHOW_TIER_OTHER.toString(p));
 				return true;
-				
+
 			}
 		}else if(args[0].equalsIgnoreCase("upgrade")){
 			if(!pm.hasPermission(sender, "customcobblegen.upgrade", true)) return false;
@@ -103,7 +103,7 @@ public class MainCommand implements CommandExecutor{
 			}
 			Player p = (Player) sender;
 			if(plugin.isConnectedToIslandPlugin() 
-					&& Setting.ISLANDS_ONLYOWNER_SELECT.getBoolean()
+					&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
 					&& !plugin.getIslandHook().isPlayerLeader(p.getUniqueId())) {
 				p.sendMessage(Lang.PREFIX.toString() + Lang.GUI_BUY_LEADER_ONLY.toString());
 				return false;
@@ -178,12 +178,13 @@ public class MainCommand implements CommandExecutor{
 			
 		}else if(args[0].equalsIgnoreCase("admin")){
 			if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
+			String adminUsage = Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label);
 			if(args.length < 2){
 				if(Setting.GUI_ADMINGUI.getBoolean() && sender instanceof Player) {
 					Player p = (Player) sender;
 					guiManager.new AdminGUI(p).open();
 				}else {
-					sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));
+					sender.sendMessage(adminUsage);
 				}
 				return false;
 			}
@@ -214,7 +215,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin settier (Player) (Class) (Level)");
 					return false;
 				}
-				Player p = (Player) Bukkit.getPlayer(args[2]);
+				Player p = Bukkit.getPlayer(args[2]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -246,7 +247,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin givetier (Player) (Class) (Level)");
 					return false;
 				}
-				Player p = (Player) Bukkit.getPlayer(args[2]);
+				Player p = Bukkit.getPlayer(args[2]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -281,7 +282,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin givetier (Player) (Class) (Level)");
 					return false;
 				}
-				Player p = (Player) Bukkit.getPlayer(args[2]);
+				Player p = Bukkit.getPlayer(args[2]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -325,7 +326,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin forcebuy (Player) (Class) (Level)");
 					return false;
 				}
-				Player p = (Player) Bukkit.getPlayer(args[2]);
+				Player p = Bukkit.getPlayer(args[2]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -390,7 +391,7 @@ public class MainCommand implements CommandExecutor{
 							return true;
 						}
 						
-						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on island accessable by plugin"));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on island accessible by plugin"));
 						int level = plugin.getIslandHook().getIslandLevel(uuid);
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Your uuid: &8" + uuid));
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6isLeader: &8" + plugin.getIslandHook().isPlayerLeader(uuid)));
@@ -398,7 +399,7 @@ public class MainCommand implements CommandExecutor{
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Players online: &8" + Arrays.toString(plugin.getIslandHook().getArrayOfIslandMembers(uuid))));
 						
 					}else if(args[2].equalsIgnoreCase("selected")) {
-						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on selected tiers accessable by plugin"));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on selected tiers accessible by plugin"));
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8Number of selected tiers loaded: &6" + tm.getselectedTiers().size()));
 						
 						SelectedTiers tiers = tm.getSelectedTiers(p.getUniqueId());
@@ -427,7 +428,7 @@ public class MainCommand implements CommandExecutor{
 				
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
-				sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));
+				sender.sendMessage(adminUsage);
 				return false;
 			}
 			return true;
