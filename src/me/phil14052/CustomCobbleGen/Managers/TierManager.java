@@ -4,27 +4,20 @@
  */
 package me.phil14052.CustomCobbleGen.Managers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import me.phil14052.CustomCobbleGen.Requirements.*;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitScheduler;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.Requirement;
-import me.phil14052.CustomCobbleGen.Requirements.XpRequirement;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import java.util.*;
 
 public class TierManager {
 
@@ -33,12 +26,16 @@ public class TierManager {
 	private static TierManager instance = null;
 	private CustomCobbleGen plugin = null;
 	private Map<String, List<Tier>> tiers;
-	private BlockManager bm;
-	private PermissionManager pm;
-	private GeneratorModeManager gm;
-	
+	private final BlockManager bm;
+	private final PermissionManager pm;
+	private final GeneratorModeManager gm;
+	private int task = -1;
+
+	private final BukkitScheduler scheduler;
+
 	public TierManager(){
 		plugin = CustomCobbleGen.getInstance();
+		scheduler = Bukkit.getServer().getScheduler();
 		bm = BlockManager.getInstance();
 		pm = new PermissionManager();
 		gm = GeneratorModeManager.getInstance();
@@ -50,12 +47,15 @@ public class TierManager {
 		if(!plugin.getConfig().contains("tiers")) return;
 		tiers = new LinkedHashMap<String, List<Tier>>();
 		ConfigurationSection configTiers = plugin.getConfig().getConfigurationSection("tiers");
+		if(configTiers == null){
+			plugin.error("Tiers are not defined", true);
+		}
 		for(String tierClass : configTiers.getKeys(false)){
 			boolean classNeedsUserChange = false;
 			List<Tier> tierLevelsList = new ArrayList<Tier>();
 			for(String tierLevelString : configTiers.getConfigurationSection(tierClass).getKeys(false)){
 				boolean levelNeedsUserChange = false;
-				if(!StringUtils.isInteger(tierLevelString)){plugin.log(tierClass + " has a text as level instead of a number."); continue;}
+				if(!StringUtils.isInteger(tierLevelString)){plugin.error(tierClass + " has a text as level instead of a number.", true); continue;}
 				ConfigurationSection tierSection = configTiers.getConfigurationSection(tierClass + "." + tierLevelString);
 				int tierLevel = Integer.parseInt(tierLevelString);
 				String name = tierSection.getString("name");
@@ -66,7 +66,7 @@ public class TierManager {
 				for(String resultMaterialString : tierSection.getConfigurationSection("contains").getKeys(false)){
 					Material resultMaterial = Material.matchMaterial(resultMaterialString.toUpperCase());
 					if(resultMaterial == null) {
-						plugin.log("&c&lUser Error: The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name");
+						plugin.error("The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name", true);
 						resultMaterial = Material.COBBLESTONE;
 						levelNeedsUserChange = true;
 						classNeedsUserChange = true;
@@ -76,10 +76,10 @@ public class TierManager {
 					results.put(resultMaterial, percentage);
 				}
 				if(totalPercentage > 100D) {
-					plugin.log("&c&lUser Error: Results total percentage is over 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
+					plugin.warning("&c&lUser Error: &7Results total percentage is over 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
 				}else if(totalPercentage < 100D) {
-					plugin.log("&c&lUser Error: Results total percentage is under 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
-					plugin.log("&c&lTHIS CAN GIVE NULL POINTER ERRORS! THESE ARE USER ERRORS AND NEED TO BE FIXED BY YOU!");
+					plugin.error("Results total percentage is under 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage, true);
+					plugin.error("&c&lTHIS CAN GIVE NULL POINTER ERRORS! THESE ARE USER ERRORS AND NEED TO BE FIXED BY YOU!", true);
 				}
 				
 				List<Requirement> requirements = new ArrayList<Requirement>();
@@ -142,7 +142,7 @@ public class TierManager {
 							int id = Integer.parseInt(tierSection.getString("supportedGenerationMode"));
 							supportedMode = gm.getModeById(id);
 						}catch(NumberFormatException e) {
-							plugin.log("&c&lUser error: &e" + supportedGenerationModeString + " is not a valid generation mode id. MOST BE A NUMBER or \"ALL\" - Fallback: Will allow all generators");
+							plugin.error(supportedGenerationModeString + " is not a valid generation mode id. MOST BE A NUMBER or \"ALL\" - Fallback: Will allow all generators", true);
 						}
 					}
 				}
@@ -179,19 +179,40 @@ public class TierManager {
 	}
 	
 	public void setPlayerSelectedTiers(UUID uuid, SelectedTiers tier){
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+			if(ownerUUID != null) uuid = ownerUUID;
+		}
 		if(this.selectedTiersContainsUUID(uuid)) this.selectedTiers.remove(uuid);
 		this.addUUID(uuid, tier);
 	}
 	
 	public boolean selectedTiersContainsUUID(UUID uuid){
 		if(uuid == null) return false;
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+			if(ownerUUID != null) uuid = ownerUUID;
+		}
 		return selectedTiers.containsKey(uuid);
 	}
+
 	public boolean purchasedTiersContainsUUID(UUID uuid){
+		if(uuid == null) return false;
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+			if(ownerUUID != null) uuid = ownerUUID;
+		}
 		return purchasedTiers.containsKey(uuid);
 	}
 	
 	public SelectedTiers getSelectedTiers(UUID uuid){
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+			if(ownerUUID != null) uuid = ownerUUID;
+		}
+		if(uuid == null) {
+			return null;
+		}
 		if(!this.selectedTiersContainsUUID(uuid)) return null;
 		return getselectedTiersList().get(uuid);
 	}
@@ -222,18 +243,20 @@ public class TierManager {
 	public void loadPlayerData(UUID uuid){
 		if(this.selectedTiersContainsUUID(uuid)) this.selectedTiers.remove(uuid);
 		if(this.purchasedTiersContainsUUID(uuid)) this.purchasedTiers.remove(uuid);
-		if(uuid == null) return;
+		if(uuid == null) {
+			plugin.error("UUID in player.yml is null");
+			return;
+		}
 		if(!plugin.getPlayerConfig().contains("players." + uuid)) return; //New Player
 		SelectedTiers selectedTiers = new SelectedTiers(uuid, new ArrayList<Tier>());
 		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players." + uuid);
 		if(playerSection.contains("selected")) {
 			for(String s : playerSection.getConfigurationSection("selected").getKeys(false)) {
-				
 				int tierLevel = playerSection.getInt("selected." + s + ".level");
 				String tierClass = playerSection.getString("selected." + s + ".class");
 				Tier tier = this.getTierByLevel(tierClass, tierLevel);
 				if(tier == null) {
-					plugin.log("&cERROR: selected tiers loaded incorrectly for " + uuid + " - Skipping load");
+					plugin.error("Selected tiers loaded incorrectly for " + uuid + " - Skipping load");
 				}else {
 					selectedTiers.addTier(tier);		
 				}
@@ -274,6 +297,7 @@ public class TierManager {
 	public void saveSelectedTiersPlayerData(UUID uuid) {
 		if(this.selectedTiersContainsUUID(uuid)) {
 			SelectedTiers selectedTiers = getSelectedTiers(uuid);
+			if(selectedTiers == null) return;
 			plugin.debug("Saving selected tier for " + uuid + ". Currently selected tiers " + selectedTiers.toString());
 			int i = 0;
 			plugin.getPlayerConfig().set("players." + uuid + ".selected", null);
@@ -286,17 +310,22 @@ public class TierManager {
 	}
 	
 	public void savePurchasedTiersPlayerData(UUID uuid) {
-		
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
 		if(this.purchasedTiersContainsUUID(uuid)) {
+			if(plugin.getPlayerConfig() == null){
+				plugin.error("MISSING PLAYER.YML FILE");
+				return;
+			}
 			List<Tier> purchasedTiers = this.getPurchasedTiers().get(uuid);
+			if(purchasedTiers == null) return;
+			plugin.getPlayerConfig().set("players." + uuid + ".purchased", null);
 			for(Tier purchasedTier : purchasedTiers){
-				List<Integer> purchasedLevels = new ArrayList<Integer>();
-				if(plugin.getPlayerConfig() == null){
-					plugin.log("&cERROR: &7MISSING PLAYER.YML FILE");
-					return;
-				}
+				List<Integer> purchasedLevels = new ArrayList<>();
+				
 				if(purchasedTier == null) {
-					plugin.log("&c&lUser Error: Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!");
+					plugin.error("Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!", true);
 					plugin.log("&c&lIf not manually added then please report this to the dev");
 					continue;
 				}
@@ -313,8 +342,8 @@ public class TierManager {
 	
 	public boolean canPlayerBuyTier(Player p, Tier tier) {
 		if(!p.isOnline()) return false;
+		
 		if(!tier.getTierClass().equals("DEFAULT") && !pm.hasPermission(p, "customcobblegen.generator." + tier.getTierClass(), false)) return false;
-		plugin.log(tier.hasCustomPermission(), tier.getCustomPermission());
 		if(tier.hasCustomPermission() && !pm.hasPermission(p, tier.getCustomPermission(), false)) return false;
 		for(Requirement r : tier.getRequirements()) {
 			if(!r.furfillsRequirement(p)) return false;
@@ -335,14 +364,22 @@ public class TierManager {
 		}
 		//Buy the tier
 		if(this.hasPlayerPurchasedLevel(p, tier)) return false;
-		this.getPlayersPurchasedTiers(p.getUniqueId()).add(tier);
+		UUID uuid = p.getUniqueId();
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+			if(ownerUUID != null) uuid = ownerUUID;
+		}
+		this.getPlayersPurchasedTiers(uuid).add(tier);
 		//Save the players.yml file so players don't repay
-		if(plugin.getConfig().getBoolean("options.saveOnTierPurchase")) this.saveAllPlayerData();
+		if(Setting.SAVEONTIERPURCHASE.getBoolean()) this.saveAllPlayerData();
 		return true;
 	}
 	
 	public void withdrawPurchasedTier(UUID uuid, Tier tier) {
-		if(this.getPlayersPurchasedTiers(uuid).contains(tier)) this.getPlayersPurchasedTiers(uuid).remove(tier);
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
+		if(this.getPlayersPurchasedTiers(uuid).contains(tier)) this.getPurchasedTiers().get(uuid).remove(tier);
 	}
 
 	public boolean hasPlayerPurchasedLevel(Player p, Tier tier) {
@@ -351,11 +388,15 @@ public class TierManager {
 			return hasPlayerPurchasedLevel(p, tier);
 		}
 		if(tier == null) return false;
-		if(tier.getLevel() <= 0 && tier.getTierClass() == "DEFAULT") return true;
+		if(tier.getLevel() <= 0 && tier.getTierClass().equals("DEFAULT")) return true;
 		UUID uuid = p.getUniqueId();
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+			if(ownerUUID != null) uuid = ownerUUID;
+		}
 		List<Tier> purchasedTiersByClass = this.getPlayersPurchasedTiersByClass(uuid, tier.getTierClass());
 		if(purchasedTiersByClass == null) {
-			plugin.log("Unknown tier purchases from - " + p.getName());
+			plugin.warning("Unknown tier purchases from - " + p.getName());
 			return false;
 		}
 		for(Tier tierI : purchasedTiersByClass) {
@@ -367,6 +408,10 @@ public class TierManager {
 	
 	public boolean hasPlayerPurchasedPreviousLevel(Player p, Tier nextTier) {
 		UUID uuid = p.getUniqueId();
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+			if(ownerUUID != null) uuid = ownerUUID;
+		}
 		if(this.purchasedTiers.size() == 0) {
 			this.givePlayerStartPurchases(p);
 			return hasPlayerPurchasedPreviousLevel(p, nextTier);
@@ -433,6 +478,11 @@ public class TierManager {
 	}
 	
 	public List<Tier> getPlayersPurchasedTiers(UUID uuid) {
+
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+			if(ownerUUID != null) uuid = ownerUUID;
+		}
 		if(!this.getPurchasedTiers().containsKey(uuid)) {
 			List<Tier> emptyTierList = new ArrayList<Tier>();
 			return emptyTierList;
@@ -481,6 +531,30 @@ public class TierManager {
 	public void setTiers(Map<String, List<Tier>> tiers) {
 		this.tiers = tiers;
 	}
-	
+
+	public boolean isAutoSaveActive(){
+		if(task < 0) return false;
+		return scheduler.isCurrentlyRunning(task);
+	}
+
+	public void startAutoSave(){
+		if(this.isAutoSaveActive()) this.stopAutoSave();
+		task = scheduler.scheduleSyncRepeatingTask(plugin, new Runnable() {
+			@Override
+			public void run() {
+				plugin.log("Auto saving player data...");
+				long time1 = System.currentTimeMillis();
+				saveAllPlayerData();
+				long time2 = System.currentTimeMillis();
+				double time3 = Double.longBitsToDouble(time2-time1)/1000;
+				plugin.log("Player data has been saved. It took: " + time3 + " seconds");
+			}
+		}, 0L, Setting.AUTO_SAVE_DELAY.getInt()*20L);
+	}
+	public void stopAutoSave(){
+		if(task < 0) return;
+		scheduler.cancelTask(task);
+	}
+
 	
 }

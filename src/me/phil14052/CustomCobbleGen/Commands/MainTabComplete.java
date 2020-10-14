@@ -4,19 +4,18 @@
  */
 package me.phil14052.CustomCobbleGen.Commands;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Philip
@@ -34,6 +33,7 @@ public class MainTabComplete implements TabCompleter{
 			subCommands.add("help");
 			if(pm.hasPermission(sender, "customcobblegen.tier", false)) subCommands.add("tier");
 			if(pm.hasPermission(sender, "customcobblegen.admin", false)) subCommands.add("admin");
+			if(pm.hasPermission(sender, "customcobblegen.upgrade", false)) subCommands.add("upgrade");
 			return subCommands;	
 		} else if(args.length < 3 && args[0].equalsIgnoreCase("tier") && pm.hasPermission(sender, "customcobblegen.tier.other", false)) {
 			List<String> subArgs = new ArrayList<>();
@@ -49,6 +49,8 @@ public class MainTabComplete implements TabCompleter{
 			if(pm.hasPermission(sender, "customcobblegen.admin.givetier", false)) subArgs.add("givetier");
 			if(pm.hasPermission(sender, "customcobblegen.admin.forcebuy", false)) subArgs.add("forcebuy");
 			if(pm.hasPermission(sender, "customcobblegen.admin.withdraw", false)) subArgs.add("withdraw");
+			if(pm.hasPermission(sender, "customcobblegen.admin.pastebin", false)) subArgs.add("pastebin");
+			subArgs.add("support");
 			return subArgs;	
 		} else if(args.length < 4 && args[0].equalsIgnoreCase("admin")) {
 			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")  || args[1].equalsIgnoreCase("withdraw")) {

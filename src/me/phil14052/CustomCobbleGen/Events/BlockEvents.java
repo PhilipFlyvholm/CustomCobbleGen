@@ -4,12 +4,16 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.UUID;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.GeneratorGenerateEvent;
+import me.phil14052.CustomCobbleGen.API.PlayerBreakGeneratedBlock;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import me.phil14052.CustomCobbleGen.Managers.*;
+import me.phil14052.CustomCobbleGen.Signs.*;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,51 +22,31 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFromToEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.block.*;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.GeneratorGenerateEvent;
-import me.phil14052.CustomCobbleGen.API.PlayerBreakGeneratedBlock;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.GenBlock;
-import me.phil14052.CustomCobbleGen.Managers.GenMode;
-import me.phil14052.CustomCobbleGen.Managers.GenPiston;
-import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Signs.BuySign;
-import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
-import me.phil14052.CustomCobbleGen.Signs.GUISign;
-import me.phil14052.CustomCobbleGen.Signs.SelectSign;
-import me.phil14052.CustomCobbleGen.Signs.SignManager;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class BlockEvents implements Listener{
 
-	private TierManager tm = TierManager.getInstance();
-	private BlockManager bm = BlockManager.getInstance();
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
-	private SignManager signManager = SignManager.getInstance();
-	private PermissionManager pm = new PermissionManager();
-	private GeneratorModeManager genModeManager = GeneratorModeManager.getInstance();
+	private final TierManager tm = TierManager.getInstance();
+	private final BlockManager bm = BlockManager.getInstance();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final SignManager signManager = SignManager.getInstance();
+	private final PermissionManager pm = new PermissionManager();
+	private final GeneratorModeManager genModeManager = GeneratorModeManager.getInstance();
 
 	@EventHandler
 	public void onBlockFlow(BlockFromToEvent e){
 		Block b = e.getBlock();
-		if(isWorldDisabled(b.getLocation().getWorld())) return;
+		if(isWorldDisabled(Objects.requireNonNull(b.getLocation().getWorld()))) return;
 		Material m = b.getType();
-		if(XMaterial.supports(13) && plugin.getConfig().getBoolean("options.supportWaterloggedBlocks")) { //Check for waterlogged block
+		if(XMaterial.supports(13) && Setting.SUPPORTWATERLOGGEDBLOCKS.getBoolean()) { //Check for waterlogged block
 			if(b.getBlockData() instanceof Waterlogged) { //Checked separately so prev 1.13 do not try to use a class that does not exist
 				Waterlogged waterloggedBlock = (Waterlogged) b.getBlockData();
 				if(waterloggedBlock.isWaterlogged()) m = Material.WATER; //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
@@ -73,12 +57,20 @@ public class BlockEvents implements Listener{
 			if(!mode.containsLiquidBlock() || !mode.isValid() || mode.isWorldDisabled(b.getLocation().getWorld())) continue;
 			Block toBlock = e.getToBlock();
 			Material toBlockMaterial = toBlock.getType();
+			if(XMaterial.supports(13) && Setting.SUPPORTWATERLOGGEDBLOCKS.getBoolean()) { //Check for waterlogged block
+				if(toBlock.getBlockData() instanceof Waterlogged) { //Checked separately so prev 1.13 do not try to use a class that does not exist
+					Waterlogged waterloggedBlock = (Waterlogged) toBlock.getBlockData();
+					if(waterloggedBlock.isWaterlogged()) { //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
+						toBlockMaterial = Material.WATER;
+					}
+				}
+			}
 			if(toBlockMaterial.equals(Material.AIR) || mode.containsBlock(toBlockMaterial)){
 				if(isGenerating(mode, m, toBlock)){
 					Location l = toBlock.getLocation();
 					//Checks if the block has been broken before and if it is a known gen location
 					if(!bm.isGenLocationKnown(l) && mode.isSearchingForPlayersNearby()) {
-						Double searchRadius = plugin.getConfig().getDouble("options.playerSearchRadius");
+						double searchRadius = Setting.PLAYERSEARCHRADIUS.getDouble();
 						Collection<Entity> entitiesNearby = l.getWorld().getNearbyEntities(l, searchRadius, searchRadius, searchRadius);
 						Player closestPlayer = null;
 						double closestDistance = 100D;
@@ -107,8 +99,10 @@ public class BlockEvents implements Listener{
 							bm.removeKnownGenLocation(l);
 							return;
 						}
-						UUID uuid = gb.getUUID(); //Get the player who broke the blocks tier
+						
+						UUID uuid = gb.getUUID(); //Get the uuid of the player who broke the blocks tier
 						SelectedTiers selectedTiers = tm.getSelectedTiers(uuid); // ^
+						if(selectedTiers == null) return;
 						Tier tier = null;
 						if(selectedTiers.getSelectedTiersMap().get(mode) == null) {
 							tier = selectedTiers.getSelectedTiersMap().get(genModeManager.getUniversalGenMode());
@@ -121,24 +115,28 @@ public class BlockEvents implements Listener{
 							Bukkit.getPluginManager().callEvent(event);
 							if(event.isCancelled()) return;
 							if(event.getResult() == null) {
-								plugin.log("&cUnkown material in " + event.getTierUsed().getName() + " tier.");
+								plugin.error("&cUnkown material in " + event.getTierUsed().getName() + " tier.", true);
 								return;
 							}
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
+							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), 2.0F, 1.0F); //Play sound if configured
+							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
 							return;
 						}else if(mode.hasFallBackMaterial()){
 							Material fallback = mode.getFallbackMaterial();
-							plugin.log(fallback);
 							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, fallback, uuid, toBlock.getLocation(), true);
 							Bukkit.getPluginManager().callEvent(event);
 							if(event.isCancelled()) return;
 							if(event.getResult() == null) {
-								plugin.log("&cUnkown fallback material in " + mode.getId() + " mode.");
+								plugin.error("Unkown fallback material in " + mode.getId() + " mode.", true);
 								return;
 							}
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(fallback); //Get a random material and replace the block
+							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), 2.0F, 1.0F); //Play sound if configured
+							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
+							
 							return;
 						}
 					}else {
@@ -147,6 +145,21 @@ public class BlockEvents implements Listener{
 					}
 				}
 			}
+		}
+	}
+	
+	@EventHandler
+	public void onBlockChange(EntityChangeBlockEvent e) { // Makes it possible to spawn sand, gravel and other falling blocks
+		if(!e.getEntityType().equals(EntityType.FALLING_BLOCK) 
+				|| !(e.getTo().equals(Material.AIR) 
+						|| e.getTo().name().contains("WATER")  
+						|| e.getTo().name().contains("LAVA"))) return;
+		if(!Setting.SAVEONTIERPURCHASE.getBoolean()) return;
+		
+		Location loc = e.getBlock().getLocation();
+		if(bm.isGenLocationKnown(loc)) {
+			e.setCancelled(true);
+			e.getBlock().getState().update(false, false);
 		}
 	}
 	
@@ -245,7 +258,7 @@ public class BlockEvents implements Listener{
 	@EventHandler
 	public void onPistonPush(BlockPistonExtendEvent e) {
 		if(isWorldDisabled(e.getBlock().getWorld())) return;
-		if(!plugin.getConfig().getBoolean("options.automation.pistons")) return;
+		if(!Setting.AUTOMATION_PISTONS.getBoolean()) return;
 		if(!bm.getKnownGenPistons().containsKey(e.getBlock().getLocation())) return;
 		GenPiston piston = bm.getKnownGenPistons().get(e.getBlock().getLocation());
 		Location genBlockLoc = e.getBlock().getRelative(e.getDirection()).getLocation();
@@ -259,10 +272,15 @@ public class BlockEvents implements Listener{
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent e) {
 		if(isWorldDisabled(e.getBlock().getWorld())) return;
-		if(!plugin.getConfig().getBoolean("options.automation.pistons")) return;
+		if(!Setting.AUTOMATION_PISTONS.getBoolean()) return;
 		if(e.getBlock().getType() != XMaterial.PISTON.parseMaterial()) return;
-		if(e.getPlayer() == null || !e.getPlayer().isOnline()) return;
-		GenPiston piston = new GenPiston(e.getBlock().getLocation(), e.getPlayer().getUniqueId());
+		Player p = e.getPlayer();
+		if(!p.isOnline()) return;
+		UUID uuid = p.getUniqueId();
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
+		GenPiston piston = new GenPiston(e.getBlock().getLocation(), uuid);
 		bm.addKnownGenPiston(piston);
 	}
 	
@@ -304,7 +322,7 @@ public class BlockEvents implements Listener{
 	}
 	
 	public boolean isWorldDisabled(World world) {
-		return plugin.getConfig().getList("options.disabled.worlds").contains(world.getName());
+		return Setting.DISABLEDWORLDS.getStringList().contains(world.getName());
 	}
 	
 	private final BlockFace[] faces = new BlockFace[]{
@@ -327,7 +345,14 @@ public class BlockEvents implements Listener{
 				testedFaces.add(entry.getKey());
 				if(this.isSameMaterial(entry.getValue().name(), fromM.name())) continue;  // Should not check for the original block
 				Block r = toB.getRelative(entry.getKey(), 1);
-				if(this.isSameMaterial(r.getType().name(), entry.getValue().name())){
+				Material rm = r.getType();
+				if(XMaterial.supports(13) && Setting.SUPPORTWATERLOGGEDBLOCKS.getBoolean()) { //Check for waterlogged block
+					if(r.getBlockData() instanceof Waterlogged) { //Checked separately so prev 1.13 do not try to use a class that does not exist
+						Waterlogged waterloggedBlock = (Waterlogged) r.getBlockData();
+						if(waterloggedBlock.isWaterlogged()) rm = Material.WATER; //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
+					}
+				}
+				if(this.isSameMaterial(rm.name(), entry.getValue().name())){
 					blocksFound++; /** This block is positioned correctly; */
 				}else {
 					return false; /** This block is not positioned correctly so we stop testing */
@@ -339,12 +364,19 @@ public class BlockEvents implements Listener{
 				if(testedFaces.contains(face)) continue;
 				testedFaces.add(face);
 				Block r = toB.getRelative(face, 1);
-				if(this.isSameMaterial(r.getType().name(), fromM.name())) { // Should not check for the original block
+				Material rm = r.getType();
+				if(XMaterial.supports(13) && Setting.SUPPORTWATERLOGGEDBLOCKS.getBoolean()) { //Check for waterlogged block
+					if(r.getBlockData() instanceof Waterlogged) { //Checked separately so prev 1.13 do not try to use a class that does not exist
+						Waterlogged waterloggedBlock = (Waterlogged) r.getBlockData();
+						if(waterloggedBlock.isWaterlogged()) rm = Material.WATER; //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
+					}
+				}
+				if(this.isSameMaterial(rm.name(), fromM.name())) { // Should not check for the original block
 					continue;
 				}
 				
 				for(Material mirrorMaterial : mode.getBlocks()) {
-					if(this.isSameMaterial(r.getType().name(), mirrorMaterial.name())){
+					if(this.isSameMaterial(rm.name(), mirrorMaterial.name())){
 						blocksFound++; /** This block is positioned correctly; */
 					}
 				}
@@ -353,7 +385,7 @@ public class BlockEvents implements Listener{
 
 		blocksFound++;
 		int blocksNeeded = (mode.getBlocks().size() + mode.getFixedBlocks().size());	
-		return blocksFound == blocksNeeded;
+		return blocksFound >= blocksNeeded;
 	}
 	
 

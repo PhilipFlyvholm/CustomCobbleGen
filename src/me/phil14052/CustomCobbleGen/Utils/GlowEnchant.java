@@ -38,7 +38,7 @@ public class GlowEnchant extends Enchantment{
 		return 0;
 	}
 
-	@Override
+	@Deprecated @Override
 	public String getName() {
 		return null;
 	}
@@ -48,7 +48,7 @@ public class GlowEnchant extends Enchantment{
 		return 0;
 	}
 
-	@Override
+	@Deprecated @Override
 	public boolean isCursed() {
 		return false;
 	}

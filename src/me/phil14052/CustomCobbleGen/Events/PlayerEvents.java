@@ -4,11 +4,18 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.GUI.GUIManager;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
+import me.phil14052.CustomCobbleGen.Signs.SignManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,19 +28,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.GUI.GUIManager;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
-import me.phil14052.CustomCobbleGen.Signs.SignManager;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * @author Philip
@@ -41,12 +39,12 @@ import me.phil14052.CustomCobbleGen.Signs.SignManager;
  */
 public class PlayerEvents implements Listener {
 
-	private TierManager tm = TierManager.getInstance();
-	private BlockManager bm = BlockManager.getInstance();
-	private SignManager signManager = SignManager.getInstance();
-	private PermissionManager pm =  new PermissionManager();
-	private GUIManager guiManager = GUIManager.getInstance();
-	private static CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final TierManager tm = TierManager.getInstance();
+	private final BlockManager bm = BlockManager.getInstance();
+	private final SignManager signManager = SignManager.getInstance();
+	private final PermissionManager pm =  new PermissionManager();
+	private final GUIManager guiManager = GUIManager.getInstance();
+	private final static CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
@@ -71,6 +69,7 @@ public class PlayerEvents implements Listener {
 	public void onPlayerInteract(PlayerInteractEvent e) {
 		if(!signManager.areSignsEnabled()) return;
 		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+		if(e.getClickedBlock() == null) return;
 		if(isSign(e.getClickedBlock().getType())) {
 			ClickableSign sign = signManager.getSignFromLocation(e.getClickedBlock().getLocation());
 			if(sign == null) return;
@@ -122,7 +121,7 @@ public class PlayerEvents implements Listener {
 					ItemStack icon = new ItemStack(Material.matchMaterial(input));
 					tier.setIcon(icon);
 				}else {
-					plugin.log("&4ERROR: &cUnkown ChatReturnType: " + type.name() + " in PlayerEvents.onPlayerChat()");
+					plugin.error("Unkown ChatReturnType: " + type.name() + " in PlayerEvents.onPlayerChat()");
 					guiManager.removePlayerChatting(p);
 					return;
 				}

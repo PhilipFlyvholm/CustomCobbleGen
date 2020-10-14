@@ -1,16 +1,28 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * CustomCobbleGen.java
- */
 package me.phil14052.CustomCobbleGen;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Commands.MainCommand;
+import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
+import me.phil14052.CustomCobbleGen.Events.BlockEvents;
+import me.phil14052.CustomCobbleGen.Events.MinionEvents;
+import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
+import me.phil14052.CustomCobbleGen.Files.*;
+import me.phil14052.CustomCobbleGen.Files.updaters.ConfigUpdater;
+import me.phil14052.CustomCobbleGen.Files.updaters.LangFileUpdater;
+import me.phil14052.CustomCobbleGen.Files.updaters.PlayerFileUpdater;
+import me.phil14052.CustomCobbleGen.Files.updaters.SignsFileUpdater;
+import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
+import me.phil14052.CustomCobbleGen.Hooks.*;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
+import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.SignManager;
+import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
+import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
+import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -19,34 +31,17 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.cryptomorin.xseries.XMaterial;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 
-import me.phil14052.CustomCobbleGen.Commands.MainCommand;
-import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
-import me.phil14052.CustomCobbleGen.Events.BlockEvents;
-import me.phil14052.CustomCobbleGen.Events.MinionEvents;
-import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
-import me.phil14052.CustomCobbleGen.Files.ConfigUpdater;
-import me.phil14052.CustomCobbleGen.Files.Files;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Files.LangFileUpdater;
-import me.phil14052.CustomCobbleGen.Files.PlayerFileUpdater;
-import me.phil14052.CustomCobbleGen.Files.SignsFileUpdater;
-import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
-import me.phil14052.CustomCobbleGen.Hooks.ASkyBlockHook;
-import me.phil14052.CustomCobbleGen.Hooks.BentoboxHook;
-import me.phil14052.CustomCobbleGen.Hooks.FabledHook;
-import me.phil14052.CustomCobbleGen.Hooks.IslandLevelHook;
-import me.phil14052.CustomCobbleGen.Hooks.uSkyBlockHook;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
-import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Signs.SignManager;
-import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
-import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
-import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
-
+/**
+ * CustomCobbleGen By @author Philip Flyvholm
+ * CustomCobbleGen.java
+ */
 public class CustomCobbleGen extends JavaPlugin {
 	private static CustomCobbleGen plugin;
 	public Files lang;
@@ -59,24 +54,27 @@ public class CustomCobbleGen extends JavaPlugin {
 	private GeneratorModeManager generatorModeManager;
 	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
-	public static IslandLevelHook islandPluginHooked = null;
+	public static IslandHook islandPluginHooked = null;
 	private static String connectedMinionPlugin = "None";
 	private static String connectedIslandPlugin = "None";
+	private final String CONSOLEPREFIX = "&8[&3&lCustomCobbleGen&8]: ";
 	
 	
 	@Override
 	public void onEnable(){
 		double time = System.currentTimeMillis();
 		plugin = this;
-		generatorModeManager = GeneratorModeManager.getInstance();
 		tierManager = TierManager.getInstance();
 		signManager = SignManager.getInstance();
+		Setting.setFile(plugin.getConfig());
+		new ConfigUpdater();
+		saveConfig();
 		plugin.debug("Enabling CustomCobbleGen plugin");
 		plugin.log("&cIF YOU ENCOUNTER ANY BUGS OR ERRORS PLEASE REPORT THEM ON SPIGOT!");
 		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub) and Fang_Zhijian (Chinese translation)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
+		plugin.log("&6&lIF YOU WANT TO SUPPORT US JOIN OUR PATERON: https://www.patreon.com/woollydevelopment");
 		// Setup config
-		new ConfigUpdater();
-		saveConfig();
+		generatorModeManager = GeneratorModeManager.getInstance();
 		generatorModeManager.loadFromConfig();
 		this.debug("The config is now setup&2 \u2713");
 		// Setup lang file
@@ -99,7 +97,12 @@ public class CustomCobbleGen extends JavaPlugin {
 		signManager.loadSignsFromFile(true);
 		this.debug("Signs is now setup&2 \u2713");
 		this.setupHooks();
-	 
+
+		if(Setting.AUTO_SAVE_ENABLED.getBoolean()){
+			tierManager.startAutoSave();
+			plugin.debug("Auto saver started&2 \u2713");
+		}
+
 		registerEvents();
 		plugin.debug("Events loaded&2 \u2713");
 		plugin.getCommand("cobblegen").setExecutor(new MainCommand());
@@ -110,15 +113,16 @@ public class CustomCobbleGen extends JavaPlugin {
 		registerGlow();
         
 		// Connect to BStats
-		Metrics metrics = new Metrics(this);
+		int pluginId = 5454;
+		Metrics metrics = new Metrics(this, pluginId);
         Metrics.SingleLineChart genChart = new Metrics.SingleLineChart("generators", new Callable<Integer>() {
         	
 			@Override
 			public Integer call() throws Exception {
 				int numOfGenerators = BlockManager.getInstance().getKnownGenLocations().size();
 				if(numOfGenerators > 10000) { // Over 10000 generators found - Prob a mistake
-					plugin.log("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
-					plugin.log("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
+					plugin.warning("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
+					plugin.warning("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
 				}
 				return numOfGenerators;
 			}
@@ -128,7 +132,7 @@ public class CustomCobbleGen extends JavaPlugin {
         	
 			@Override
 			public String call() throws Exception {
-				return plugin.getConfig().getBoolean("options.automation.pistons") ? "Enabled" : "Disabled";
+				return Setting.AUTOMATION_PISTONS.getBoolean() ? "Enabled" : "Disabled";
 			}
         	
         });
@@ -136,7 +140,7 @@ public class CustomCobbleGen extends JavaPlugin {
         	
 			@Override
 			public String call() throws Exception {
-				return plugin.getConfig().getBoolean("options.signs.enabled") ? "Enabled" : "Disabled";
+				return Setting.SIGNS_ENABLED.getBoolean() ? "Enabled" : "Disabled";
 			}
         	
         });
@@ -156,11 +160,45 @@ public class CustomCobbleGen extends JavaPlugin {
 			}
         	
         });
+
+        Metrics.SimplePie selectOptionChart = new Metrics.SimplePie("tier_unlock_system", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				return Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() ? "Island based" : "Player based";
+			}
+        	
+        });
+        
+        Metrics.SimplePie tiersActiveChart = new Metrics.SimplePie("tiers_active", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				int numOfTiers = 0;
+				for(List<Tier> tiers : tierManager.getTiers().values()) {
+					numOfTiers += tiers.size();
+				}
+				return numOfTiers + " tiers active";
+			}
+        	
+        });
+        
+        Metrics.SimplePie modesActiveChart = new Metrics.SimplePie("modes_active", new Callable<String>() {
+        	
+			@Override
+			public String call() throws Exception {
+				return generatorModeManager.getModes().size() + " generation modes active";
+			}
+        	
+        });
         metrics.addCustomChart(genChart);
         metrics.addCustomChart(pistonChart);
         metrics.addCustomChart(signChart);
         metrics.addCustomChart(minionChart);
         metrics.addCustomChart(islandChart);
+        metrics.addCustomChart(selectOptionChart);
+        metrics.addCustomChart(tiersActiveChart);
+        metrics.addCustomChart(modesActiveChart);
         
 		plugin.log("CustomCobbleGen is now enabled&2 \u2713");
 		double time2 = System.currentTimeMillis();
@@ -172,6 +210,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		// Unload everything
 		
 		tierManager.unload();
+		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
 		this.savePlayerConfig();
     	signManager.saveSignsToFile();
 		tierManager = null;
@@ -190,25 +229,24 @@ public class CustomCobbleGen extends JavaPlugin {
 		PluginManager pm = Bukkit.getPluginManager();
 		if(pm.getPlugin("BentoBox") != null) {
 			islandPluginHooked = new BentoboxHook();
-			connectedIslandPlugin = "BentoBox";
-			plugin.debug("Found BentoBox&2 \u2713");
 		}else if(pm.getPlugin("uSkyBlock") != null) {
 			islandPluginHooked = new uSkyBlockHook();
-			connectedIslandPlugin = "uSkyBlock";
-			plugin.debug("Found uSkyBlock&2 \u2713");
 		}else if(pm.getPlugin("FabledSkyBlock") != null) {
 			islandPluginHooked = new FabledHook();
-			connectedIslandPlugin = "FabledSkyBlock";
-			plugin.debug("Found FabledSkyblock&2 \u2713");
 		}else if(pm.getPlugin("ASkyBlock") != null) {
 			islandPluginHooked = new ASkyBlockHook();
-			connectedIslandPlugin = "ASkyBlock";
-			plugin.debug("Found ASkyBlock&2 \u2713");
+		}else if(pm.getPlugin("SuperiorSkyblock2") != null) {
+			islandPluginHooked = new SuperiorSkyblock2Hook();
 		}
-		
+		if(islandPluginHooked != null) {
+			connectedIslandPlugin = islandPluginHooked.getHookName();
+			plugin.debug("Found " + islandPluginHooked.getHookName() + "&2 \u2713");
+			if(!islandPluginHooked.supportsIslandBalance()
+				&& Setting.ISLANDS_USEISLANDBALANCE.getBoolean()) {
+				plugin.error("Option 'options -> islands -> useIslandBalance' has been selected in the config, but " +  islandPluginHooked.getHookName() + " does not support island balances. Using player balances instead");
+			}
+		} 
 	}
-	
-	
 	
 	public void connectToPlaceholderAPI() {
 		// Connect to PlaceholderAPI
@@ -233,9 +271,15 @@ public class CustomCobbleGen extends JavaPlugin {
 		return islandPluginHooked != null;
 	}
 	
+	public IslandHook getIslandHook() {
+		return islandPluginHooked;
+	}
+	
 	public void reloadPlugin() {
+		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
 		BlockManager.getInstance().saveGenPistonData();
 		this.reloadConfig();
+		Setting.setFile(this.getConfig());
 		this.lang.reload();
 		this.reloadPlayerConfig();
 		this.reloadSignsConfig();
@@ -243,6 +287,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		signManager.loadSignsFromFile(true);
 		tierManager.reload();
 		tierManager = TierManager.getInstance();
+		if(Setting.AUTO_SAVE_ENABLED.getBoolean()) tierManager.startAutoSave();
 	}
 	
 	public void reloadPlayerConfig(){
@@ -314,7 +359,7 @@ public class CustomCobbleGen extends JavaPlugin {
                 f.set(null, true);
             }
             catch (Exception e) {
-            	plugin.log("&cFailed to create enchament: " + e.getMessage());
+            	plugin.error("Failed to create enchament: " + e.getMessage());
             }
             try {
                 GlowEnchant glow = new GlowEnchant(new NamespacedKey(this, "GlowEnchant"));
@@ -371,7 +416,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		this.debug(message, false);
 	}
 	public void debug(String message, boolean overrideConfigOption){
-		if(overrideConfigOption == false && plugin.getConfig().getBoolean("debug") == false) return;
+		if(!overrideConfigOption && !Setting.DEBUG.getBoolean()) return;
 		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
@@ -390,11 +435,28 @@ public class CustomCobbleGen extends JavaPlugin {
 				sb.append("[" + s.getClass().getTypeName() + ": " + s.toString() + "]");	
 			}
 		}
-		this.debug(sb.toString());
+		this.log(sb.toString());
 	}
 	
 	public void log(String message){
-		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &8&lLog &8-&7 " + message).replace("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&8&lLog &8-&7 " + message).replace("&", "\u00A7"));
+	}
+	
+	public void error(String message) {
+		this.error(message, false);
+	}
+	
+	public void error(String message, boolean userError) {
+		if(userError) {
+			Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&4&lUser error &8-&c " + message).replace("&", "\u00A7"));
+		}else {
+
+			Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&4&lError &8-&c " + message).replace("&", "\u00A7"));
+		}
+	}
+	
+	public void warning(String message) {
+		Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&4&lWarning &8-&7 " + message).replace("&", "\u00A7"));
 	}
 	
 	

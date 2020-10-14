@@ -1,10 +1,11 @@
-package me.phil14052.CustomCobbleGen.Files;
-
-import java.util.ArrayList;
-
-import org.bukkit.plugin.PluginDescriptionFile;
+package me.phil14052.CustomCobbleGen.Files.updaters;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Files;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import org.bukkit.plugin.PluginDescriptionFile;
+
+import java.util.ArrayList;
 
 public class LangFileUpdater {
 	public LangFileUpdater(CustomCobbleGen plugin){

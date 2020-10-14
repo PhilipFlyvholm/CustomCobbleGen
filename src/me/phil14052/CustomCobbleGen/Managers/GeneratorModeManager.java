@@ -4,16 +4,18 @@
  */
 package me.phil14052.CustomCobbleGen.Managers;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.block.BlockFace;
+import org.bukkit.configuration.ConfigurationSection;
+import xyz.xenondevs.particle.ParticleEffect;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
-import org.bukkit.configuration.ConfigurationSection;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
 /**
  * @author Philip
@@ -25,7 +27,6 @@ public class GeneratorModeManager {
 	private static CustomCobbleGen plugin = null;
 	
 	private List<GenMode> generatorModes = null;
-	private String generatorSection = "options.generationModes";
 	private GenMode defaultGenMode = null;
 	private GenMode universalGenMode = null;
 	
@@ -42,9 +43,9 @@ public class GeneratorModeManager {
 	
 	public void loadFromConfig() {
 		this.generatorModes = new ArrayList<>();
-		if(plugin.getConfig().contains(this.generatorSection)) {
+		if(plugin.getConfig().contains(Setting.SECTION_GENERATIONMODES.getPath())) {
 
-			ConfigurationSection section = plugin.getConfig().getConfigurationSection(this.generatorSection);
+			ConfigurationSection section = plugin.getConfig().getConfigurationSection(Setting.SECTION_GENERATIONMODES.getPath());
 			for(String s : section.getKeys(false)) {
 				List<String> blockNames = section.getStringList(s + ".blocks");
 				List<Material> blockMaterials = null;
@@ -53,7 +54,7 @@ public class GeneratorModeManager {
 					for(String name : blockNames) {
 						Material m = Material.valueOf(name.toUpperCase());
 						if(m == null) {
-							plugin.log("&c&lUser error: Unknown material in a generation mode under blocks - &e" +  name.toUpperCase());
+							plugin.error("&c&lUnknown material in a generation mode under blocks - &e" +  name.toUpperCase(), true);
 							continue;
 						}
 						blockMaterials.add(m);
@@ -65,13 +66,13 @@ public class GeneratorModeManager {
 					for(String fixedBlockFace : section.getConfigurationSection(s + ".fixedBlocks").getKeys(false)) {
 						BlockFace blockFace = BlockFace.valueOf(fixedBlockFace.toUpperCase());
 						if(blockFace == null || !this.isSupportedBlockFace(blockFace)) {
-							plugin.log("&c&lUser error: &e" + fixedBlockFace.toUpperCase() + " &c&l is not a valid block face. Use UP, DOWN, EAST, NORTH, WEST or SOUTH");
+							plugin.error(fixedBlockFace.toUpperCase() + " &c&l is not a valid block face. Use UP, DOWN, EAST, NORTH, WEST or SOUTH", true);
 							continue;
 						}
 						String materialName = section.getString(s + ".fixedBlocks." + fixedBlockFace);
 						Material m = Material.valueOf(materialName.toUpperCase());
 						if(m == null) {
-							plugin.log("&c&lUser error: &e" + materialName.toUpperCase() + " &c&l is not a valid material under block face &e" + fixedBlockFace.toUpperCase());
+							plugin.error(materialName.toUpperCase() + " &c&l is not a valid material under block face &e" + fixedBlockFace.toUpperCase(), true);
 							continue;
 						}
 						fixedBlockMaterials.put(blockFace, m);
@@ -81,11 +82,11 @@ public class GeneratorModeManager {
 				try {
 					id = Integer.parseInt(s);
 				} catch(NumberFormatException e) {
-					plugin.log("&c&lUser error: &e" + s + " is not a valid generation mode id. MOST BE A NUMBER");
+					plugin.error(s + " is not a valid generation mode id. MOST BE A NUMBER", true);
 					return;
 				}
 				if(id < 0) {
-					plugin.log("&c&lUser error: &e" + id + " is not a valid generation mode id. MOST BE A POSITIVE NUMBER");
+					plugin.error(id + " is not a valid generation mode id. MOST BE A POSITIVE NUMBER", true);
 					return;
 				}
 				String name = null;
@@ -96,7 +97,7 @@ public class GeneratorModeManager {
 				if(section.contains(s + ".fallback")) {
 					fallbackMaterial = Material.valueOf(section.getString(s + ".fallback").toUpperCase());
 					if(fallbackMaterial == null) {
-						plugin.log("&c&lUser error: &e" + section.getString(s + ".fallback") + " is not a valid fallback material");
+						plugin.error(section.getString(s + ".fallback") + " is not a valid fallback material", true);
 					}
 				}
 				GenMode mode = new GenMode(id, blockMaterials, fixedBlockMaterials, name, fallbackMaterial);
@@ -106,6 +107,18 @@ public class GeneratorModeManager {
 				if(section.contains(s + ".disabledWorlds")) {
 					mode.setDisabledWorlds(section.getStringList(s + ".disabledWorlds"));
 				}
+				if(section.contains(s + ".generationSound")) {
+					Sound sound = Sound.valueOf(section.getString(s+ ".generationSound"));
+					if(sound != null) {
+						mode.setGenSound(sound);	
+					}
+				}
+				if(section.contains(s + ".particleEffect")) {
+					ParticleEffect effect = ParticleEffect.valueOf(section.getString(s+ ".particleEffect"));
+					if(effect != null) {
+						mode.setParticleEffect(effect);	
+					}
+				}
 				if(mode.isValid()) {
 					this.generatorModes.add(mode);
 				}
@@ -113,7 +126,7 @@ public class GeneratorModeManager {
 		}
 		
 		if(this.generatorModes.isEmpty()){
-			plugin.log("&cERROR: COULD NOT FIND ANY GENERATION MODES IN CONFIG. USING DEFAULT INSTEAD!");
+			plugin.error("COULD NOT FIND ANY GENERATION MODES IN CONFIG. USING DEFAULT INSTEAD!");
 			this.generatorModes.add(this.defaultGenMode);
 		}
 		

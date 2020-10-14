@@ -4,8 +4,7 @@
  */
 package me.phil14052.CustomCobbleGen.API;
 
-import java.util.UUID;
-
+import me.phil14052.CustomCobbleGen.Managers.GenMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.event.Cancellable;
@@ -13,7 +12,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-import me.phil14052.CustomCobbleGen.Managers.GenMode;
+import java.util.UUID;
 
 /**
  * @author Philip

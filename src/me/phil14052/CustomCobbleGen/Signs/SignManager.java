@@ -4,16 +4,15 @@
  */
 package me.phil14052.CustomCobbleGen.Signs;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Philip

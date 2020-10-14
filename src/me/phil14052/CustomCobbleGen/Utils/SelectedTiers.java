@@ -4,16 +4,11 @@
  */
 package me.phil14052.CustomCobbleGen.Utils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
-import java.util.UUID;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Managers.GenMode;
+
+import java.util.*;
 
 /**
  * @author Philip

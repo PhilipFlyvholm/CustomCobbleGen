@@ -1,41 +1,52 @@
 package me.phil14052.CustomCobbleGen.Commands;
 
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import me.phil14052.CustomCobbleGen.GUI.GUIManager;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
+import me.phil14052.CustomCobbleGen.Utils.pastebin.FileUploader;
+import me.phil14052.CustomCobbleGen.Utils.pastebin.Response;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.GUI.GUIManager;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.GenPiston;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import java.util.*;
 
 public class MainCommand implements CommandExecutor{
 
-	private GUIManager guiManager = GUIManager.getInstance();
-	private TierManager tm = TierManager.getInstance();
-	private PermissionManager pm = new PermissionManager();
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final GUIManager guiManager = GUIManager.getInstance();
+	private final TierManager tm = TierManager.getInstance();
+	private final PermissionManager pm = new PermissionManager();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
 		if(args.length < 1){
+			if(Setting.GUI_PERMISSIONNEEDED.getBoolean()) {
+				if(!pm.hasPermission(sender, "customcobblegen.gui", true)) return false;
+			}
 			if(!(sender instanceof Player)){
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_ONLY.toString());
 				return false;
 			}
 			Player p = (Player) sender;
+			plugin.debug(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() ? "true" : "false", plugin.isConnectedToIslandPlugin(), plugin.getIslandHook().hasIsland(p.getUniqueId()));
+			if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() 
+					&& plugin.isConnectedToIslandPlugin()
+					&& !plugin.getIslandHook().hasIsland(p.getUniqueId())) {
+				p.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_NO_ISLAND.toString());
+				return false;
+			}
 			guiManager.new MainGUI(p).open();
 			return true;
 		}else if(args[0].equalsIgnoreCase("help")) {
@@ -43,7 +54,7 @@ public class MainCommand implements CommandExecutor{
 			sendHelp(sender, label);
 			return true;
 		}else if(args[0].equalsIgnoreCase("v")){
-			sender.sendMessage("CCG V: " + plugin.getDescription().getVersion());
+			sender.sendMessage("CCG Version: " + plugin.getDescription().getVersion());
 		}else if(args[0].equalsIgnoreCase("tier")) {
 			if(!pm.hasPermission(sender, "customcobblegen.tier", true)) return false;
 			if(args.length < 2) {
@@ -53,38 +64,128 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				Player p = (Player) sender;
-				Collection<Tier> tiers = tm.getSelectedTiers(p.getUniqueId()).getSelectedTiersMap().values();
-				if(tiers == null || tiers.isEmpty()) {
+				UUID uuid = p.getUniqueId();
+				if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean()  && plugin.isConnectedToIslandPlugin()) {
+					uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+				}
+				Collection<Tier> tiers = tm.getSelectedTiers(uuid).getSelectedTiersMap().values();
+				if(tiers.isEmpty()) {
 					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_SELF.toString(p));
 					return false;
 				}
 				p.sendMessage(Lang.PREFIX.toString() + Lang.SHOW_TIER_SELF.toString(p));
-				return true;
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.tier.other", true)) return false;
-				Player p = (Player) Bukkit.getPlayer(args[1]);
+				Player p = Bukkit.getPlayer(args[1]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
 				}
+				UUID uuid = p.getUniqueId();
+				if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+					uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+				}
 				
-				Collection<Tier> tiers = tm.getSelectedTiers(p.getUniqueId()).getSelectedTiersMap().values();
-				if(tiers == null || tiers.isEmpty()) {
-					p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_OTHER.toString(p));
+				Collection<Tier> tiers = tm.getSelectedTiers(uuid).getSelectedTiersMap().values();
+				if(tiers.isEmpty()) {
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIER_SELECTED_OTHER.toString(p));
 					return false;
 				}
-				p.sendMessage(Lang.PREFIX.toString() + Lang.SHOW_TIER_OTHER.toString(p));
+				sender.sendMessage(Lang.PREFIX.toString() + Lang.SHOW_TIER_OTHER.toString(p));
 				return true;
-				
+
 			}
+		}else if(args[0].equalsIgnoreCase("upgrade")){
+			if(!pm.hasPermission(sender, "customcobblegen.upgrade", true)) return false;
+
+			if(!(sender instanceof Player)){
+				sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_ONLY.toString());
+				return false;
+			}
+			Player p = (Player) sender;
+			if(plugin.isConnectedToIslandPlugin() 
+					&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
+					&& !plugin.getIslandHook().isPlayerLeader(p.getUniqueId())) {
+				p.sendMessage(Lang.PREFIX.toString() + Lang.GUI_BUY_LEADER_ONLY.toString());
+				return false;
+			}
+			SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+			if(selectedTiers == null || selectedTiers.getSelectedTiersMap().isEmpty()) {
+				p.performCommand("cobblegen"); //If no tiers selected then show them a GUI to select one
+				return true;
+			}
+			List<Tier> nextTiers = new ArrayList<>();
+			List<String> foundClasses = new ArrayList<>();
+			for(Tier tier : selectedTiers.getSelectedTiersMap().values()) {
+				boolean lookForNextTier = true;
+				Tier nextTier = null;
+				Tier testingTier = tier;
+				while(lookForNextTier) {
+					String tierClass = testingTier.getTierClass();
+					plugin.debug(foundClasses, foundClasses.contains(tierClass));
+					if(foundClasses.contains(tierClass)) {
+						lookForNextTier = false;
+						continue;
+					}
+					int tierLevel = testingTier.getLevel();
+					testingTier = tm.getTierByLevel(tierClass, (tierLevel + 1));
+					if(testingTier != null) {
+						//Tier exists
+						if(!tm.hasPlayerPurchasedLevel(p, testingTier)) {
+							nextTier = testingTier;
+							foundClasses.add(tierClass);
+							lookForNextTier = false;
+						}
+					}else {
+						lookForNextTier = false;
+					}
+				}
+				if(nextTier != null) nextTiers.add(nextTier);
+			}
+			if(nextTiers.size() > 1) { //Multiple tiers available
+				//Since the player has selected multiple tiers we need to know which one they want to upgrade
+
+				guiManager.new UpgradeGUI(p, nextTiers).open();
+				return true;
+			}else if(nextTiers.isEmpty()){ //No upgrades available
+				p.sendMessage(Lang.PREFIX.toString() + Lang.NO_UPGRADES_AVAILABLE.toString(p));
+				return true;
+			}else {
+				Tier nextTier = nextTiers.get(0);
+				if(tm.canPlayerBuyTier(p, nextTier)) {
+					tm.purchaseTier(p, nextTier); //Upgraded
+					selectedTiers.addTier(nextTier);
+					tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
+					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(nextTier));
+					p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(nextTier));
+					if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
+						plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_UPGRADED_BY_TEAM.toString(p, nextTier),
+								p.getUniqueId(),
+								true);
+					}
+					p.closeInventory();
+					return true;
+				}else {
+					p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE.toString(p));
+					if(nextTier.hasRequirements()) {
+
+						if(nextTier.getRequirementValue(RequirementType.MONEY) != 0) p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE_MONEY.toString(nextTier));
+						if(nextTier.getRequirementValue(RequirementType.XP) != 0)p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE_XP.toString(nextTier));
+						if(nextTier.getRequirementValue(RequirementType.ITEMS) != 0)p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE_ITEMS.toString(nextTier));
+						if(nextTier.getRequirementValue(RequirementType.LEVEL) != 0)p.sendMessage(Lang.PREFIX.toString() + Lang.UPGRADE_NOT_PURCHASABLE_LEVEL.toString(nextTier));	
+					}
+				}
+			}
+			
 		}else if(args[0].equalsIgnoreCase("admin")){
 			if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
+			String adminUsage = Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label);
 			if(args.length < 2){
-				if(plugin.getConfig().getBoolean("options.gui.admingui") && sender instanceof Player) {
+				if(Setting.GUI_ADMINGUI.getBoolean() && sender instanceof Player) {
 					Player p = (Player) sender;
 					guiManager.new AdminGUI(p).open();
 				}else {
-					sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));
+					sender.sendMessage(adminUsage);
 				}
 				return false;
 			}
@@ -115,7 +216,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin settier (Player) (Class) (Level)");
 					return false;
 				}
-				Player p = (Player) Bukkit.getPlayer(args[2]);
+				Player p = Bukkit.getPlayer(args[2]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -147,7 +248,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin givetier (Player) (Class) (Level)");
 					return false;
 				}
-				Player p = (Player) Bukkit.getPlayer(args[2]);
+				Player p = Bukkit.getPlayer(args[2]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -182,7 +283,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin givetier (Player) (Class) (Level)");
 					return false;
 				}
-				Player p = (Player) Bukkit.getPlayer(args[2]);
+				Player p = Bukkit.getPlayer(args[2]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -226,7 +327,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin forcebuy (Player) (Class) (Level)");
 					return false;
 				}
-				Player p = (Player) Bukkit.getPlayer(args[2]);
+				Player p = Bukkit.getPlayer(args[2]);
 				if(p == null || !p.isOnline()) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_OFFLINE.toString(p));
 					return false;
@@ -257,16 +358,78 @@ public class MainCommand implements CommandExecutor{
 				selectedTiers.addTier(tier);
 				tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.FORCE_PURCHASED.toString(p));
-				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
-			}else if(args[1].equalsIgnoreCase("debug")){
-				if(!pm.hasPermission(sender, "customcobblegen.debugger", true)) return false;
-				sender.sendMessage(" ");
-				for(GenPiston piston : BlockManager.getInstance().getKnownGenPistons().values()) {
-					sender.sendMessage(piston.getLoc().toString());
+				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
+			}else if(args[1].equalsIgnoreCase("support")) {
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&7To get support join our discord: https://discord.gg/Dx6RJvZ"));
+			}else if(args[1].equalsIgnoreCase("pastebin")) {
+				if(!pm.hasPermission(sender, "customcobblegen.admin.pastebin", true)) return false;
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&7Getting contents of files..."));
+				
+	            final Response<String> postResult = new FileUploader().pastebinUpload("config.yml", "data//players.yml", "data//signs.yml", "lang.yml");
+
+				if (postResult.isError()) {
+					sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&cError pasting to pastebin: " + postResult.getResult()));
+					return false;
 				}
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&aSuccess pasting to pastebin! Send this link to the dev:"));
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Lang.PREFIX + "&a" + postResult.getResult()));
+				
+			}else if(args[1].equalsIgnoreCase("debug")){
+				if(sender instanceof Player) {
+					Player p = (Player) sender; //Giving my own user access so it is easier to help on servers. Pull requests adding own names will not be accepted
+					if(p.getName().equals("PhilPlays") && !pm.hasPermission(p, "customcobblegen.debugger", true)) return false;
+					UUID uuid = p.getUniqueId();
+					//Console or player with permission
+					if(args.length < 3) {
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCurrently no use for the /ccg admin debug command"));
+						return true;
+					}else if(args[2].equalsIgnoreCase("island")) {
+						if(plugin.getIslandHook() == null) {
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNo skyblock plugins available"));
+							return true;
+						}else if(!plugin.getIslandHook().hasIsland(uuid)) {
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou have no island"));
+							return true;
+						}
+						
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on island accessible by plugin"));
+						int level = plugin.getIslandHook().getIslandLevel(uuid);
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Your uuid: &8" + uuid));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6isLeader: &8" + plugin.getIslandHook().isPlayerLeader(uuid)));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Level: &8" + level));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Players online: &8" + Arrays.toString(plugin.getIslandHook().getArrayOfIslandMembers(uuid))));
+						
+					}else if(args[2].equalsIgnoreCase("selected")) {
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on selected tiers accessible by plugin"));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8Number of selected tiers loaded: &6" + tm.getselectedTiers().size()));
+						
+						SelectedTiers tiers = tm.getSelectedTiers(p.getUniqueId());
+						if(tiers == null) sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNo tiers selected"));
+						else{
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Your uuid: &8" + uuid));
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Stored in uuid: &8" + tiers.getUUID()));
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cSelected tiers: &8"));
+							if(tiers.getSelectedTiersMap().isEmpty()) {
+								sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNone"));
+							}else {
+								StringJoiner sj = new StringJoiner("&8, &6","&8[&6","&8]&6");
+								for(Tier tier : tiers.getSelectedTiersMap().values()) {
+									sj.add(tier.getTierClass() + ":" + tier.getLevel());
+								}
+								sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6" + sj.toString()));	
+							}
+						}
+						
+						
+					}
+				}else {
+					sender.sendMessage(Lang.PLAYER_ONLY.toString());
+					return false;
+				}
+				
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
-				sender.sendMessage(Lang.PREFIX.toString() + Lang.ADMIN_USAGE.toString().replaceAll("%command%", label));
+				sender.sendMessage(adminUsage);
 				return false;
 			}
 			return true;

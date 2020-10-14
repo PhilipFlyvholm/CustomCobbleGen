@@ -4,20 +4,21 @@
  */
 package me.phil14052.CustomCobbleGen.Utils;
 
-import java.util.Collection;
-import java.util.StringJoiner;
-import java.util.Map.Entry;
-
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+
+import java.util.Collection;
+import java.util.Map.Entry;
+import java.util.StringJoiner;
+import java.util.UUID;
 
 /**
  * This class will be registered through the register-method in the 
@@ -120,7 +121,11 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
         if(player == null || !player.isOnline()){
             return "";
         }
-		SelectedTiers selectedTiers = tm.getSelectedTiers(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
+			uuid = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
+		}
+		SelectedTiers selectedTiers = tm.getSelectedTiers(uuid);
 		String[] identifiers = identifier.split("_");
 		if(identifier.startsWith("selected_tier")) {
 			Collection<Tier> tiers = selectedTiers.getSelectedTiersMap().values();

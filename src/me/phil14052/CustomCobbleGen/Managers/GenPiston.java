@@ -4,9 +4,9 @@
  */
 package me.phil14052.CustomCobbleGen.Managers;
 
-import java.util.UUID;
-
 import org.bukkit.Location;
+
+import java.util.UUID;
 
 /**
  * @author Philip

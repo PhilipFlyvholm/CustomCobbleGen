@@ -1,12 +1,17 @@
 package me.phil14052.CustomCobbleGen.GUI;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Chat.*;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Requirements.Requirement;
+import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
+import me.phil14052.CustomCobbleGen.Utils.ItemLib;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,33 +23,16 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierClass;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierDescription;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierIcon;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierLevel;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnTierName;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Requirements.Requirement;
-import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
-import me.phil14052.CustomCobbleGen.Utils.ItemLib;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import java.util.*;
 
 public class GUIManager {
 
 	private static GUIManager instance = null;
 	private final ItemStack backgroundItem = new ItemLib(XMaterial.GRAY_STAINED_GLASS_PANE.parseMaterial(), 1, (short) 7, " ").create();
-	private TierManager tm = TierManager.getInstance();
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
-	private PermissionManager pm = new PermissionManager();
-	private Map<Player, ChatReturn> playerChatting = new HashMap<Player, ChatReturn>();
+	private final TierManager tm = TierManager.getInstance();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final PermissionManager pm = new PermissionManager();
+	private Map<Player, ChatReturn> playerChatting = new HashMap<>();
 	
 	public Icon getNoPermissionsIcon(String permission) {
 		return new Icon(
@@ -59,17 +47,18 @@ public class GUIManager {
 	}
 	
 	public class MainGUI {
-		private Map<String, List<Tier>> tiers = tm.getTiers();
-		int tiersSize = tm.getTiersSize();
+		private final Map<String, List<Tier>> tiers = tm.getTiers();
+		//int tiersSize = tm.getTiersSize();
 		int guiSize = getGUISize(tiers, false);
-		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
-		private Player player;
+		private final CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());
+		private final Player player;
 		private boolean failedLoad = false;
 		
 		public MainGUI(Player p){
-			boolean centerItems = plugin.getConfig().getBoolean("options.gui.centerTiers");
-			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
+			boolean centerItems = Setting.GUI_CENTERTIERS.getBoolean();
+			boolean newLines = Setting.GUI_SEPERATECLASSESBYLINES.getBoolean();
 			player = p;
+			boolean isLeader = !plugin.isConnectedToIslandPlugin() || plugin.getIslandHook().isPlayerLeader(p.getUniqueId()); //Return true if there is no island plugin connected
 			if(tiers == null) {
 				p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIERS_DEFINED.toString());
 				failedLoad = true;
@@ -96,53 +85,79 @@ public class GUIManager {
 					
 					ItemStack item = tier.getIcon().clone();
 					ItemMeta itemMeta = item.getItemMeta();
+					if(itemMeta == null) continue;
 					List<String> lore = itemMeta.getLore();
+					if(lore == null) lore = new ArrayList<>();
 					lore.addAll(tier.getFormatetDescription(p));
-					if(plugin.getConfig().getBoolean("options.gui.showSupportedModes")) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
+					if(Setting.GUI_SHOWSUPPORTEDMODES.getBoolean()) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
 					String emptyString = "&a ";
 					emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
 					lore.add(emptyString);
 					if(selectedTiers != null && selectedTiers.isTierSelected(tier)) {
 						if(XMaterial.supports(13)) {
-
 							GlowEnchant glow = new GlowEnchant(new NamespacedKey(plugin, "GlowEnchant"));
 							itemMeta.addEnchant(glow, 1, true);	
 						}
 						lore.add(Lang.GUI_SELECTED.toString());
 					}else if(tm.hasPlayerPurchasedLevel(p, tier)){
-						lore.add(Lang.GUI_SELECT.toString());
+						if(plugin.isConnectedToIslandPlugin() 
+								&& Setting.ISLANDS_ONLYOWNER_SELECT.getBoolean()
+								&& !isLeader) {
+							//Only owners can select and player is not a owner/leader
+							lore.add(Lang.GUI_SELECT_LEADER_ONLY.toString());
+						}else {
+							lore.add(Lang.GUI_SELECT.toString());	
+						}
 					}else if(!tier.doesPlayerHavePermission(p)){
-						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
-						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
+						if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+						if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
 						lore.add(Lang.GUI_LOCKED_PERMISSION.toString());
 					}else if(!tm.hasPlayerPurchasedPreviousLevel(p, tier)){
-						if(plugin.getConfig().getBoolean("options.gui.showBarrierBlockIfLocked")) item.setType(XMaterial.BARRIER.parseMaterial(true));
-						if(plugin.getConfig().getBoolean("options.gui.hideInfoIfLocked")) lore = new ArrayList<String>();
-					
-						lore.add(Lang.GUI_LOCKED_PREV.toString());
+						if(plugin.isConnectedToIslandPlugin() 
+								&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
+								&& !isLeader) {
 
-						for(Requirement r : tier.getRequirements()) {
-							if(!tier.hasRequirement(r.getRequirementType())) continue;
-							lore = r.addUnavailableString(tier, lore);
-						}
-					}else {
-						if(tm.canPlayerBuyTier(p, tier)) {
-							lore.add(Lang.GUI_BUY.toString());
-							for(Requirement r : tier.getRequirements()) {
-								if(!tier.hasRequirement(r.getRequirementType())) continue;
-								lore = r.addAvailableString(tier, lore);
-							}
+							if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+							if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
+							//Only owners can select and player is not a owner/leader
+							lore.add(Lang.GUI_BUY_LEADER_ONLY.toString());
 						}else {
-							lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
+							if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+							if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
+						
+							lore.add(Lang.GUI_LOCKED_PREV.toString());
 
 							for(Requirement r : tier.getRequirements()) {
 								if(!tier.hasRequirement(r.getRequirementType())) continue;
 								lore = r.addUnavailableString(tier, lore);
 							}
 						}
+					}else {
+						if(plugin.isConnectedToIslandPlugin() 
+								&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
+								&& !isLeader) {
+							//Only owners can select and player is not a owner/leader
+							lore.add(Lang.GUI_BUY_LEADER_ONLY.toString());
+						}else {
+							if(tm.canPlayerBuyTier(p, tier)) {
+								lore.add(Lang.GUI_BUY.toString());
+								for(Requirement r : tier.getRequirements()) {
+									if(!tier.hasRequirement(r.getRequirementType())) continue;
+									lore = r.addAvailableString(tier, lore);
+								}
+							}else {
+								lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
+
+								for(Requirement r : tier.getRequirements()) {
+									if(!tier.hasRequirement(r.getRequirementType())) continue;
+									lore = r.addUnavailableString(tier, lore);
+								}
+							}	
+						}
+						
 					}
 
-					if(plugin.getConfig().getBoolean("debug")) {
+					if(Setting.DEBUG.getBoolean()){
 						lore.add(" ");
 						lore.add("i: " + i);
 					}
@@ -154,23 +169,46 @@ public class GUIManager {
 						public void execute(Player p) {
 							//Check if the player has purchased the level
 							if(tm.hasPlayerPurchasedLevel(p, tier)) {
+								if(plugin.isConnectedToIslandPlugin() 
+										&& Setting.ISLANDS_ONLYOWNER_SELECT.getBoolean()
+										&& !isLeader) {
+									return;
+								}
 								SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 								selectedTiers.addTier(tier);
 								tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
-								p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
+								p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
+								if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
+									plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_CHANGED_BY_TEAM.toString(p, tier),
+													p.getUniqueId(),
+													true);
+								}
 								p.closeInventory();
 							}else {
+								if(plugin.isConnectedToIslandPlugin() 
+										&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
+										&& !isLeader) {
+									return;
+								}
 								//Player has not purchased the level. Now check if the player can buy the level
 								if(tm.canPlayerBuyTier(p, tier)) {
-									if(plugin.getConfig().getBoolean("options.gui.confirmpurchases")) {
+									if(Setting.GUI_CONFIRMPURCHASES.getBoolean()) {
 										new ConfirmGUI(p, tier).open();	
 									}else {
 										if(tm.purchaseTier(p, tier)) {
 											SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 											selectedTiers.addTier(tier);
 											tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
-											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
-											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
+											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
+											p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
+											if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
+												plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_PURCHASED_BY_TEAM.toString(p, tier),
+														p.getUniqueId(),
+														true);
+												plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_CHANGED_BY_TEAM.toString(p, tier),
+																p.getUniqueId(),
+																true);
+											}
 											p.closeInventory();
 										}
 									}
@@ -202,7 +240,7 @@ public class GUIManager {
 		
 		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
 			int rows = 0;
-			boolean newLines = plugin.getConfig().getBoolean("options.gui.seperateClassesByLines");
+			boolean newLines = Setting.GUI_SEPERATECLASSESBYLINES.getBoolean();
 			if(newLines) {
 				for(String tierClass : tiers.keySet()) {
 					List<Tier> classTiers = tiers.get(tierClass);
@@ -230,17 +268,17 @@ public class GUIManager {
 	public class ConfirmGUI {
 		int tiersSize = tm.getTiersSize();
 		int guiSize = 3*9;
-		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());	
-		private Player player;
+		private final CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_PREFIX.toString());
+		private final Player player;
 		
 		@SuppressWarnings("deprecation")
 		public ConfirmGUI(Player p, Tier tier){
 			player = p;
 			ItemStack cancelItem;
 			if(!XMaterial.supports(13)) {
-				cancelItem = new ItemStack(Material.matchMaterial("INK_SACK"), 1, (short) 1);
+				cancelItem = new ItemStack(Objects.requireNonNull(Material.matchMaterial("INK_SACK")), 1, (short) 1);
 			}else {
-				cancelItem = new ItemStack(XMaterial.RED_DYE.parseMaterial());
+				cancelItem = new ItemStack(Objects.requireNonNull(XMaterial.RED_DYE.parseMaterial()));
 			}
 			ItemMeta cancelItemMeta = cancelItem.getItemMeta();
 			cancelItemMeta.setDisplayName(Lang.GUI_CONFIRM_CANCEL.toString());
@@ -255,7 +293,6 @@ public class GUIManager {
 				public void execute(Player p) {
 					p.closeInventory();
 					new MainGUI(p).open();
-					return;
 				}
 			});
 			
@@ -276,8 +313,16 @@ public class GUIManager {
 						SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 						selectedTiers.addTier(tier);
 						tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
-						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(p));
-						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
+						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
+						p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
+						if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
+							plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_PURCHASED_BY_TEAM.toString(p, tier),
+									p.getUniqueId(),
+									true);
+							plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_CHANGED_BY_TEAM.toString(p, tier),
+											p.getUniqueId(),
+											true);
+						}
 						p.closeInventory();
 					}
 					return;
@@ -313,10 +358,89 @@ public class GUIManager {
 		
 	}
 	
-	public class AdminGUI {
-		private int GUISize = 27;
-		private CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_ADMIN_TITLE.toString());
+	public class UpgradeGUI {
+		private int GUISize = 9;
+		private CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_UPGRADE_TITLE.toString());
 		private Player player;
+		
+		public UpgradeGUI(Player p, List<Tier> nextTiers) {
+			int i = 0;
+			boolean isEven = (nextTiers.size() % 2) == 0;
+			this.player = p;
+			for(Tier tier : nextTiers) {
+				ItemStack item = tier.getIcon().clone();
+				ItemMeta itemMeta = item.getItemMeta();
+				List<String> lore = itemMeta.getLore();
+				lore.addAll(tier.getFormatetDescription(p));
+				if(Setting.GUI_SHOWSUPPORTEDMODES.getBoolean()) lore.add(Lang.GUI_ITEM_LORE_SUPPORTEDMODE.toString(tier));
+				String emptyString = "&a ";
+				emptyString = ChatColor.translateAlternateColorCodes('&', emptyString);
+				lore.add(emptyString);
+				if(tm.canPlayerBuyTier(p, tier)) {
+					lore.add(Lang.GUI_UPGRADE_LORE_UPGRADE.toString());
+					for(Requirement r : tier.getRequirements()) {
+						if(!tier.hasRequirement(r.getRequirementType())) continue;
+						lore = r.addAvailableString(tier, lore);
+					}
+				}else {
+					lore.add(Lang.GUI_CAN_NOT_AFFORD.toString());
+
+					for(Requirement r : tier.getRequirements()) {
+						if(!tier.hasRequirement(r.getRequirementType())) continue;
+						lore = r.addUnavailableString(tier, lore);
+					}
+				}
+				itemMeta.setLore(lore);
+				item.setItemMeta(itemMeta);
+				Icon icon = new Icon(item);
+				icon.addClickAction(new ClickAction() {
+					@Override
+					public void execute(Player p) {
+						//Check if the player has purchased the level
+						if(tm.hasPlayerPurchasedLevel(p, tier)) {
+							SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+							selectedTiers.addTier(tier);
+							tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
+							p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
+							p.closeInventory();
+						}else {
+							//Player has not purchased the level. Now check if the player can buy the level
+							if(tm.canPlayerBuyTier(p, tier)) {
+								if(tm.purchaseTier(p, tier)) {
+									SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+									selectedTiers.addTier(tier);
+									tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
+									p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_PURCHASED.toString(tier));
+									p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
+									if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
+										plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_UPGRADED_BY_TEAM.toString(p, tier),
+												p.getUniqueId(),
+												true);
+									}
+									p.closeInventory();
+								}
+							}
+						}
+					}
+				});
+				int position = i+(GUISize-nextTiers.size())/2;
+				if(isEven && i > (nextTiers.size()-1)/2) position++;
+				
+				ch.setIcon(position, icon);
+				i++;
+			}
+		}
+
+		public void open(){
+			Inventory inventory = ch.getInventory();
+			player.openInventory(inventory);
+		}
+	}
+	
+	public class AdminGUI {
+		private final int GUISize = 27;
+		private final CustomHolder ch = new CustomHolder(GUISize, Lang.GUI_ADMIN_TITLE.toString());
+		private final Player player;
 		public AdminGUI(Player p) {
 			this.player = p;
 			Material redstoneTorch = null;
@@ -330,6 +454,7 @@ public class GUIManager {
 			Icon forceBuyIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_FORCEBUY.toString(p), Lang.GUI_ADMIN_FORCEBUY_LORE.toStringList(p)).create());
 			Icon giveTierIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_GIVETIER.toString(p), Lang.GUI_ADMIN_GIVETIER_LORE.toStringList(p)).create());
 			Icon setTierIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_SETTIER.toString(p), Lang.GUI_ADMIN_SETTIER_LORE.toStringList(p)).create());
+			Icon withdrawIcon = new Icon(new ItemLib(redstoneTorch, 1, (short) 0, Lang.GUI_ADMIN_WITHDRAW.toString(p), Lang.GUI_ADMIN_WITHDRAW_LORE.toStringList(p)).create());
 			
 			/*Icon createdTierIcon = new Icon(new ItemLib(XMaterial.PAPER.parseMaterial(), 1, (short) 0, Lang.GUI_ADMIN_CREATETIER.toString(p), Lang.GUI_ADMIN_CRAETETIER_LORE.toStringList(p)).create());
 			
@@ -358,9 +483,9 @@ public class GUIManager {
 					}
 					
 				});
-				ch.setIcon(11, reloadIcon);
+				ch.setIcon(10, reloadIcon);
 			}else {
-				ch.setIcon(11, getNoPermissionsIcon("customcobblegen.admin.reload"));
+				ch.setIcon(10, getNoPermissionsIcon("customcobblegen.admin.reload"));
 			}
 			
 			// FORCE SAVE
@@ -374,9 +499,9 @@ public class GUIManager {
 					}
 					
 				});
-				ch.setIcon(12, saveIcon);
+				ch.setIcon(11, saveIcon);
 			}else {
-				ch.setIcon(12, getNoPermissionsIcon("customcobblegen.admin.forcesave"));
+				ch.setIcon(11, getNoPermissionsIcon("customcobblegen.admin.forcesave"));
 			}
 			
 			// FORCE BUY
@@ -391,9 +516,9 @@ public class GUIManager {
 					
 				});
 				
-				ch.setIcon(13, forceBuyIcon);
+				ch.setIcon(12, forceBuyIcon);
 			}else {
-				ch.setIcon(13, getNoPermissionsIcon("customcobblegen.admin.forcebuy"));
+				ch.setIcon(12, getNoPermissionsIcon("customcobblegen.admin.forcebuy"));
 			}
 			
 			// GIVE TIER
@@ -427,6 +552,19 @@ public class GUIManager {
 				ch.setIcon(15, setTierIcon);
 			}else {
 				ch.setIcon(15, getNoPermissionsIcon("customcobblegen.admin.settier"));
+			}
+			// SET TIER
+			if(pm.hasPermission(p, "customcobblegen.admin.withdraw", false)) {
+				withdrawIcon.addClickAction(new ClickAction() {
+					@Override
+					public void execute(Player p) {	
+						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.WITHDRAW).open();
+					}
+								
+				});
+				ch.setIcon(16, withdrawIcon);
+			}else {
+				ch.setIcon(16, getNoPermissionsIcon("customcobblegen.admin.withdraw"));
 			}
 			
 			for(int i = 0; i < GUISize; i++) {
@@ -664,7 +802,7 @@ public class GUIManager {
 				ItemStack skull = createSkull(onlinePlayer.getName(), Lang.GUI_SELECT_PLAYER_SKULL_TITLE.toString(onlinePlayer), Lang.GUI_SELECT_PLAYER_SKULL_LORE.toStringList(onlinePlayer));
 
 
-				if(plugin.getConfig().getBoolean("debug")) {
+				if(Setting.DEBUG.getBoolean()) {
 					ItemMeta skullMeta = skull.getItemMeta();
 					List<String> lore = skullMeta.getLore();
 					lore.add(" ");
@@ -679,7 +817,12 @@ public class GUIManager {
 
 					@Override
 					public void execute(Player p) {
-						GUIManager.getInstance().new TierSelectGUI(p, onlinePlayer, actionType).open();;
+						if(actionType.equals(GUIActionType.WITHDRAW)) {
+
+							GUIManager.getInstance().new WithdrawGUI(p, onlinePlayer).open();
+						}else {
+							GUIManager.getInstance().new TierSelectGUI(p, onlinePlayer, actionType).open();	
+						}
 					}
 					
 				});
@@ -781,6 +924,7 @@ public class GUIManager {
 					ItemStack item = tier.getIcon().clone();
 					ItemMeta itemMeta = item.getItemMeta();
 					List<String> lore = itemMeta.getLore();
+					lore.addAll(tier.getFormatetDescription(selectedPlayer));
 					String emptyString = ChatColor.translateAlternateColorCodes('&', "&a ");
 					lore.add(emptyString);
 					boolean clickable = true;
@@ -797,7 +941,7 @@ public class GUIManager {
 						lore.add(Lang.GUI_SELECT.toString());
 					}
 
-					if(plugin.getConfig().getBoolean("debug")) {
+					if(Setting.DEBUG.getBoolean()) {
 						lore.add(" ");
 						lore.add("i: " + i);
 					}
@@ -859,8 +1003,80 @@ public class GUIManager {
 		}
 	}
 	
+	public class WithdrawGUI {
+		private Map<String, List<Tier>> tiers = tm.getTiers();
+		int tiersSize = tm.getTiersSize();
+		int guiSize = getGUISize(tiers, false);
+		private CustomHolder ch = new CustomHolder(guiSize, Lang.GUI_SELECT_TIER_TITLE.toString());	
+		private Player player;
+		private boolean failedLoad = false;
+		
+		public WithdrawGUI(Player p, Player selectedPlayer){
+			player = p;
+			int i = 0;
+			if(tiers == null) {
+				p.sendMessage(Lang.PREFIX.toString() + Lang.NO_TIERS_DEFINED.toString());
+				failedLoad = true;
+				return;
+			}
+			List<Tier> purchasedTiers = tm.getPlayersPurchasedTiers(selectedPlayer.getUniqueId());
+			for(Tier tier : purchasedTiers) {
+				ItemStack item = tier.getIcon().clone();
+				ItemMeta itemMeta = item.getItemMeta();
+				List<String> lore = itemMeta.getLore();
+				lore.addAll(tier.getFormatetDescription(selectedPlayer));
+				String emptyString = ChatColor.translateAlternateColorCodes('&', "&a ");
+				lore.add(emptyString);
+				lore.add(Lang.GUI_ADMIN_WITHDRAW_SELECT.toString());
+
+				if(Setting.DEBUG.getBoolean()) {
+					lore.add(" ");
+					lore.add("i: " + i);
+				}
+				itemMeta.setLore(lore);
+				item.setItemMeta(itemMeta);
+				Icon icon = new Icon(item);
+				icon.addClickAction(new ClickAction() {
+					@Override
+					public void execute(Player p) {
+						p.performCommand("ccg admin withdraw " + selectedPlayer.getName() + " " + tier.getTierClass() + " " + tier.getLevel());
+						p.closeInventory();
+					}
+				});
+
+				ch.setIcon(i, icon);
+				i++;
+			}
+			for(int j = 0; j < guiSize; j++) {
+				Icon icon = ch.getIcon(j);
+				if(icon == null || icon.itemStack.getType().equals(Material.AIR)) {
+					ch.setIcon(j, new Icon(backgroundItem));
+				}
+			}
+		}
+		public void open(){
+			if(failedLoad) return;
+			Inventory inventory = ch.getInventory();
+			player.openInventory(inventory);
+		}
+		
+		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
+			int rows = 0;
+			for(String tierClass : tiers.keySet()) {
+				List<Tier> classTiers = tiers.get(tierClass);
+				int classRows = classTiers.size()/9;
+				if(classTiers.size()%9 > 0D) classRows++;
+				rows += classRows;
+			}
+					if(closeLine) rows++;
+			if(rows > 6) rows = 6; //A GUI CAN MAX BE 6 ROWS
+			if(rows < 1) rows = 1;
+			return (rows*9);
+		}
+	}
+	
 	enum GUIActionType {
-		FORCEBUY, SETTIER, GIVETIER;
+		FORCEBUY, SETTIER, GIVETIER, WITHDRAW;
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -911,7 +1127,7 @@ public class GUIManager {
 	
 	public void addPlayerChatting(Player p, Tier tier, ChatReturnType type) {
 		if(type == null) {
-			plugin.log("&4ERROR: &cTYPE IS NULL IN GUIManager.addPlayerChatting(Player p, Tier tier, ChatReturnType type)");
+			plugin.error("&cTYPE IS NULL IN GUIManager.addPlayerChatting(Player p, Tier tier, ChatReturnType type)");
 			return;
 		}
 		ChatReturn chatReturn = null;
@@ -928,7 +1144,7 @@ public class GUIManager {
 		}else if(type.equals(ChatReturnType.ICON)) {
 			chatReturn = new ChatReturnTierIcon(p, tier);
 		}else {
-			plugin.log("&4ERROR: &c" + type.name() + " does not have a class yet!");
+			plugin.error( type.name() + " does not have a class yet!");
 			return;
 		}
 		
