@@ -46,6 +46,7 @@ public class GenBlock {
         // Expire entries 4 seconds after they were created
         // It only needs enough time for lava/water to flow and generator a new block
         if (Instant.now().getEpochSecond() >= (timestamp.getEpochSecond() + 4)) {
+        	plugin.debug("GenMode has expired");
             return true;
         }
         return false;

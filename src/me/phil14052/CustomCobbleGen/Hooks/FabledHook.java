@@ -29,7 +29,9 @@ public class FabledHook implements IslandHook{
 	}
 
 	private Island getIslandFromPlayer(UUID uuid) {
-		return fabledApi.getIsland(Bukkit.getOfflinePlayer(uuid));
+		Island island = fabledApi.getIsland(Bukkit.getOfflinePlayer(uuid));
+		if(island.getIsland() == null) return null;
+		return island;
 	}
 	
 	@Override
@@ -43,7 +45,10 @@ public class FabledHook implements IslandHook{
 
 	@Override
 	public boolean isPlayerLeader(UUID uuid) {
-		return this.getIslandLeaderFromPlayer(uuid).equals(uuid);
+		if(uuid == null) return false;
+		UUID leaderUUID = this.getIslandLeaderFromPlayer(uuid);
+		if(leaderUUID == null) return false;
+		return leaderUUID.equals(uuid);
 	}
 
 
@@ -60,7 +65,8 @@ public class FabledHook implements IslandHook{
 
 	@Override
 	public boolean hasIsland(UUID uuid) {
-		return IslandManager.hasIsland(Bukkit.getOfflinePlayer(uuid));
+		Island island = this.getIslandFromPlayer(uuid);
+		return island != null && island.getIsland() != null;
 	}
 
 	@Override
