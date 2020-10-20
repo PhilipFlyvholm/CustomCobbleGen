@@ -29,6 +29,7 @@ public class GenMode {
 	private Sound genSound = null;
 	private Material fallbackMaterial = null;
 	private ParticleEffect particleEffect = null;
+	private boolean canGenWhileRaining = true;
 	
 	public GenMode(int id, List<Material> blocks, String name, Material fallbackMaterial) {
 		this(id, blocks, null, true, null, name, fallbackMaterial);
@@ -267,6 +268,14 @@ public class GenMode {
 			float speed = 1/(i+1);
 			this.particleEffect.display(tempLoc, 0F, 0F, 0F, speed, 1, null);
 		}
+	}
+
+	public boolean canGenerateWhileRaining() {
+		return canGenWhileRaining;
+	}
+
+	public void setCanGenWhileRaining(boolean canGenWhileRaining) {
+		this.canGenWhileRaining = canGenWhileRaining;
 	}
 	
 }

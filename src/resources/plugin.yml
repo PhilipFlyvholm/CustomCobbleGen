@@ -1,10 +1,10 @@
 name: CustomCobbleGen
 main: me.phil14052.CustomCobbleGen.CustomCobbleGen
-version: 1.4.4-BETA
+version: 1.4.5
 author: phil14052
 description: Adds the ability to change the cobblestone generator
 api-version: 1.13
-softdepend: [Vault, PlaceholderAPI, BentoBox, uSkyBlock, JetsMinions, ASkyBlock, FabledSkyBlock]
+softdepend: [Vault, PlaceholderAPI, BentoBox, uSkyBlock, JetsMinions, ASkyBlock, FabledSkyBlock, SuperiorSkyblock2]
 commands:
   cobblegen:
     description: CustomCobbleGen Plugin Main Command
@@ -68,6 +68,11 @@ permissions:
       customcobblegen.admin: true
   customcobblegen.admin.givetier:
     description: Allows you to use the /customcobblegen admin givetier command
+    default: op
+    children:
+      customcobblegen.admin: true
+  customcobblegen.admin.withdraw:
+    description: Allows you to use the /customcobblegen admin withdraw command
     default: op
     children:
       customcobblegen.admin: true

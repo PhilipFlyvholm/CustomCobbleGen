@@ -4,16 +4,18 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
-import com.songoda.skyblock.api.SkyBlockAPI;
-import com.songoda.skyblock.api.island.Island;
-import com.songoda.skyblock.api.island.IslandManager;
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+import com.songoda.skyblock.api.SkyBlockAPI;
+import com.songoda.skyblock.api.island.Island;
+import com.songoda.skyblock.api.island.IslandManager;
+
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 
 /**
  * @author Philip
@@ -21,15 +23,15 @@ import java.util.UUID;
  */
 public class FabledHook implements IslandHook{
 	
-	private IslandManager fabledApi;
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
-	public FabledHook() {
-		fabledApi = SkyBlockAPI.getIslandManager();
-	}
 
+	private IslandManager getIslandManager() {
+		return SkyBlockAPI.getIslandManager();
+	}
+	
 	private Island getIslandFromPlayer(UUID uuid) {
-		Island island = fabledApi.getIsland(Bukkit.getOfflinePlayer(uuid));
+		Island island = getIslandManager().getIsland(Bukkit.getOfflinePlayer(uuid));
 		if(island.getIsland() == null) return null;
 		return island;
 	}
@@ -57,7 +59,9 @@ public class FabledHook implements IslandHook{
 		plugin.debug("#getIslandLeaderFromPlayer - UUID:" + uuid);
 //		Player p = plugin.getServer().getPlayer(uuid);
 //		plugin.debug("Player:" + p);
-		com.songoda.skyblock.island.Island is = this.getIslandFromPlayer(uuid).getIsland();
+		Island island = this.getIslandFromPlayer(uuid);
+		if(island == null) return null;
+		com.songoda.skyblock.island.Island is = island.getIsland();
 		plugin.debug("#getIslandLeaderFromPlayer -" + (is != null ? is.getOwnerUUID().toString() + "'s island" : "NULL"));
 		if(is == null) return null;
 		return is.getOwnerUUID();
@@ -75,7 +79,7 @@ public class FabledHook implements IslandHook{
 
 		if(island == null) return new Player[0];
 		List<Player> onlinePlayers = new ArrayList<>();
-		for(UUID pUUID : fabledApi.getMembersOnline(island)) {
+		for(UUID pUUID : getIslandManager().getMembersOnline(island)) {
 			Player p = Bukkit.getServer().getPlayer(pUUID);
 			if(p != null && p.isOnline()) onlinePlayers.add(p);
 		}
