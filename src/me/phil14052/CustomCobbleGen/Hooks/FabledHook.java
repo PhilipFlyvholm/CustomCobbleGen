@@ -59,7 +59,9 @@ public class FabledHook implements IslandHook{
 		plugin.debug("#getIslandLeaderFromPlayer - UUID:" + uuid);
 //		Player p = plugin.getServer().getPlayer(uuid);
 //		plugin.debug("Player:" + p);
-		com.songoda.skyblock.island.Island is = this.getIslandFromPlayer(uuid).getIsland();
+		Island island = this.getIslandFromPlayer(uuid);
+		if(island == null) return null;
+		com.songoda.skyblock.island.Island is = island.getIsland();
 		plugin.debug("#getIslandLeaderFromPlayer -" + (is != null ? is.getOwnerUUID().toString() + "'s island" : "NULL"));
 		if(is == null) return null;
 		return is.getOwnerUUID();

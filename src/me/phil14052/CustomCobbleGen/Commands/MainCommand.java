@@ -40,7 +40,6 @@ public class MainCommand implements CommandExecutor{
 				return false;
 			}
 			Player p = (Player) sender;
-			plugin.debug(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() ? "true" : "false", plugin.isConnectedToIslandPlugin(), plugin.getIslandHook().hasIsland(p.getUniqueId()));
 			if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() 
 					&& plugin.isConnectedToIslandPlugin()
 					&& !plugin.getIslandHook().hasIsland(p.getUniqueId())) {

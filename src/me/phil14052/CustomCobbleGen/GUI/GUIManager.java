@@ -174,13 +174,18 @@ public class GUIManager {
 										&& !isLeader) {
 									return;
 								}
-								SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
+								UUID uuid = p.getUniqueId();
+								SelectedTiers selectedTiers = tm.getSelectedTiers(uuid);
+								if(selectedTiers == null) {
+									tm.givePlayerStartSelect(uuid);
+									selectedTiers = tm.getSelectedTiers(uuid);
+								}
 								selectedTiers.addTier(tier);
 								tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
 								p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(tier));
 								if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
 									plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX.toString() + Lang.TIER_CHANGED_BY_TEAM.toString(p, tier),
-													p.getUniqueId(),
+													uuid,
 													true);
 								}
 								p.closeInventory();

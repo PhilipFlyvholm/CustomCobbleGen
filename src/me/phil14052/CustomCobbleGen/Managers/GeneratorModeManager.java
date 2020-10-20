@@ -119,6 +119,11 @@ public class GeneratorModeManager {
 						mode.setParticleEffect(effect);	
 					}
 				}
+
+				if(section.contains(s + ".canGenerateWhileRaining")) {
+					boolean canGenWhileRaining = section.getBoolean(s+ ".canGenerateWhileRaining");
+					mode.setCanGenWhileRaining(canGenWhileRaining);
+				}
 				if(mode.isValid()) {
 					this.generatorModes.add(mode);
 				}

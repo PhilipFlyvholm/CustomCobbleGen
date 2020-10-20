@@ -109,6 +109,11 @@ public class BlockEvents implements Listener{
 						}else {
 							tier = selectedTiers.getSelectedTiersMap().get(mode);
 						}
+						if(!mode.canGenerateWhileRaining() && toBlock.getWorld().hasStorm()) {
+							e.setCancelled(true);
+							if(!toBlock.getLocation().getBlock().getType().equals(Material.COBBLESTONE)) toBlock.getLocation().getBlock().setType(Material.COBBLESTONE);
+							return;
+						}
 						if(tier != null) {
 							Material result = tier.getRandomResult();
 							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
