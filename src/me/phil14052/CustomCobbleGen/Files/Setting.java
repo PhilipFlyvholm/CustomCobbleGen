@@ -40,6 +40,10 @@ public enum Setting {
 	SAVEONTIERPURCHASE("options.saveOnTierPurchase", true),
 	REMOVEGRAVITY("options.removeGravity", false),
 	DISABLEDWORLDS("options.disabled.worlds", new String[] {"world_the_end"}),
+	DATABASE_TYPE("options.database.type", "YAML"),
+	DATABASE_HOST("options.database.host", "localhost:8080"),
+	DATABASE_USERNAME("options.database.username", "admin"),
+	DATABASE_PASSWORD("options.database.password", ""),
 	SECTION_TIERS("tiers", "", true);
 
 	private final String path;

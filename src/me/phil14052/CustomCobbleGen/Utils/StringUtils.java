@@ -4,6 +4,10 @@
  */
 package me.phil14052.CustomCobbleGen.Utils;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+
 /**
  * @author Philip
  *
@@ -38,6 +42,21 @@ public class StringUtils {
 	        if(Character.digit(s.charAt(i),radix) < 0) return false;
 	    }
 	    return true;
+	}
+	
+	public static String serializeLoc(Location loc) {
+		return loc.getWorld().getName() + ":" + loc.getX() + ":" + loc.getY() + ":" + loc.getZ();
+	}
+	
+	public static Location deserializeLoc(String seralizedLoc) {
+		if(seralizedLoc == null || seralizedLoc.trim() == "") return null;
+		String[] locParts = seralizedLoc.split(":");
+		if(locParts.length != 4) return null;
+		World world = Bukkit.getWorld(locParts[0]);
+		Double x = Double.parseDouble(locParts[1]);
+		Double y = Double.parseDouble(locParts[2]);
+		Double z = Double.parseDouble(locParts[3]);
+		return new Location(world, x,y,z);
 	}
 	
 }

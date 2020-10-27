@@ -4,18 +4,11 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
-import com.cryptomorin.xseries.XMaterial;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.GUI.GUIManager;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
-import me.phil14052.CustomCobbleGen.Signs.SignManager;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -28,10 +21,21 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Pattern;
+import com.cryptomorin.xseries.XMaterial;
+
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.GUI.GUIManager;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
+import me.phil14052.CustomCobbleGen.Signs.SignManager;
+import me.phil14052.CustomCobbleGen.databases.PlayerData;
+import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
 
 /**
  * @author Philip
@@ -44,15 +48,17 @@ public class PlayerEvents implements Listener {
 	private final SignManager signManager = SignManager.getInstance();
 	private final PermissionManager pm =  new PermissionManager();
 	private final GUIManager guiManager = GUIManager.getInstance();
-	private final static CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
 		UUID uuid = e.getPlayer().getUniqueId();
 		// If the player has previously used the plugin, then load the player info.
-		if(!tm.selectedTiersContainsUUID(uuid) && !tm.purchasedTiersContainsUUID(uuid)) tm.loadPlayerData(uuid);
-		if(!tm.selectedTiersContainsUUID(uuid)) tm.givePlayerStartSelect(uuid);
-		if(!tm.purchasedTiersContainsUUID(uuid)) tm.givePlayerStartPurchases(e.getPlayer());
+		PlayerDatabase database = plugin.getPlayerDatabase();
+		if(!database.containsPlayerData(uuid)) database.loadFromDatabase(uuid);
+		PlayerData data = database.getPlayerData(uuid);
+		if(data.getPurchasedTiers() == null || data.getPurchasedTiers().isEmpty()) tm.givePlayerStartPurchases(e.getPlayer());
+		if(data.getSelectedTiers() == null || data.getSelectedTiers().getSelectedTiersMap().isEmpty()) tm.givePlayerStartSelect(uuid);
 	}
 	
 	@EventHandler
@@ -60,7 +66,7 @@ public class PlayerEvents implements Listener {
 		Player p = e.getPlayer();
 		// Cleanup
 		bm.cleanupExpiredPistons(p.getUniqueId());
-		tm.savePlayerData(p.getUniqueId());
+		plugin.getPlayerDatabase().saveToDatabase(p.getUniqueId());
 		bm.cleanupExpiredLocations();
 	}
 	

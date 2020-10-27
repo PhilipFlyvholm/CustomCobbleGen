@@ -202,7 +202,7 @@ public class MainCommand implements CommandExecutor{
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.RELOAD_SUCCESS.toString().replaceAll("%time%", String.valueOf(time3)));
 			}else if(args[1].equalsIgnoreCase("forcesave")) {
 				if(!pm.hasPermission(sender, "customcobblegen.admin.forcesave", true)) return false;
-				tm.saveAllPlayerData();
+				plugin.getPlayerDatabase().saveEverythingToDatabase();
 				if(sender instanceof Player) {
 					Player p = (Player) sender;
 					plugin.log(p.getName() + " force saved the player data");
@@ -318,7 +318,7 @@ public class MainCommand implements CommandExecutor{
 				tm.withdrawPurchasedTier(uuid, tier);
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.TIER_UNPURCHASED_SUCCESS_SELF.toString(p));
 				p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_UNPURCHASED_SUCCESS_OTHER.toString(p));
-				tm.saveAllPlayerData();
+				plugin.getPlayerDatabase().saveToDatabase(uuid);
 				
 			} else if(args[1].equalsIgnoreCase("forcebuy")) {
 				if(!pm.hasPermission(sender, "customcobblegen.admin.forcebuy", true)) return false;
@@ -400,7 +400,7 @@ public class MainCommand implements CommandExecutor{
 						
 					}else if(args[2].equalsIgnoreCase("selected")) {
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on selected tiers accessible by plugin"));
-						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8Number of selected tiers loaded: &6" + tm.getselectedTiers().size()));
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8Number of players data loaded: &6" + plugin.getPlayerDatabase().getAllPlayerData().size()));
 						
 						SelectedTiers tiers = tm.getSelectedTiers(p.getUniqueId());
 						if(tiers == null) sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNo tiers selected"));

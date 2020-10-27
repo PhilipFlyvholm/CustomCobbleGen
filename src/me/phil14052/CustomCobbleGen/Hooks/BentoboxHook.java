@@ -67,15 +67,14 @@ public class BentoboxHook implements IslandHook{
 		Player p = Bukkit.getPlayer(uuid);
 		if(p == null) return false;
 		if(api.getIslands().hasIsland(p.getWorld(), uuid)) return true;
-		return this.getIslandLeaderFromPlayer(uuid).equals(uuid);
+		UUID island = this.getIslandLeaderFromPlayer(uuid);
+		if(island == null) return false;
+		return island.equals(uuid);
 	}
 
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
-		if(uuid == null) {
-			plugin.error("UUID given is null in BentoboxHook#getIslandLeaderFromPlayer(UUID uuid);");
-			return null;
-		}
+		if(uuid == null) return null;
 		Player p = Bukkit.getPlayer(uuid);
 		if(p != null && api.getIslands().hasIsland(p.getWorld(), uuid)) return uuid;
 

@@ -56,6 +56,7 @@ public class FabledHook implements IslandHook{
 
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		if(uuid == null) return null;
 		plugin.debug("#getIslandLeaderFromPlayer - UUID:" + uuid);
 //		Player p = plugin.getServer().getPlayer(uuid);
 //		plugin.debug("Player:" + p);

@@ -4,16 +4,17 @@
  */
 package me.phil14052.CustomCobbleGen.Managers;
 
-import com.cryptomorin.xseries.XMaterial;
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.UUID;
+
+import org.bukkit.Location;
+
+import com.cryptomorin.xseries.XMaterial;
 
 public class BlockManager {
 
@@ -22,7 +23,7 @@ public class BlockManager {
 	private Map<Location, GenBlock> genBreaks = new HashMap<>();
 	private Map<Location, GenPiston> knownGenPistons = new HashMap<>();
 	
-	private static CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	//private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	
 	public static BlockManager getInstance() {
@@ -133,84 +134,13 @@ public class BlockManager {
 	}
 
 	
-	private Map<UUID, List<GenPiston>> convertGenPistonToUUIDMap(Map<Location, GenPiston> map) {
-		Map<UUID, List<GenPiston>> uuidMap = new HashMap<>();
-		for(GenPiston piston : this.getKnownGenPistons().values()) {
-			UUID uuid = piston.getUUID();
-			List<GenPiston> list;
-			if(uuidMap.containsKey(uuid)) {
-				list = uuidMap.get(uuid);
-			}else {
-				list = new ArrayList<>();
-			}
-			list.add(piston);
-			uuidMap.put(uuid, list);
-		}
-		return uuidMap;
+	public GenPiston[] getGenPistonsByUUID(UUID uuid){
+		return this.getKnownGenPistons() != null && this.getKnownGenPistons().values() != null ? this.getKnownGenPistons()
+			.values()
+			.stream()
+			.filter(piston -> piston.getUUID() != null && piston.getUUID().equals(uuid))
+			.toArray(GenPiston[]::new) : new GenPiston[0];
 	}
 	
-	public void saveGenPistonData() {
-		Map<UUID, List<GenPiston>> genPistons = this.convertGenPistonToUUIDMap(this.getKnownGenPistons());
-		Set<Entry<UUID, List<GenPiston>>> entrySet = genPistons.entrySet();
-		if(entrySet == null || entrySet.isEmpty()) return;
-		for(Entry<UUID, List<GenPiston>> pistonSet : entrySet) {
-			List<String> locations = new ArrayList<>();
-			for(GenPiston piston : pistonSet.getValue()) {
-				if(piston == null) {
-					continue;
-				}
-				if(piston.getLoc().getBlock() == null) {
-					plugin.error("Can't confirm block is piston in players.yml under UUID: " + pistonSet.getKey().toString() + ".pistons at " + piston.getLoc());
-				}
-				else if(!piston.getLoc().getBlock().getType().equals(XMaterial.PISTON.parseMaterial())) continue;
-				if(!piston.hasBeenUsed()) continue;
-				String serializedLoc = this.serializeLoc(piston.getLoc());
-				if(!locations.contains(serializedLoc)) locations.add(serializedLoc);
-			}
-			if(!locations.isEmpty()) plugin.getPlayerConfig().set("players." + pistonSet.getKey().toString() + ".pistons", locations);
-		}
-		plugin.savePlayerConfig();
-	}
 	
-	public void loadGenPistonData() {
-		this.knownGenPistons = new HashMap<>();
-		ConfigurationSection playerSection = plugin.getPlayerConfig().getConfigurationSection("players");
-		for(String uuid : playerSection.getKeys(false)){
-			if(plugin.getPlayerConfig().contains("players." + uuid + ".pistons")) {
-				List<String> locations = plugin.getPlayerConfig().getStringList("players." + uuid + ".pistons");
-				UUID uuidObject = UUID.fromString(uuid);
-				for(String stringLoc : locations) {
-					Location loc = this.deserializeLoc(stringLoc);
-					if(loc == null) {
-						plugin.error("Unknown location in players.yml under UUID: " + uuid + ".pistons" + stringLoc);
-						continue;
-					}
-					Block block = loc.getWorld().getBlockAt(loc);
-					if(block == null) {
-						plugin.error("Can't confirm block is piston in players.yml under UUID: " + uuid + ".pistons at " + stringLoc);
-						continue;
-					}
-					else if(loc.getWorld().getBlockAt(loc).getType()!= XMaterial.PISTON.parseMaterial()) continue;
-					GenPiston piston = new GenPiston(loc, uuidObject);
-					piston.setHasBeenUsed(true);
-					this.addKnownGenPiston(piston);
-				}
-			}
-		}
-	}
-	
-	public String serializeLoc(Location loc) {
-		return loc.getWorld().getName() + ":" + loc.getX() + ":" + loc.getY() + ":" + loc.getZ();
-	}
-	
-	public Location deserializeLoc(String seralizedLoc) {
-		if(seralizedLoc == null || seralizedLoc.trim() == "") return null;
-		String[] locParts = seralizedLoc.split(":");
-		if(locParts.length != 4) return null;
-		World world = Bukkit.getWorld(locParts[0]);
-		Double x = Double.parseDouble(locParts[1]);
-		Double y = Double.parseDouble(locParts[2]);
-		Double z = Double.parseDouble(locParts[3]);
-		return new Location(world, x,y,z);
-	}
 }

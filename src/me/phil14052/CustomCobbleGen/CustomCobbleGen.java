@@ -1,28 +1,13 @@
 package me.phil14052.CustomCobbleGen;
 
 
-import com.cryptomorin.xseries.XMaterial;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Commands.MainCommand;
-import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
-import me.phil14052.CustomCobbleGen.Events.BlockEvents;
-import me.phil14052.CustomCobbleGen.Events.MinionEvents;
-import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
-import me.phil14052.CustomCobbleGen.Files.*;
-import me.phil14052.CustomCobbleGen.Files.updaters.ConfigUpdater;
-import me.phil14052.CustomCobbleGen.Files.updaters.LangFileUpdater;
-import me.phil14052.CustomCobbleGen.Files.updaters.PlayerFileUpdater;
-import me.phil14052.CustomCobbleGen.Files.updaters.SignsFileUpdater;
-import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
-import me.phil14052.CustomCobbleGen.Hooks.*;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
-import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Signs.SignManager;
-import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
-import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
-import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
+
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -31,12 +16,37 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
+import com.cryptomorin.xseries.XMaterial;
+
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Commands.MainCommand;
+import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
+import me.phil14052.CustomCobbleGen.Events.BlockEvents;
+import me.phil14052.CustomCobbleGen.Events.MinionEvents;
+import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
+import me.phil14052.CustomCobbleGen.Files.Files;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import me.phil14052.CustomCobbleGen.Files.updaters.ConfigUpdater;
+import me.phil14052.CustomCobbleGen.Files.updaters.LangFileUpdater;
+import me.phil14052.CustomCobbleGen.Files.updaters.SignsFileUpdater;
+import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
+import me.phil14052.CustomCobbleGen.Hooks.ASkyBlockHook;
+import me.phil14052.CustomCobbleGen.Hooks.BentoboxHook;
+import me.phil14052.CustomCobbleGen.Hooks.FabledHook;
+import me.phil14052.CustomCobbleGen.Hooks.IslandHook;
+import me.phil14052.CustomCobbleGen.Hooks.SuperiorSkyblock2Hook;
+import me.phil14052.CustomCobbleGen.Hooks.uSkyBlockHook;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
+import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.SignManager;
+import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
+import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
+import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
+import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
+import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
 
 /**
  * CustomCobbleGen By @author Philip Flyvholm
@@ -45,8 +55,7 @@ import java.util.logging.Level;
 public class CustomCobbleGen extends JavaPlugin {
 	private static CustomCobbleGen plugin;
 	public Files lang;
-	private FileConfiguration playerConfig;
-	private File playerConfigFile;
+	private PlayerDatabase playerDatabase;
 	private FileConfiguration signsConfig;
 	private File signsConfigFile;
 	private TierManager tierManager;
@@ -77,16 +86,14 @@ public class CustomCobbleGen extends JavaPlugin {
 		generatorModeManager = GeneratorModeManager.getInstance();
 		generatorModeManager.loadFromConfig();
 		this.debug("The config is now setup&2 \u2713");
+		// Setup player database
+		setupPlayerDatabase();
+		
 		// Setup lang file
 		lang = new Files(this, "lang.yml");
 		new LangFileUpdater(plugin);
 		Lang.setFile(lang);
 		this.debug("Lang is now setup&2 \u2713");
-		// Setup player configs
-		playerConfig = null;
-		playerConfigFile = null;
-		new PlayerFileUpdater(plugin);
-		this.debug("Players is now setup&2 \u2713");
 		// Setup tiers
 		tierManager.load();
 		this.debug("Tiers is now setup&2 \u2713");
@@ -96,6 +103,8 @@ public class CustomCobbleGen extends JavaPlugin {
 		new SignsFileUpdater(plugin);
 		signManager.loadSignsFromFile(true);
 		this.debug("Signs is now setup&2 \u2713");
+		plugin.getPlayerDatabase().loadEverythingFromDatabase();
+		
 		this.setupHooks();
 
 		if(Setting.AUTO_SAVE_ENABLED.getBoolean()){
@@ -211,14 +220,39 @@ public class CustomCobbleGen extends JavaPlugin {
 		
 		tierManager.unload();
 		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
-		this.savePlayerConfig();
+		this.getPlayerDatabase().saveEverythingToDatabase();
     	signManager.saveSignsToFile();
 		tierManager = null;
 		signManager = null;
 		plugin = null;
 	}
 	
-	public void setupHooks() {
+	private void setupPlayerDatabase() {
+		switch (Setting.DATABASE_TYPE.getString().toUpperCase()) {
+			case "YAML":
+				this.playerDatabase = new YamlPlayerDatabase();
+				break;
+			case "MYSQL":
+				//TODO SETUP MYSQL
+				break;
+			default:
+				this.playerDatabase = new YamlPlayerDatabase();
+				break;
+		}
+		plugin.debug("Setting up a " + this.playerDatabase.getType() + " player database");
+		try {
+			this.playerDatabase.establishConnection();
+		}catch(Exception e) {
+			plugin.error("FAILED SETTING UP " + this.playerDatabase.getType() + " PLAYER DATABASE. DISABLING PLUGIN!");
+			plugin.error(e.getMessage());
+			for(StackTraceElement s : e.getCause().getStackTrace()) {
+				plugin.error(s.toString());
+			}
+			Bukkit.getServer().getPluginManager().disablePlugin(this);
+		}
+	}
+	
+	private void setupHooks() {
 		this.connectToPlaceholderAPI();
 		this.connectToVault();
 		connectToIslandPlugin();
@@ -277,11 +311,10 @@ public class CustomCobbleGen extends JavaPlugin {
 	
 	public void reloadPlugin() {
 		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
-		BlockManager.getInstance().saveGenPistonData();
 		this.reloadConfig();
 		Setting.setFile(this.getConfig());
 		this.lang.reload();
-		this.reloadPlayerConfig();
+		this.getPlayerDatabase().reloadConnection();
 		this.reloadSignsConfig();
 		generatorModeManager.loadFromConfig();
 		signManager.loadSignsFromFile(true);
@@ -290,34 +323,10 @@ public class CustomCobbleGen extends JavaPlugin {
 		if(Setting.AUTO_SAVE_ENABLED.getBoolean()) tierManager.startAutoSave();
 	}
 	
-	public void reloadPlayerConfig(){
-		if(this.playerConfigFile == null){
-			this.playerConfigFile = new File(new File(plugin.getDataFolder(), "Data"),"players.yml");
-			this.playerConfig = YamlConfiguration.loadConfiguration(this.playerConfigFile);
-			
-		}
+	public PlayerDatabase getPlayerDatabase() {
+		return this.playerDatabase;
 	}
-	 //Return the player config
-    public FileConfiguration getPlayerConfig() {
- 
-        if(this.playerConfigFile == null) this.reloadPlayerConfig();
- 
-        return this.playerConfig;
- 
-    }
- 
-    //Save the player config
-    public void savePlayerConfig() {
- 
-        if(this.playerConfig == null || this.playerConfigFile == null) return;
- 
-        try {
-            this.getPlayerConfig().save(this.playerConfigFile);
-        } catch (IOException ex) {
-            plugin.getServer().getLogger().log(Level.SEVERE, "Could not save Player config to " + this.playerConfigFile +"!", ex);
-        }
- 
-    }
+	
 	
     public void reloadSignsConfig(){
 		if(this.signsConfigFile == null){

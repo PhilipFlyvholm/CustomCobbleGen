@@ -63,6 +63,7 @@ public class uSkyBlockHook implements IslandHook{
 	
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		if(uuid == null) return null;
 		if(this.playerUUIDContainsValue(uuid)) return uuid;
 		
 		Player p = plugin.getServer().getPlayer(uuid);

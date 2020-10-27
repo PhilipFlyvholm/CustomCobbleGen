@@ -48,6 +48,7 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		if(uuid == null) return null;
 		SuperiorPlayer sp = SuperiorSkyblockAPI.getPlayer(uuid);
 		if(sp == null) return null;
 		SuperiorPlayer leader = sp.getIslandLeader();
