@@ -42,6 +42,8 @@ public enum Setting {
 	DISABLEDWORLDS("options.disabled.worlds", new String[] {"world_the_end"}),
 	DATABASE_TYPE("options.database.type", "YAML"),
 	DATABASE_HOST("options.database.host", "localhost:8080"),
+	DATABASE_DATABASE("options.database.database", "database_name"),
+	DATABASE_TABLE("options.database.table", "CCG_PLAYERS"),
 	DATABASE_USERNAME("options.database.username", "admin"),
 	DATABASE_PASSWORD("options.database.password", ""),
 	SECTION_TIERS("tiers", "", true);
