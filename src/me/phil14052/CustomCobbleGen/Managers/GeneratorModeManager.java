@@ -108,9 +108,17 @@ public class GeneratorModeManager {
 					mode.setDisabledWorlds(section.getStringList(s + ".disabledWorlds"));
 				}
 				if(section.contains(s + ".generationSound")) {
-					Sound sound = Sound.valueOf(section.getString(s+ ".generationSound"));
-					if(sound != null) {
-						mode.setGenSound(sound);	
+					String soundString = section.getString(s+ ".generationSound");
+					if(!soundString.equalsIgnoreCase("none")) {
+						try {
+							Sound sound = Sound.valueOf(soundString);
+							if(sound != null) {
+								mode.setGenSound(sound);	
+							}	
+						}catch(IllegalArgumentException e) {
+							//Unknown sound
+							plugin.error("The sound " + soundString + " does not exist", true);
+						}	
 					}
 				}
 				if(section.contains(s + ".particleEffect")) {

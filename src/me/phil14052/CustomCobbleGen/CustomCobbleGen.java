@@ -45,6 +45,7 @@ import me.phil14052.CustomCobbleGen.Signs.SignManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
 import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
+import me.phil14052.CustomCobbleGen.databases.MySQLPlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
 
@@ -220,7 +221,9 @@ public class CustomCobbleGen extends JavaPlugin {
 		
 		tierManager.unload();
 		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
-		this.getPlayerDatabase().saveEverythingToDatabase();
+		if(this.getPlayerDatabase() != null) {
+			this.getPlayerDatabase().saveEverythingToDatabase();
+		}
     	signManager.saveSignsToFile();
 		tierManager = null;
 		signManager = null;
@@ -232,10 +235,14 @@ public class CustomCobbleGen extends JavaPlugin {
 			case "YAML":
 				this.playerDatabase = new YamlPlayerDatabase();
 				break;
+			case "YML":
+				this.playerDatabase = new YamlPlayerDatabase();
+				break;
 			case "MYSQL":
-				//TODO SETUP MYSQL
+				this.playerDatabase = new MySQLPlayerDatabase();
 				break;
 			default:
+				plugin.error("Unknown database type. Will use YAML", true);
 				this.playerDatabase = new YamlPlayerDatabase();
 				break;
 		}
@@ -244,7 +251,7 @@ public class CustomCobbleGen extends JavaPlugin {
 			this.playerDatabase.establishConnection();
 		}catch(Exception e) {
 			plugin.error("FAILED SETTING UP " + this.playerDatabase.getType() + " PLAYER DATABASE. DISABLING PLUGIN!");
-			plugin.error(e.getMessage());
+			plugin.error(e.getLocalizedMessage());
 			for(StackTraceElement s : e.getCause().getStackTrace()) {
 				plugin.error(s.toString());
 			}

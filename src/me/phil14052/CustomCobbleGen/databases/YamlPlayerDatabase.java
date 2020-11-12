@@ -109,6 +109,12 @@ public class YamlPlayerDatabase implements PlayerDatabase {
 	}
 
 	@Override
+	public void setPlayerData(PlayerData data) {
+		if(data == null) return;
+		this.playerData.add(data);
+	}
+	
+	@Override
 	public void loadEverythingFromDatabase() {
 		if(!this.isConnectionEstablished()) return;
 		this.playerData = new ArrayList<>();
@@ -152,6 +158,12 @@ public class YamlPlayerDatabase implements PlayerDatabase {
 				List<Integer> purchasedLevels = purchasedSection.getIntegerList(purchasedClass);
 				for(int purchasedLevel : purchasedLevels){
 					Tier purchasedTier = tierManager.getTierByLevel(purchasedClass, purchasedLevel);
+					if(purchasedTier == null) {
+
+						plugin.error("Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!", true);
+						plugin.log("&c&lIf not manually added then please report this to the dev - Line 158 in YamlPlayerDatabase - loadFromDatabase");
+						continue;	
+					}
 					purchasedTiers.add(purchasedTier);
 				}
 			}
@@ -197,7 +209,7 @@ public class YamlPlayerDatabase implements PlayerDatabase {
 				
 				if(purchasedTier == null) {
 					plugin.error("Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!", true);
-					plugin.log("&c&lIf not manually added then please report this to the dev");
+					plugin.log("&c&lIf not manually added then please report this to the dev - Line 200 in YamlPlayerDatabase - saveToDatabase");
 					continue;
 				}
 				plugin.debug("Saving purchased tier: " + purchasedTier.getName());

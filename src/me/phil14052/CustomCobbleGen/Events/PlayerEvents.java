@@ -57,6 +57,10 @@ public class PlayerEvents implements Listener {
 		PlayerDatabase database = plugin.getPlayerDatabase();
 		if(!database.containsPlayerData(uuid)) database.loadFromDatabase(uuid);
 		PlayerData data = database.getPlayerData(uuid);
+		if(data == null) {
+			data = new PlayerData(uuid);
+			database.setPlayerData(data);
+		}
 		if(data.getPurchasedTiers() == null || data.getPurchasedTiers().isEmpty()) tm.givePlayerStartPurchases(e.getPlayer());
 		if(data.getSelectedTiers() == null || data.getSelectedTiers().getSelectedTiersMap().isEmpty()) tm.givePlayerStartSelect(uuid);
 	}

@@ -6,6 +6,8 @@ import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.GUI.GUIManager;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
@@ -15,6 +17,7 @@ import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -416,6 +419,23 @@ public class MainCommand implements CommandExecutor{
 									sj.add(tier.getTierClass() + ":" + tier.getLevel());
 								}
 								sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6" + sj.toString()));	
+							}
+						}
+						
+						
+					}else if(args[2].equalsIgnoreCase("pistons")) {
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&lDebug info on pistons accessible by plugin"));
+						BlockManager bm = BlockManager.getInstance();
+						sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8Number of pistons data loaded: &6" + bm.getKnownGenPistons().size()));
+						
+						
+						Map<Location, GenPiston> pistons = bm.getKnownGenPistons();
+						if(pistons == null) sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNo pistons loaded"));
+						else{
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Your uuid: &8" + uuid));
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Pistons loaded:"));
+							for(GenPiston piston : pistons.values()) {
+								sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6" + piston.getLoc().toString() + " " + (piston.getUUID().equals(uuid) ? "&a" : "&c") + piston.getUUID().toString()));
 							}
 						}
 						

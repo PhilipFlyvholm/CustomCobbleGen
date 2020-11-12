@@ -28,6 +28,7 @@ import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.XpRequirement;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import me.phil14052.CustomCobbleGen.databases.PlayerData;
 
 public class TierManager {
 	
@@ -342,7 +343,9 @@ public class TierManager {
 			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
 			if(ownerUUID != null) uuid = ownerUUID;
 		}
-		return plugin.getPlayerDatabase().getPlayerData(uuid).getPurchasedTiers();
+		PlayerData data = plugin.getPlayerDatabase().getPlayerData(uuid);
+		if(data == null) return new ArrayList<>();
+		return data.getPurchasedTiers();
 	}
 	
 	public List<Tier> focusListOnClass(List<Tier> list, String tierClass) {

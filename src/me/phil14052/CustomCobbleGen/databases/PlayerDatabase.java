@@ -21,6 +21,7 @@ public interface PlayerDatabase {
 	public List<PlayerData> getAllPlayerData();
 	public PlayerData getPlayerData(UUID uuid);
 	public boolean containsPlayerData(UUID uuid);
+	public void setPlayerData(PlayerData data);
 	
 	public void loadEverythingFromDatabase();
 	public void loadFromDatabase(UUID uuid);
