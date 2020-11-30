@@ -4,31 +4,21 @@
  */
 package me.phil14052.CustomCobbleGen.Managers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import me.phil14052.CustomCobbleGen.Requirements.*;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import me.phil14052.CustomCobbleGen.databases.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.Files.Setting;
-import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.LevelRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.MoneyRequirement;
-import me.phil14052.CustomCobbleGen.Requirements.Requirement;
-import me.phil14052.CustomCobbleGen.Requirements.XpRequirement;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
-import me.phil14052.CustomCobbleGen.databases.PlayerData;
+import java.util.*;
 
 public class TierManager {
 	
@@ -169,9 +159,7 @@ public class TierManager {
 			else plugin.debug("&cUser error in class " + tierClass);
 		}
 	}
-	
-	
-	
+
 	public void setPlayerSelectedTiers(UUID uuid, SelectedTiers selectedTiers){
 		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
 			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
@@ -279,6 +267,7 @@ public class TierManager {
 	}
 	
 	public boolean hasPlayerPurchasedPreviousLevel(Player p, Tier nextTier) {
+		if(!Setting.PREVIOUS_TIER_NEEDED.getBoolean()) return true;
 		UUID uuid = p.getUniqueId();
 		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
 			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);

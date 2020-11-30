@@ -21,6 +21,7 @@ public enum Setting {
 	AUTO_SAVE_ENABLED("options.auto-save.enabled", false),
 	AUTO_SAVE_DELAY("options.auto-save.delay-in-sec", 300), //300 sec = 5 min
 	MONEY_FORMAT("options.money.format", true),
+	PREVIOUS_TIER_NEEDED("options.previous-tier-needed", true),
 	GUI_PERMISSIONNEEDED("options.gui.permissionNeeded", false),
 	GUI_SHOWBARRIERBLOCKIFLOCKED("options.gui.showBarrierBlockIfLocked", true),
 	GUI_HIDEINFOIFLOCKED("options.gui.hideInfoIfLocked", false),

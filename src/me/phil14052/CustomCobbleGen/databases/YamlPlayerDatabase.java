@@ -4,6 +4,19 @@
  */
 package me.phil14052.CustomCobbleGen.databases;
 
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Managers.GenPiston;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.PluginDescriptionFile;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,41 +25,17 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.PluginDescriptionFile;
-
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.GenPiston;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
-
 /**
  * @author Philip
  *
  */
-public class YamlPlayerDatabase implements PlayerDatabase {
+public class YamlPlayerDatabase extends PlayerDatabase {
 
-	private CustomCobbleGen plugin;
-	private List<PlayerData> playerData;
 	private FileConfiguration playerConfig;
 	private File playerConfigFile;
-	private BlockManager blockManager;
-	private TierManager tierManager;
 	
 	public YamlPlayerDatabase() {
-		playerData = new ArrayList<>();
-		plugin = CustomCobbleGen.getInstance();
-		blockManager = BlockManager.getInstance();
-		tierManager = TierManager.getInstance();
+		super();
 	}
 	
 	@Override
@@ -95,23 +84,11 @@ public class YamlPlayerDatabase implements PlayerDatabase {
 		this.playerConfigFile = null;
 	}
 
-	@Override
-	public List<PlayerData> getAllPlayerData() {
-		return this.playerData;
-	}
 
 	@Override
-	public PlayerData getPlayerData(UUID uuid) {
-		return this.getAllPlayerData().stream()
-			.filter(data -> data.getUUID() != null && data.getUUID().equals(uuid))
-			.findFirst()
-			.orElse(null);
-	}
-
-	@Override
-	public void setPlayerData(PlayerData data) {
-		if(data == null) return;
-		this.playerData.add(data);
+	protected void addToDatabase(PlayerData data) {
+		if(!this.isConnectionEstablished()) return;
+		this.saveToDatabase(data);
 	}
 	
 	@Override
@@ -270,12 +247,7 @@ public class YamlPlayerDatabase implements PlayerDatabase {
  
     }
 	
-	@Override
-	public String getType() {
-		return "YAML";
-	}
-
-	@Override
+		@Override
 	public boolean isConnectionEstablished() {
 		return playerConfig != null && playerConfigFile != null;
 	}
@@ -309,7 +281,12 @@ public class YamlPlayerDatabase implements PlayerDatabase {
 				plugin.error("Unknown location in players.yml under UUID: " + uuid + ".pistons" + stringLoc);
 				continue;
 			}
-			Block block = loc.getWorld().getBlockAt(loc);
+			World world = loc.getWorld();
+			if(world == null) {
+				plugin.error("Unknown world in players.yml under UUID: " + uuid + ".pistons: " + stringLoc);
+				continue;
+			}
+			Block block = world.getBlockAt(loc);
 			if(block == null) {
 				plugin.error("Can't confirm block is piston in players.yml under UUID: " + uuid + ".pistons at " + stringLoc);
 				continue;
@@ -322,10 +299,9 @@ public class YamlPlayerDatabase implements PlayerDatabase {
 		}
 				
 	}
-
 	@Override
-	public boolean containsPlayerData(UUID uuid) {
-		return this.getPlayerData(uuid) != null;
+	public String getType() {
+		return "YAML";
 	}
 
 	

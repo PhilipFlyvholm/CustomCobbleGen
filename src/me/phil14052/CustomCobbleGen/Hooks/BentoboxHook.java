@@ -154,5 +154,11 @@ public class BentoboxHook implements IslandHook{
 	public String getHookName() {
 		return "BentoBox";
 	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

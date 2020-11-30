@@ -117,4 +117,10 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 	public String getHookName() {
 		return "SuperiorSkyBlock2";
 	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {
+		// TODO Auto-generated method stub
+		
+	}
 }

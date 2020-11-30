@@ -4,18 +4,16 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import com.songoda.skyblock.api.SkyBlockAPI;
 import com.songoda.skyblock.api.island.Island;
 import com.songoda.skyblock.api.island.IslandManager;
-
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Philip
@@ -25,7 +23,6 @@ public class FabledHook implements IslandHook{
 	
 	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
-
 	private IslandManager getIslandManager() {
 		return SkyBlockAPI.getIslandManager();
 	}
@@ -43,7 +40,12 @@ public class FabledHook implements IslandHook{
 		if(is == null) return 0;
 		return (int) is.getLevel().getLevel();
 	}
-
+	
+	public void updateIslandLevel(UUID uuid) {
+		Island is = this.getIslandFromPlayer(uuid);
+		if(is == null) return;
+		SkyBlockAPI.getLevellingManager().calculatePoints(is);
+	}
 
 	@Override
 	public boolean isPlayerLeader(UUID uuid) {
@@ -52,7 +54,6 @@ public class FabledHook implements IslandHook{
 		if(leaderUUID == null) return false;
 		return leaderUUID.equals(uuid);
 	}
-
 
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
@@ -121,6 +122,11 @@ public class FabledHook implements IslandHook{
 	@Override
 	public String getHookName() {
 		return "FabledSkyBlock";
+	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {
+		this.updateIslandLevel(uuid);
 	}
 
 }

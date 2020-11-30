@@ -4,38 +4,30 @@
  */
 package me.phil14052.CustomCobbleGen.databases;
 
+import com.cryptomorin.xseries.XMaterial;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Files.Setting;
+import me.phil14052.CustomCobbleGen.Managers.GenPiston;
+import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
+import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.StringJoiner;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-
-import com.cryptomorin.xseries.XMaterial;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Files.Setting;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.GenPiston;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
-import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import java.util.*;
 
 /**
  * @author Philip
  *
  */
-public class MySQLPlayerDatabase implements PlayerDatabase {
+public class MySQLPlayerDatabase extends PlayerDatabase {
 
 	private HikariConfig databaseConfig;
     private HikariDataSource ds;
@@ -43,18 +35,9 @@ public class MySQLPlayerDatabase implements PlayerDatabase {
     private String TABLE_NAME;
     private String DATABASE_NAME;
     
-    
-	
-	private CustomCobbleGen plugin;
-	private List<PlayerData> playerData;
-	private BlockManager blockManager;
-	private TierManager tierManager;
 	
 	public MySQLPlayerDatabase() {
-		playerData = new ArrayList<>();
-		plugin = CustomCobbleGen.getInstance();
-		blockManager = BlockManager.getInstance();
-		tierManager = TierManager.getInstance();
+		super();
 	}
 	
 	private Connection getConnection() throws SQLException {
@@ -104,10 +87,12 @@ public class MySQLPlayerDatabase implements PlayerDatabase {
         		ds = null;
         	}
 		}
+		plugin.debug("Players is now setup&2 \u2713");
 	}
 
 	@Override
 	public void reloadConnection() {
+		if(!this.isConnectionEstablished()) return;
 		this.closeConnection();
 		this.establishConnection();
 	}
@@ -123,42 +108,7 @@ public class MySQLPlayerDatabase implements PlayerDatabase {
 	}
 
 	@Override
-	public List<PlayerData> getAllPlayerData() {
-		return this.playerData;
-	}
-
-	@Override
-	public PlayerData getPlayerData(UUID uuid) {
-		return this.getPlayerData(uuid, true);
-	}
-
-	
-	private PlayerData getPlayerData(UUID uuid, boolean loadFromDatabase) {
-		PlayerData playerData =  this.getAllPlayerData().stream()
-				.filter(data -> data.getUUID() != null && data.getUUID().equals(uuid))
-				.findFirst()
-				.orElse(null);
-		if(playerData == null) {
-			if(loadFromDatabase) {
-				this.loadFromDatabase(uuid);
-				return this.getPlayerData(uuid, false);
-			}
-			playerData = new PlayerData(uuid);
-			this.addToDatabase(playerData);
-		}
-		return playerData;
-	}
-
-	@Override
-	public void setPlayerData(PlayerData data) {
-		if(data == null) return;
-		if(!this.containsPlayerData(data.getUUID())) {
-			this.addToDatabase(data);
-		}
-		this.playerData.add(data);
-	}
-	
-	private void addToDatabase(PlayerData data) {
+	protected void addToDatabase(PlayerData data) {
 		if(!this.isConnectionEstablished()) return;
 
 
@@ -203,11 +153,6 @@ public class MySQLPlayerDatabase implements PlayerDatabase {
 		
 	}
 	
-	@Override
-	public boolean containsPlayerData(UUID uuid) {
-		return this.getPlayerData(uuid) != null;
-	}
-
 	@Override
 	public void loadEverythingFromDatabase() {
 		if(!this.isConnectionEstablished()) return;
@@ -305,7 +250,6 @@ public class MySQLPlayerDatabase implements PlayerDatabase {
 
 	}
 
-	
 	private boolean load(UUID uuid, String selected_tiers, String purchased_tiers) {
 		if(uuid == null || selected_tiers == null || purchased_tiers == null) return false;
 		//tierclass:tierlevel
@@ -354,12 +298,17 @@ public class MySQLPlayerDatabase implements PlayerDatabase {
 		for(String pistonLoc : pistonsArray) {
 			Location loc = StringUtils.deserializeLoc(pistonLoc);
 			if(loc == null) continue;
-
-			Block block = loc.getWorld().getBlockAt(loc);
+			World world = loc.getWorld();
+			if(world == null) {
+				plugin.error("Unknown world in database under UUID: " + uuid + " -> pistons with the value: " + pistonLoc);
+				continue;
+			}
+			Block block = world.getBlockAt(loc);
 			if(block == null) {
 				plugin.error("Can't confirm block is piston in players.yml under UUID: " + uuid + ".pistons at " + pistonLoc);
 				continue;
 			}
+			
 			else if(loc.getWorld().getBlockAt(loc).getType()!= XMaterial.PISTON.parseMaterial()) continue;
 			blockManager.getKnownGenPistons().remove(loc);
 			GenPiston piston = new GenPiston(loc, uuid);

@@ -109,5 +109,11 @@ public class ASkyBlockHook implements IslandHook{
 	public String getHookName() {
 		return "ASkyBlock";
 	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

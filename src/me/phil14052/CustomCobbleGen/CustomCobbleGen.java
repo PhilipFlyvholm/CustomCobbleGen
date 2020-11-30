@@ -1,23 +1,7 @@
 package me.phil14052.CustomCobbleGen;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-
-import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import com.cryptomorin.xseries.XMaterial;
-
 import me.phil14052.CustomCobbleGen.API.Tier;
 import me.phil14052.CustomCobbleGen.Commands.MainCommand;
 import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
@@ -31,29 +15,39 @@ import me.phil14052.CustomCobbleGen.Files.updaters.ConfigUpdater;
 import me.phil14052.CustomCobbleGen.Files.updaters.LangFileUpdater;
 import me.phil14052.CustomCobbleGen.Files.updaters.SignsFileUpdater;
 import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
-import me.phil14052.CustomCobbleGen.Hooks.ASkyBlockHook;
-import me.phil14052.CustomCobbleGen.Hooks.BentoboxHook;
-import me.phil14052.CustomCobbleGen.Hooks.FabledHook;
-import me.phil14052.CustomCobbleGen.Hooks.IslandHook;
-import me.phil14052.CustomCobbleGen.Hooks.SuperiorSkyblock2Hook;
-import me.phil14052.CustomCobbleGen.Hooks.uSkyBlockHook;
+import me.phil14052.CustomCobbleGen.Hooks.*;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.EconomyManager;
 import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Signs.SignManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
-import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
+import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.databases.MySQLPlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 
 /**
  * CustomCobbleGen By @author Philip Flyvholm
  * CustomCobbleGen.java
  */
 public class CustomCobbleGen extends JavaPlugin {
+
 	private static CustomCobbleGen plugin;
 	public Files lang;
 	private PlayerDatabase playerDatabase;
@@ -62,13 +56,11 @@ public class CustomCobbleGen extends JavaPlugin {
 	private TierManager tierManager;
 	private SignManager signManager;
 	private GeneratorModeManager generatorModeManager;
-	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
 	public static IslandHook islandPluginHooked = null;
 	private static String connectedMinionPlugin = "None";
 	private static String connectedIslandPlugin = "None";
 	private final String CONSOLEPREFIX = "&8[&3&lCustomCobbleGen&8]: ";
-	
 	
 	@Override
 	public void onEnable(){
@@ -300,7 +292,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	
 	public void connectToVault() {
 		// Connect to vault
-		econManager = EconomyManager.getInstance();
+		EconomyManager econManager = EconomyManager.getInstance();
 		if(econManager.setupEconomy()) {
 			this.debug("Economy is now setup");	
 		}else {

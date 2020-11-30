@@ -4,34 +4,85 @@
  */
 package me.phil14052.CustomCobbleGen.databases;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
 
 /**
  * @author Philip
  *
  */
-public interface PlayerDatabase {
+public abstract class PlayerDatabase {
 
-	public void establishConnection();
-	public void reloadConnection();
-	public void closeConnection();
-	public boolean isConnectionEstablished();
+	protected CustomCobbleGen plugin;
+	protected List<PlayerData> playerData;
+	protected BlockManager blockManager;
+	protected TierManager tierManager;
 	
-	public List<PlayerData> getAllPlayerData();
-	public PlayerData getPlayerData(UUID uuid);
-	public boolean containsPlayerData(UUID uuid);
-	public void setPlayerData(PlayerData data);
+	public PlayerDatabase() {
+		playerData = new ArrayList<>();
+		plugin = CustomCobbleGen.getInstance();
+		blockManager = BlockManager.getInstance();
+		tierManager = TierManager.getInstance();
+	}
 	
-	public void loadEverythingFromDatabase();
-	public void loadFromDatabase(UUID uuid);
-	public void saveToDatabase(UUID uuid);
-	public void saveToDatabase(PlayerData data);
-	public void saveEverythingToDatabase();
+	public abstract void establishConnection();
+	public abstract void reloadConnection();
+	public abstract void closeConnection();
+	public abstract boolean isConnectionEstablished();
 	
-	public void savePistonsToDatabase(UUID uuid);
-	public void loadPistonsFromDatabase(UUID uuid);
+	public List<PlayerData> getAllPlayerData() {
+		return this.playerData;
+	}
+
+	protected abstract void addToDatabase(PlayerData data);
 	
-	public String getType();
+	public PlayerData getPlayerData(UUID uuid) {
+		return this.getPlayerData(uuid, true);
+	}
+
+	
+	private PlayerData getPlayerData(UUID uuid, boolean loadFromDatabase) {
+		PlayerData playerData =  this.getAllPlayerData().stream()
+				.filter(data -> data.getUUID() != null && data.getUUID().equals(uuid))
+				.findFirst()
+				.orElse(null);
+		if(playerData == null) {
+			if(loadFromDatabase) {
+				this.loadFromDatabase(uuid);
+				return this.getPlayerData(uuid, false);
+			}
+			playerData = new PlayerData(uuid);
+			this.addToDatabase(playerData);
+		}
+		return playerData;
+	}
+	
+	public boolean containsPlayerData(UUID uuid) {
+		return this.getPlayerData(uuid) != null;
+	}
+	
+	public void setPlayerData(PlayerData data) {
+		if(data == null) return;
+		if(!this.containsPlayerData(data.getUUID())) {
+			this.addToDatabase(data);
+		}
+		this.playerData.add(data);
+	}
+	
+	public abstract void loadEverythingFromDatabase();
+	public abstract void loadFromDatabase(UUID uuid);
+	public abstract void saveToDatabase(UUID uuid);
+	public abstract void saveToDatabase(PlayerData data);
+	public abstract void saveEverythingToDatabase();
+	
+	public abstract void savePistonsToDatabase(UUID uuid);
+	public abstract void loadPistonsFromDatabase(UUID uuid);
+	
+	public abstract String getType();
 	
 }

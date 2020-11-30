@@ -214,5 +214,11 @@ public class uSkyBlockHook implements IslandHook{
 	public String getHookName() {
 		return "uSkyBlock";
 	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }
