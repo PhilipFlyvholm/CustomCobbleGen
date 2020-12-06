@@ -144,6 +144,17 @@ public class TierManager {
 				}
 				
 				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements,description, permission, supportedMode);
+				if(Setting.GUI_CUSTOM_GUI_ENABLED.getBoolean() && tierSection.contains("slot")){
+					int slot = tierSection.getInt("slot");
+					if(slot < 0){
+						plugin.error("GUI Slot for " + tier.getName() + " needs to be positive", true);
+					}else{
+						if(slot > Setting.GUI_CUSTOM_GUI_SIZE.getInt()){
+							plugin.warning("GUI Slot for " + tier.getName() + " may be bigger than the GUI Size and therefore not be able to be displayed.");
+						}
+						tier.setGUISlot(slot);
+					}
+				}
 				try {
 					//If already defined override
 					tierLevelsList.set(tierLevel, tier);

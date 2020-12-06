@@ -30,6 +30,8 @@ public enum Setting {
 	GUI_SEPERATECLASSESBYLINES("options.gui.seperateClassesByLines", true),
 	GUI_CENTERTIERS("options.gui.centerTiers", true),
 	GUI_SHOWSUPPORTEDMODES("options.gui.showSupportedModes", true),
+	GUI_CUSTOM_GUI_ENABLED("options.gui.custom.enabled", false),
+	GUI_CUSTOM_GUI_SIZE("options.gui.custom.size", 27),
 	SIGNS_ENABLED("options.signs.enabled", true),
 	ISLANDS_USEPERISLANDUNLOCKEDGENERATORS("options.islands.usePerIslandUnlockedGenerators", false),
 	ISLANDS_SENDMESSAGESTOTEAM("options.islands.sendMessagesToTeam", true),

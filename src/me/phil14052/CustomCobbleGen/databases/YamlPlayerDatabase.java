@@ -111,7 +111,7 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 		}
 		String path = this.getPlayerPath(uuid);
 		if(!this.getPlayerConfig().contains(path)) return;
-		if(this.containsPlayerData(uuid)) this.playerData.remove(this.getPlayerData(uuid));
+		if(this.containsPlayerData(uuid, false)) this.playerData.remove(this.getPlayerData(uuid, false));
 		SelectedTiers selectedTiers = new SelectedTiers(uuid, new ArrayList<>());
 		ConfigurationSection playerSection = this.getPlayerConfig().getConfigurationSection(path);
 		if(playerSection.contains("selected")) {

@@ -4,13 +4,13 @@
  */
 package me.phil14052.CustomCobbleGen.databases;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Philip
@@ -46,7 +46,7 @@ public abstract class PlayerDatabase {
 	}
 
 	
-	private PlayerData getPlayerData(UUID uuid, boolean loadFromDatabase) {
+	protected PlayerData getPlayerData(UUID uuid, boolean loadFromDatabase) {
 		PlayerData playerData =  this.getAllPlayerData().stream()
 				.filter(data -> data.getUUID() != null && data.getUUID().equals(uuid))
 				.findFirst()
@@ -61,7 +61,11 @@ public abstract class PlayerDatabase {
 		}
 		return playerData;
 	}
-	
+
+	protected boolean containsPlayerData(UUID uuid, boolean loadFromDatabase){
+		return this.getPlayerData(uuid, loadFromDatabase) != null;
+	}
+
 	public boolean containsPlayerData(UUID uuid) {
 		return this.getPlayerData(uuid) != null;
 	}

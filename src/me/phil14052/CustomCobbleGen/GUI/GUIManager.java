@@ -69,7 +69,7 @@ public class GUIManager {
 			for(String tierClass : tiers.keySet()) {
 				int j = 0; //Current pos in class
 				List<Tier> classTiers = tiers.get(tierClass); //Tiers in current class
-				
+				if(classTiers.isEmpty()) continue;
 				for(Tier tier : classTiers) {
 					if(j == 0) {
 						if(newLines) {
@@ -221,7 +221,15 @@ public class GUIManager {
 							}
 						}
 					});
-					ch.setIcon(i, icon);
+					int slot = i;
+					if(Setting.GUI_CUSTOM_GUI_ENABLED.getBoolean()){
+						slot = tier.getGUISlot();
+					}
+					if(slot >= 0 && slot <= guiSize){
+						ch.setIcon(slot, icon);
+					}else{
+						plugin.error("Unknown slot for " + tier.getName(), true);
+					}
 					//numOfPreviousTiers += classTiers.size();
 					if(j >= classTiers.size() && centerItems) {
 						i += Math.ceil(4.5-(classTiers.size()/2));
@@ -244,6 +252,9 @@ public class GUIManager {
 		}
 		
 		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
+			if(Setting.GUI_CUSTOM_GUI_ENABLED.getBoolean()){
+				return Setting.GUI_CUSTOM_GUI_SIZE.getInt();
+			}
 			int rows = 0;
 			boolean newLines = Setting.GUI_SEPERATECLASSESBYLINES.getBoolean();
 			if(newLines) {
