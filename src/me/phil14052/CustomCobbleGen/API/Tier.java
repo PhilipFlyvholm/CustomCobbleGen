@@ -4,6 +4,7 @@
  */
 package me.phil14052.CustomCobbleGen.API;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Files.Lang;
 import me.phil14052.CustomCobbleGen.Managers.GenMode;
 import me.phil14052.CustomCobbleGen.Managers.GeneratorModeManager;
@@ -13,6 +14,7 @@ import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -56,8 +58,15 @@ public class Tier {
 		ItemMeta im = icon.getItemMeta();
 		im.setDisplayName(Lang.GUI_ITEM_NAME.toString(this));
 		List<String> lore = new ArrayList<String>();
-		lore.add(Lang.GUI_ITEM_LORE_TITLE.toString(this));
-		
+
+		ConfigurationSection customLoreSection = CustomCobbleGen.getInstance().getConfig().getConfigurationSection("tiers." + tierClass.toLowerCase() + "." + level + ".customLore");
+		if(customLoreSection != null) {
+			lore.clear();
+			Map<String, Object> customLore = customLoreSection.getValues(false);
+			customLore.forEach((a,b) -> lore.add((String)b));
+		}
+		else lore.add(Lang.GUI_ITEM_LORE_TITLE.toString(this));
+
 		im.setLore(lore);
 		icon.setItemMeta(im);
 		this.icon = icon;
@@ -149,6 +158,7 @@ public class Tier {
 	
 	public List<String> getResultsLore(Map<Material, Double> results){
 		List<String> lore = new ArrayList<>();
+		if(CustomCobbleGen.getInstance().getConfig().getConfigurationSection("tiers." + tierClass.toLowerCase() + "." + level + ".customLore") != null) return lore;
 		for(Material result : results.keySet()){
 			String resultName = StringUtils.toCamelCase(result.name());
 			String percentage = results.get(result) % 1 == 0 ? ((int) Math.round(results.get(result))) + "%" : ((double) results.get(result)) + "%";
