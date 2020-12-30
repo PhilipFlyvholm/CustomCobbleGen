@@ -115,8 +115,8 @@ public class BlockEvents implements Listener{
 							return;
 						}
 
-						float soundVolume = (float)CustomCobbleGen.getInstance().getConfig().getDouble("options.sound.volume");
-						float pitch = (float)CustomCobbleGen.getInstance().getConfig().getDouble("options.sound.pitch");
+						float soundVolume = (float)CustomCobbleGen.getInstance().getConfig().getDouble("options.sound.volume", 2.0d);
+						float pitch = (float)CustomCobbleGen.getInstance().getConfig().getDouble("options.sound.pitch", 1.0d);
 						if(tier != null) {
 							Material result = tier.getRandomResult();
 							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
