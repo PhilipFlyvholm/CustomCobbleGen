@@ -114,6 +114,9 @@ public class BlockEvents implements Listener{
 							if(!toBlock.getLocation().getBlock().getType().equals(Material.COBBLESTONE)) toBlock.getLocation().getBlock().setType(Material.COBBLESTONE);
 							return;
 						}
+
+						float soundVolume = (float)CustomCobbleGen.getInstance().getConfig().getDouble("options.sound.volume");
+						float pitch = (float)CustomCobbleGen.getInstance().getConfig().getDouble("options.sound.pitch");
 						if(tier != null) {
 							Material result = tier.getRandomResult();
 							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
@@ -125,7 +128,7 @@ public class BlockEvents implements Listener{
 							}
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
-							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), 2.0F, 1.0F); //Play sound if configured
+							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), soundVolume, pitch); //Play sound if configured
 							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
 							return;
 						}else if(mode.hasFallBackMaterial()){
@@ -139,7 +142,7 @@ public class BlockEvents implements Listener{
 							}
 							e.setCancelled(true);
 							event.getGenerationLocation().getBlock().setType(fallback); //Get a random material and replace the block
-							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), 2.0F, 1.0F); //Play sound if configured
+							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), soundVolume, pitch); //Play sound if configured
 							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
 							
 							return;
