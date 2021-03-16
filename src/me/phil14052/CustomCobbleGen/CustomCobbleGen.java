@@ -29,6 +29,7 @@ import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -39,7 +40,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 /**
@@ -107,9 +107,14 @@ public class CustomCobbleGen extends JavaPlugin {
 
 		registerEvents();
 		plugin.debug("Events loaded&2 \u2713");
-		plugin.getCommand("cobblegen").setExecutor(new MainCommand());
-		plugin.getCommand("cobblegen").setTabCompleter(new MainTabComplete());
-		plugin.debug("Commands loaded&2 \u2713");
+		PluginCommand mainCommand = plugin.getCommand("cobblegen");
+		if(mainCommand != null){
+			mainCommand.setExecutor(new MainCommand());
+			mainCommand.setTabCompleter(new MainTabComplete());
+			plugin.debug("Commands loaded&2 \u2713");
+		}else{
+			plugin.error("Failed load of command");
+		}
 		
 		// Register a enchantment without effects to give items a glow effect
 		registerGlow();
@@ -117,82 +122,30 @@ public class CustomCobbleGen extends JavaPlugin {
 		// Connect to BStats
 		int pluginId = 5454;
 		Metrics metrics = new Metrics(this, pluginId);
-        Metrics.SingleLineChart genChart = new Metrics.SingleLineChart("generators", new Callable<Integer>() {
-        	
-			@Override
-			public Integer call() throws Exception {
-				int numOfGenerators = BlockManager.getInstance().getKnownGenLocations().size();
-				if(numOfGenerators > 10000) { // Over 10000 generators found - Prob a mistake
-					plugin.warning("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
-					plugin.warning("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
-				}
-				return numOfGenerators;
+        Metrics.SingleLineChart genChart = new Metrics.SingleLineChart("generators", () -> {
+			int numOfGenerators = BlockManager.getInstance().getKnownGenLocations().size();
+			if(numOfGenerators > 10000) { // Over 10000 generators found - Prob a mistake
+				plugin.warning("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
+				plugin.warning("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
 			}
-        	
-        });
-        Metrics.SimplePie pistonChart = new Metrics.SimplePie("servers_using_pistons_for_automation", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return Setting.AUTOMATION_PISTONS.getBoolean() ? "Enabled" : "Disabled";
-			}
-        	
-        });
-        Metrics.SimplePie signChart = new Metrics.SimplePie("servers_using_signs", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return Setting.SIGNS_ENABLED.getBoolean() ? "Enabled" : "Disabled";
-			}
-        	
-        });
-        Metrics.SimplePie minionChart = new Metrics.SimplePie("connected_minion_plugins", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return connectedMinionPlugin;
-			}
-        	
-        });
-        Metrics.SimplePie islandChart = new Metrics.SimplePie("connected_island_plugins", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return connectedIslandPlugin;
-			}
-        	
-        });
+			return numOfGenerators;
+		});
+        Metrics.SimplePie pistonChart = new Metrics.SimplePie("servers_using_pistons_for_automation", () -> Setting.AUTOMATION_PISTONS.getBoolean() ? "Enabled" : "Disabled");
+        Metrics.SimplePie signChart = new Metrics.SimplePie("servers_using_signs", () -> Setting.SIGNS_ENABLED.getBoolean() ? "Enabled" + (signManager.getSigns().isEmpty() ? " but not in use" : "") : "Disabled");
+        Metrics.SimplePie minionChart = new Metrics.SimplePie("connected_minion_plugins", () -> connectedMinionPlugin);
+        Metrics.SimplePie islandChart = new Metrics.SimplePie("connected_island_plugins", () -> connectedIslandPlugin);
 
-        Metrics.SimplePie selectOptionChart = new Metrics.SimplePie("tier_unlock_system", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() ? "Island based" : "Player based";
-			}
-        	
-        });
+        Metrics.SimplePie selectOptionChart = new Metrics.SimplePie("tier_unlock_system", () -> Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() ? "Island based" : "Player based");
         
-        Metrics.SimplePie tiersActiveChart = new Metrics.SimplePie("tiers_active", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				int numOfTiers = 0;
-				for(List<Tier> tiers : tierManager.getTiers().values()) {
-					numOfTiers += tiers.size();
-				}
-				return numOfTiers + " tiers active";
+        Metrics.SimplePie tiersActiveChart = new Metrics.SimplePie("tiers_active", () -> {
+			int numOfTiers = 0;
+			for(List<Tier> tiers : tierManager.getTiers().values()) {
+				numOfTiers += tiers.size();
 			}
-        	
-        });
+			return numOfTiers + " tiers active";
+		});
         
-        Metrics.SimplePie modesActiveChart = new Metrics.SimplePie("modes_active", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return generatorModeManager.getModes().size() + " generation modes active";
-			}
-        	
-        });
+        Metrics.SimplePie modesActiveChart = new Metrics.SimplePie("modes_active", () -> generatorModeManager.getModes().size() + " generation modes active");
         metrics.addCustomChart(genChart);
         metrics.addCustomChart(pistonChart);
         metrics.addCustomChart(signChart);

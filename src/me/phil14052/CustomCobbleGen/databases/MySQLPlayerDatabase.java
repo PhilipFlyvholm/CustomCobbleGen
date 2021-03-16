@@ -29,8 +29,7 @@ import java.util.*;
  */
 public class MySQLPlayerDatabase extends PlayerDatabase {
 
-	private HikariConfig databaseConfig;
-    private HikariDataSource ds;
+	private HikariDataSource ds;
     private String HOST;
     private String TABLE_NAME;
     private String DATABASE_NAME;
@@ -46,9 +45,9 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	
 	@Override
 	public void establishConnection() {
-		databaseConfig = new HikariConfig();
+		HikariConfig databaseConfig = new HikariConfig();
 		HOST = Setting.DATABASE_HOST.getString();
-		DATABASE_NAME = Setting.DATABASE_DATABASE.getString();
+		DATABASE_NAME = Setting.DATABASE_DATABASE.getString().toUpperCase();
 		String jdbcUrl = "jdbc:mysql://" + HOST + "/" +  DATABASE_NAME + "?useSSL=false";
 		databaseConfig.setJdbcUrl(jdbcUrl);
 		databaseConfig.setUsername(Setting.DATABASE_USERNAME.getString());
@@ -56,8 +55,8 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 		databaseConfig.addDataSourceProperty( "cachePrepStmts" , "true" );
 		databaseConfig.addDataSourceProperty( "prepStmtCacheSize" , "250" );
 		databaseConfig.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
-		TABLE_NAME = Setting.DATABASE_TABLE.getString();
-        ds = new HikariDataSource( databaseConfig );
+		TABLE_NAME = Setting.DATABASE_TABLE.getString().toUpperCase();
+        ds = new HikariDataSource(databaseConfig);
         try {
 			Connection connection = this.getConnection();
 			PreparedStatement stmt = null;

@@ -120,7 +120,12 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 
 	@Override
 	public void onGeneratorBlockBreak(UUID uuid) {
-		// TODO Auto-generated method stub
-		
+		updateIslandLevel(uuid);
+	}
+
+	public void updateIslandLevel(UUID uuid) {
+		Island is = this.getIslandFromPlayer(uuid);
+		if(is == null) return;
+		is.calcIslandWorth(null);
 	}
 }

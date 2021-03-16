@@ -60,7 +60,7 @@ public class ChatReturnTierLevel implements ChatReturn{
 			return Lang.CHATINPUT_INVALID.toString(input);
 		}else if(input.contains(" ")) {
 			return Lang.CHATINPUT_INVALID_NOSPACE.toString(input);
-		}else if(!StringUtils.isInteger(input) || Integer.parseInt(input) < 0){
+		}else if(StringUtils.isNotInteger(input) || Integer.parseInt(input) < 0){
 			return Lang.CHATINPUT_INVALID_NAN.toString(input);
 		}
 		return "VALID";

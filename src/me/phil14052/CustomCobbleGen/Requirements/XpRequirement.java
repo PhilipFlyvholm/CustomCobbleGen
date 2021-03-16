@@ -8,7 +8,7 @@ import java.util.List;
 
 public class XpRequirement implements Requirement{
 	
-	private int xpNeeded;
+	private final int xpNeeded;
 	
 	public XpRequirement(int xpNeeded) {
 		if(xpNeeded < 0) xpNeeded = 0;

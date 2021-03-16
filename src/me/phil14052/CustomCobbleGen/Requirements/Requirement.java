@@ -7,15 +7,15 @@ import java.util.List;
 
 public interface Requirement {
 	
-	public boolean furfillsRequirement(Player p);
+	boolean furfillsRequirement(Player p);
 	
-	public RequirementType getRequirementType();
+	RequirementType getRequirementType();
 	
-	public int getRequirementValue();
+	int getRequirementValue();
 	
-	public List<String> addAvailableString(Tier tier, List<String> lore);
+	List<String> addAvailableString(Tier tier, List<String> lore);
 	
-	public List<String> addUnavailableString(Tier tier, List<String> lore);
+	List<String> addUnavailableString(Tier tier, List<String> lore);
 	
-	public void onPurchase(Player p);
+	void onPurchase(Player p);
 }

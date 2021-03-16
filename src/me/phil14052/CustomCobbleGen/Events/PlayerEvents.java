@@ -4,11 +4,20 @@
  */
 package me.phil14052.CustomCobbleGen.Events;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
+import com.cryptomorin.xseries.XMaterial;
+import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
+import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.GUI.GUIManager;
+import me.phil14052.CustomCobbleGen.Managers.BlockManager;
+import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
+import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
+import me.phil14052.CustomCobbleGen.Signs.SignManager;
+import me.phil14052.CustomCobbleGen.databases.PlayerData;
+import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,21 +30,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
-import com.cryptomorin.xseries.XMaterial;
-
-import me.phil14052.CustomCobbleGen.CustomCobbleGen;
-import me.phil14052.CustomCobbleGen.API.Tier;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturn;
-import me.phil14052.CustomCobbleGen.Chat.ChatReturnType;
-import me.phil14052.CustomCobbleGen.Files.Lang;
-import me.phil14052.CustomCobbleGen.GUI.GUIManager;
-import me.phil14052.CustomCobbleGen.Managers.BlockManager;
-import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
-import me.phil14052.CustomCobbleGen.Managers.TierManager;
-import me.phil14052.CustomCobbleGen.Signs.ClickableSign;
-import me.phil14052.CustomCobbleGen.Signs.SignManager;
-import me.phil14052.CustomCobbleGen.databases.PlayerData;
-import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * @author Philip
@@ -77,7 +75,7 @@ public class PlayerEvents implements Listener {
 	
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e) {
-		if(!signManager.areSignsEnabled()) return;
+		if(signManager.areSignsDisabled()) return;
 		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		if(e.getClickedBlock() == null) return;
 		if(isSign(e.getClickedBlock().getType())) {

@@ -21,7 +21,7 @@ import java.util.UUID;
  */
 public class FabledHook implements IslandHook{
 	
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	private IslandManager getIslandManager() {
 		return SkyBlockAPI.getIslandManager();

@@ -42,7 +42,7 @@ public class TierManager {
 		if(!plugin.getConfig().contains("tiers")) return;
 		tiers = new LinkedHashMap<>();
 		ConfigurationSection configTiers = plugin.getConfig().getConfigurationSection("tiers");
-		if(configTiers == null || configTiers.getKeys(false) == null){
+		if(configTiers == null){
 			plugin.error("Tiers are not defined", true);
 			return;
 		}
@@ -51,8 +51,12 @@ public class TierManager {
 			List<Tier> tierLevelsList = new ArrayList<>();
 			for(String tierLevelString : configTiers.getConfigurationSection(tierClass).getKeys(false)){
 				boolean levelNeedsUserChange = false;
-				if(!StringUtils.isInteger(tierLevelString)){plugin.error(tierClass + " has a text as level instead of a number.", true); continue;}
+				if(StringUtils.isNotInteger(tierLevelString)){plugin.error(tierClass + " has a text as level instead of a number.", true); continue;}
 				ConfigurationSection tierSection = configTiers.getConfigurationSection(tierClass + "." + tierLevelString);
+				if(tierSection == null){
+					plugin.error("Missing tier section: " + tierClass + "." + tierLevelString);
+					continue;
+				}
 				int tierLevel = Integer.parseInt(tierLevelString);
 				String name = tierSection.getString("name");
 				Material iconMaterial = Material.matchMaterial(tierSection.getString("icon").toUpperCase());
@@ -71,13 +75,14 @@ public class TierManager {
 					totalPercentage += percentage;
 					results.put(resultMaterial, percentage);
 				}
-				if(totalPercentage > 100D) {
+				//Warning if under 99.9% or over 100.1% The buffer on 0.1 procentpoints is because of Java miscalculating
+				if(totalPercentage > 99.9D) {
 					plugin.warning("&c&lUser Error: &7Results total percentage is over 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
-				}else if(totalPercentage < 100D) {
+				}else if(totalPercentage < 100.1D) {
 					plugin.error("Results total percentage is under 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage, true);
 					plugin.error("&c&lTHIS CAN GIVE NULL POINTER ERRORS! THESE ARE USER ERRORS AND NEED TO BE FIXED BY YOU!", true);
 				}
-				
+
 				List<Requirement> requirements = new ArrayList<>();
 				
 				if(tierSection.contains("price.money")) {
@@ -113,7 +118,7 @@ public class TierManager {
 						requirements.add(new LevelRequirement(levelRequirement));
 					}
 				}
-				
+
 				List<String> description = null;
 				if(tierSection.contains("description")) {
 					description = new ArrayList<>();
@@ -124,7 +129,7 @@ public class TierManager {
 					}
 					
 				}
-				
+
 				String permission = null;
 				if(tierSection.contains("permission")) {
 					permission = tierSection.getString("permission");
@@ -142,7 +147,7 @@ public class TierManager {
 						}
 					}
 				}
-				
+
 				Tier tier = new Tier(name, tierClass.toUpperCase(), tierLevel, iconMaterial, results, requirements,description, permission, supportedMode);
 				if(Setting.GUI_CUSTOM_GUI_ENABLED.getBoolean() && tierSection.contains("slot")){
 					int slot = tierSection.getInt("slot");

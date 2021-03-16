@@ -11,9 +11,9 @@ import java.util.List;
 
 public class MoneyRequirement implements Requirement{
 	
-	private int moneyNeeded;
-	private EconomyManager econManager;
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final int moneyNeeded;
+	private final EconomyManager econManager;
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	public MoneyRequirement(int moneyNeeded) {
 		econManager = EconomyManager.getInstance();

@@ -46,31 +46,33 @@ public class GeneratorModeManager {
 		if(plugin.getConfig().contains(Setting.SECTION_GENERATIONMODES.getPath())) {
 
 			ConfigurationSection section = plugin.getConfig().getConfigurationSection(Setting.SECTION_GENERATIONMODES.getPath());
+			if(section == null){
+				plugin.error("No generation mode section found");
+				return;
+			}
 			for(String s : section.getKeys(false)) {
 				List<String> blockNames = section.getStringList(s + ".blocks");
 				List<Material> blockMaterials = null;
-				if(blockNames != null) {
-					blockMaterials = new ArrayList<>();
-					for(String name : blockNames) {
-						Material m = Material.valueOf(name.toUpperCase());
-						if(m == null) {
-							plugin.error("&c&lUnknown material in a generation mode under blocks - &e" +  name.toUpperCase(), true);
-							continue;
-						}
-						blockMaterials.add(m);
-					}
+				blockMaterials = new ArrayList<>();
+				for(String name : blockNames) {
+					Material m = Material.valueOf(name.toUpperCase());
+					blockMaterials.add(m);
 				}
 				Map<BlockFace, Material> fixedBlockMaterials = null;
 				if(section.isConfigurationSection(s + ".fixedBlocks")) {
 					fixedBlockMaterials = new HashMap<>();
 					for(String fixedBlockFace : section.getConfigurationSection(s + ".fixedBlocks").getKeys(false)) {
 						BlockFace blockFace = BlockFace.valueOf(fixedBlockFace.toUpperCase());
-						if(blockFace == null || !this.isSupportedBlockFace(blockFace)) {
+						if(!this.isSupportedBlockFace(blockFace)) {
 							plugin.error(fixedBlockFace.toUpperCase() + " &c&l is not a valid block face. Use UP, DOWN, EAST, NORTH, WEST or SOUTH", true);
 							continue;
 						}
 						String materialName = section.getString(s + ".fixedBlocks." + fixedBlockFace);
-						Material m = Material.valueOf(materialName.toUpperCase());
+						if(materialName == null) {
+							plugin.error("&c&lSyntax error under block face &e" + fixedBlockFace.toUpperCase() + " - No material name", true);
+							continue;
+						}
+						Material m = Material.getMaterial(materialName.toUpperCase());
 						if(m == null) {
 							plugin.error(materialName.toUpperCase() + " &c&l is not a valid material under block face &e" + fixedBlockFace.toUpperCase(), true);
 							continue;
@@ -95,7 +97,7 @@ public class GeneratorModeManager {
 				}
 				Material fallbackMaterial = null;
 				if(section.contains(s + ".fallback")) {
-					fallbackMaterial = Material.valueOf(section.getString(s + ".fallback").toUpperCase());
+					fallbackMaterial = Material.getMaterial(section.getString(s + ".fallback").toUpperCase());
 					if(fallbackMaterial == null) {
 						plugin.error(section.getString(s + ".fallback") + " is not a valid fallback material", true);
 					}

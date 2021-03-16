@@ -229,7 +229,7 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				String levelString = args[4];
-				if(!StringUtils.isInteger(levelString)) {
+				if(StringUtils.isNotInteger(levelString)) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString(p));
 					return false;
 				}
@@ -261,7 +261,7 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				String levelString = args[4];
-				if(!StringUtils.isInteger(levelString)) {
+				if(StringUtils.isNotInteger(levelString)) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString(p));
 					return false;
 				}
@@ -296,7 +296,7 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				String levelString = args[4];
-				if(!StringUtils.isInteger(levelString)) {
+				if(StringUtils.isNotInteger(levelString)) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString(p));
 					return false;
 				}
@@ -340,7 +340,7 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				String levelString = args[4];
-				if(!StringUtils.isInteger(levelString)) {
+				if(StringUtils.isNotInteger(levelString)) {
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.UNDIFINED_LEVEL.toString(p));
 					return false;
 				}

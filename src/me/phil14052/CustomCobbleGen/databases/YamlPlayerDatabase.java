@@ -6,15 +6,18 @@ package me.phil14052.CustomCobbleGen.databases;
 
 import com.cryptomorin.xseries.XMaterial;
 import me.phil14052.CustomCobbleGen.API.Tier;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.io.File;
@@ -97,8 +100,17 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 		this.playerData = new ArrayList<>();
 		blockManager.setKnownGenPistons(new HashMap<>());
 		ConfigurationSection playerSection = this.getPlayerConfig().getConfigurationSection("players");
-		for(String uuid : playerSection.getKeys(false)){
-			this.loadFromDatabase(UUID.fromString(uuid));
+		if(playerSection == null) {
+			plugin.error("Could not find player section in player config");
+			return;
+		}
+		for(String uuidString : playerSection.getKeys(false)){
+			UUID uuid = UUID.fromString(uuidString);
+			if(Setting.ONLY_LOAD_ONLINE_PLAYERS.getBoolean()){
+				Player p = Bukkit.getPlayer(uuid);
+				if(p == null || !p.isOnline()) continue;
+			}
+			this.loadFromDatabase(uuid);
 		}
 	}
 	
@@ -247,7 +259,7 @@ public class YamlPlayerDatabase extends PlayerDatabase {
  
     }
 	
-		@Override
+    @Override
 	public boolean isConnectionEstablished() {
 		return playerConfig != null && playerConfigFile != null;
 	}

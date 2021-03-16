@@ -1,7 +1,4 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * SelectSign.java
- */
+
 package me.phil14052.CustomCobbleGen.Signs;
 
 import me.phil14052.CustomCobbleGen.API.Tier;
@@ -17,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * SelectSign.java
  */
 public class BuySign implements ClickableSign{
 
@@ -27,13 +24,13 @@ public class BuySign implements ClickableSign{
 	private boolean valid = false;
 	
 	private Tier purchasableTier = null;
-	private TierManager tm = TierManager.getInstance();
-	private GUIManager guiManager = GUIManager.getInstance();
-	private PermissionManager pm = new PermissionManager();
+	private final TierManager tm = TierManager.getInstance();
+	private final GUIManager guiManager = GUIManager.getInstance();
+	private final PermissionManager pm = new PermissionManager();
 	
 	/**
-	 * @param loc
-	 * @param tier
+	 * @param loc The location of the sign
+	 * @param tier The tier available
 	 */
 	public BuySign(Location loc, Tier tier) {
 		this.setLocation(loc);
@@ -57,15 +54,10 @@ public class BuySign implements ClickableSign{
 	}
 
 	@Override
-	public void setSignType(ClickableSignType signType) {
-		this.signType = signType;		
-	}
-
-	@Override
 	public String serializeSign() {
 		// [World, x, y, z, type, data(Class,level)]
 		List<String> items = new ArrayList<>();
-		items.add(loc.getWorld().getName() + "");
+		items.add(loc.getWorld() != null ? loc.getWorld().getName() + "" : "");
 		items.add(loc.getX() + "");
 		items.add(loc.getY() + "");
 		items.add(loc.getZ() + "");
@@ -115,8 +107,7 @@ public class BuySign implements ClickableSign{
 
 	@Override
 	public boolean validateData() {
-		if(this.loc == null || this.purchasableTier == null) valid = false;
-		else valid = true;
+		valid = this.loc != null && this.purchasableTier != null;
 		return this.isValid();
 	}
 

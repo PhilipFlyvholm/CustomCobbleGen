@@ -18,6 +18,7 @@ public enum Setting {
 	DEBUG("debug", false),
 	SECTION_GENERATIONMODES("options.generationModes", "", true),
 	PLAYERSEARCHRADIUS("options.playerSearchRadius", 4D),
+	ONLY_LOAD_ONLINE_PLAYERS("options.ignoreOfflinePlayersOnLoad", false),
 	AUTO_SAVE_ENABLED("options.auto-save.enabled", false),
 	AUTO_SAVE_DELAY("options.auto-save.delay-in-sec", 300), //300 sec = 5 min
 	MONEY_FORMAT("options.money.format", true),

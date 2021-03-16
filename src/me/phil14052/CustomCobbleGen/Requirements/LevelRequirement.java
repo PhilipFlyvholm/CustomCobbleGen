@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * LevelRequirement.java
- */
 package me.phil14052.CustomCobbleGen.Requirements;
 
 import me.phil14052.CustomCobbleGen.API.Tier;
@@ -13,13 +9,13 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * LevelRequirement.java
  */
 public class LevelRequirement implements Requirement {
 
-	private int levelNeeded = 0;
-	private CustomCobbleGen plugin;
+	private final int levelNeeded;
+	private final CustomCobbleGen plugin;
 	
 	public LevelRequirement(int levelNeeded) {
 		this.levelNeeded = levelNeeded;
@@ -63,7 +59,6 @@ public class LevelRequirement implements Requirement {
 	@Override
 	public void onPurchase(Player p) {
 		//Does not do anything on purchase
-		return;
 	}
 	
 }

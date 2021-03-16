@@ -1,7 +1,4 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * SelectSign.java
- */
+
 package me.phil14052.CustomCobbleGen.Signs;
 
 import me.phil14052.CustomCobbleGen.API.Tier;
@@ -15,21 +12,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * SelectSign.java
  */
 public class SelectSign implements ClickableSign{
 
 	private Location loc = null;
-	private ClickableSignType signType = ClickableSignType.SELECT;
+	private final ClickableSignType signType = ClickableSignType.SELECT;
 	private boolean valid = false;
 	
 	private Tier selectableTier = null;
-	private TierManager tm = TierManager.getInstance();
+	private final TierManager tm = TierManager.getInstance();
 	
 	/**
-	 * @param loc
-	 * @param tier
+	 * @param loc the location of the sign
+	 * @param tier the tier available
 	 */
 	public SelectSign(Location loc, Tier tier) {
 		this.setLocation(loc);
@@ -52,16 +49,11 @@ public class SelectSign implements ClickableSign{
 		return this.signType;
 	}
 
-	@Override
-	public void setSignType(ClickableSignType signType) {
-		this.signType = signType;		
-	}
-
-	@Override
+    @Override
 	public String serializeSign() {
 		// [World, x, y, z, type, data(Class,level)]
 		List<String> items = new ArrayList<>();
-		items.add(loc.getWorld().getName() + "");
+		items.add(loc.getWorld() != null ? loc.getWorld().getName() + "" : "");
 		items.add(loc.getX() + "");
 		items.add(loc.getY() + "");
 		items.add(loc.getZ() + "");
@@ -83,7 +75,6 @@ public class SelectSign implements ClickableSign{
 			p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_CHANGED.toString(p));
 		}else {
 			p.sendMessage(Lang.PREFIX.toString() + Lang.TIER_NOT_PURCHASED.toString(this.getSelectableTier()));
-			return;
 		}
 	}
 
@@ -102,8 +93,7 @@ public class SelectSign implements ClickableSign{
 
 	@Override
 	public boolean validateData() {
-		if(this.loc == null || this.selectableTier == null) valid = false;
-		else valid = true;
+		valid = this.loc != null && this.selectableTier != null;
 		return this.isValid();
 	}
 
