@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * YamlPlayerDatabase.java
- */
 package me.phil14052.CustomCobbleGen.databases;
 
 import com.cryptomorin.xseries.XMaterial;
@@ -10,10 +6,10 @@ import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import me.phil14052.CustomCobbleGen.Utils.Response;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -29,8 +25,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * YamlPlayerDatabase.java
  */
 public class YamlPlayerDatabase extends PlayerDatabase {
 
@@ -42,7 +38,7 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 	}
 	
 	@Override
-	public void establishConnection() {
+	public Response<String> establishConnection() {
 
 		// Setup player configs
 		playerConfig = null;
@@ -55,7 +51,9 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 		if(this.getPlayerConfig().getConfigurationSection("players") == null){
 			this.getPlayerConfig().createSection("players");
 		}else { //CONVERTER FROM 1.4.1 to 1.4.2+
-			for(String s : this.getPlayerConfig().getConfigurationSection("players").getKeys(false)) {
+			ConfigurationSection section = getPlayerConfig().getConfigurationSection("players");
+			if(section == null) return new Response<>("Player section not found", true);
+			for(String s : section.getKeys(false)) {
 				if(this.getPlayerConfig().contains("players." + s + ".selected.class") || this.getPlayerConfig().contains("players." + s + ".selected.level")) { //This means that it is saved with the prev 1.4.2 format
 					plugin.log("&cAuto updating player selected data for UUID: " + s);
 					this.getPlayerConfig().set("players." + s + ".selected.0.class", this.getPlayerConfig().get("players." + s + ".selected.class"));
@@ -65,18 +63,17 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 				}
 			}
 		}
-		
 		this.getPlayerConfig().options().copyDefaults(true);
 		this.savePlayerConfig();
 		
 		plugin.debug("Players is now setup&2 \u2713");
+		return new Response<>("Success establishing connection to YAML file", false);
 	}
 
 	@Override
 	public void reloadConnection() {
 		if(!this.isConnectionEstablished()) return;
 		this.reloadPlayerConfig();
-		
 	}
 
 	@Override
@@ -100,10 +97,12 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 		this.playerData = new ArrayList<>();
 		blockManager.setKnownGenPistons(new HashMap<>());
 		ConfigurationSection playerSection = this.getPlayerConfig().getConfigurationSection("players");
+
 		if(playerSection == null) {
 			plugin.error("Could not find player section in player config");
 			return;
 		}
+
 		for(String uuidString : playerSection.getKeys(false)){
 			UUID uuid = UUID.fromString(uuidString);
 			if(Setting.ONLY_LOAD_ONLINE_PLAYERS.getBoolean()){
@@ -126,8 +125,11 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 		if(this.containsPlayerData(uuid, false)) this.playerData.remove(this.getPlayerData(uuid, false));
 		SelectedTiers selectedTiers = new SelectedTiers(uuid, new ArrayList<>());
 		ConfigurationSection playerSection = this.getPlayerConfig().getConfigurationSection(path);
+		if(playerSection == null) return;
 		if(playerSection.contains("selected")) {
-			for(String s : playerSection.getConfigurationSection("selected").getKeys(false)) {
+			ConfigurationSection selectedSection = playerSection.getConfigurationSection("selected");
+			if(selectedSection == null) return;
+			for(String s : selectedSection.getKeys(false)) {
 				int tierLevel = playerSection.getInt("selected." + s + ".level");
 				String tierClass = playerSection.getString("selected." + s + ".class");
 				Tier tier = tierManager.getTierByLevel(tierClass, tierLevel);
@@ -143,12 +145,12 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 		List<Tier> purchasedTiers = new ArrayList<>();
 		if(playerSection.contains("purchased")) {
 				ConfigurationSection purchasedSection = playerSection.getConfigurationSection("purchased");
+				if(purchasedSection == null) return;
 			for(String purchasedClass : purchasedSection.getKeys(false)){
 				List<Integer> purchasedLevels = purchasedSection.getIntegerList(purchasedClass);
 				for(int purchasedLevel : purchasedLevels){
 					Tier purchasedTier = tierManager.getTierByLevel(purchasedClass, purchasedLevel);
 					if(purchasedTier == null) {
-
 						plugin.error("Unknown purchased tier under the uuid &e" + uuid.toString() + "&c&l in the players.yml. Please remove this tier from the purchased list!", true);
 						plugin.log("&c&lIf not manually added then please report this to the dev - Line 158 in YamlPlayerDatabase - loadFromDatabase");
 						continue;	
@@ -298,12 +300,7 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 				plugin.error("Unknown world in players.yml under UUID: " + uuid + ".pistons: " + stringLoc);
 				continue;
 			}
-			Block block = world.getBlockAt(loc);
-			if(block == null) {
-				plugin.error("Can't confirm block is piston in players.yml under UUID: " + uuid + ".pistons at " + stringLoc);
-				continue;
-			}
-			else if(loc.getWorld().getBlockAt(loc).getType()!= XMaterial.PISTON.parseMaterial()) continue;
+			if(loc.getWorld().getBlockAt(loc).getType()!= XMaterial.PISTON.parseMaterial()) continue;
 			blockManager.getKnownGenPistons().remove(loc);
 			GenPiston piston = new GenPiston(loc, uuid);
 			piston.setHasBeenUsed(true);

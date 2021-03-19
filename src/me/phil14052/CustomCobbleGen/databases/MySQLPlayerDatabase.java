@@ -12,6 +12,7 @@ import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import me.phil14052.CustomCobbleGen.Utils.Response;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -44,7 +45,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
     }
 	
 	@Override
-	public void establishConnection() {
+	public Response<String> establishConnection() {
 		HikariConfig databaseConfig = new HikariConfig();
 		HOST = Setting.DATABASE_HOST.getString();
 		DATABASE_NAME = Setting.DATABASE_DATABASE.getString().toUpperCase();
@@ -57,6 +58,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 		databaseConfig.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
 		TABLE_NAME = Setting.DATABASE_TABLE.getString().toUpperCase();
         ds = new HikariDataSource(databaseConfig);
+        Response<String> response;
         try {
 			Connection connection = this.getConnection();
 			PreparedStatement stmt = null;
@@ -79,14 +81,17 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	        }
 			
 			plugin.debug("Connected to " + HOST + "/" + DATABASE_NAME);
+			response = new Response<>("Connected to " + HOST + "/" + DATABASE_NAME, false);
 		} catch (SQLException e) {
         	plugin.error("Failed to connect to " + HOST + "/" + DATABASE_NAME);
         	plugin.error(e.getMessage());
         	if(ds != null){
         		ds = null;
         	}
+			response =  new Response<>("Failed to connect to " + HOST + "/" + DATABASE_NAME, false);
 		}
 		plugin.debug("Players is now setup&2 \u2713");
+        return response;
 	}
 
 	@Override
@@ -387,31 +392,27 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	public void savePistonsToDatabase(UUID uuid) {
 		if(!this.isConnectionEstablished()) return;
 
-		Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-
-			@Override
-			public void run() {
+		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+			try {
+				Connection connection = getConnection();
+				PreparedStatement stmt = null;
 				try {
-					Connection connection = getConnection();
-					PreparedStatement stmt = null;
-			        try {
-			        	stmt = connection.prepareStatement("UPDATE " + TABLE_NAME +
-			        			" SET pistons = '" + getPistonString(uuid) + "' WHERE uuid = '" + uuid.toString() + "'");
-						if(stmt.executeUpdate() >= 0) {
-							plugin.error("Failed to save piston data for uuid " + uuid.toString());
-						}
-						
-			        }finally {
-			        	if(stmt != null) stmt.close();
-			        }
-					
-					plugin.debug("Connected to " + HOST + "/" + DATABASE_NAME);
-				} catch (SQLException e) {
-		        	plugin.error("Failed to connect to " + HOST + "/" + DATABASE_NAME);
-		        	plugin.error(e.getMessage());
-		        	if(ds != null){
-		        		ds = null;
-		        	}
+					stmt = connection.prepareStatement("UPDATE " + TABLE_NAME +
+							" SET pistons = '" + getPistonString(uuid) + "' WHERE uuid = '" + uuid.toString() + "'");
+					if(stmt.executeUpdate() >= 0) {
+						plugin.error("Failed to save piston data for uuid " + uuid.toString());
+					}
+
+				}finally {
+					if(stmt != null) stmt.close();
+				}
+
+				plugin.debug("Connected to " + HOST + "/" + DATABASE_NAME);
+			} catch (SQLException e) {
+				plugin.error("Failed to connect to " + HOST + "/" + DATABASE_NAME);
+				plugin.error(e.getMessage());
+				if(ds != null){
+					ds = null;
 				}
 			}
 		});

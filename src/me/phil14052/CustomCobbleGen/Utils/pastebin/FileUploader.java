@@ -2,6 +2,7 @@
 package me.phil14052.CustomCobbleGen.Utils.pastebin;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Utils.Response;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;

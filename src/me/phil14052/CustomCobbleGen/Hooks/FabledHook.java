@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -85,7 +86,7 @@ public class FabledHook implements IslandHook{
 			Player p = Bukkit.getServer().getPlayer(pUUID);
 			if(p != null && p.isOnline()) onlinePlayers.add(p);
 		}
-		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+		return onlinePlayers.toArray(new Player[0]);
 	}
 	
 	@Override
@@ -106,17 +107,22 @@ public class FabledHook implements IslandHook{
 
 	@Override
 	public double getBalance(UUID uuid) {
-		return this.getIslandFromPlayer(uuid).getIsland().getBankBalance();
+		return Objects.requireNonNull(this.getIslandFromPlayer(uuid)).getIsland().getBankBalance();
 	}
 
 	@Override
 	public void removeFromBalance(UUID uuid, double amount) {
-		this.getIslandFromPlayer(uuid).getIsland().removeFromBank(amount);
+		Objects.requireNonNull(this.getIslandFromPlayer(uuid)).getIsland().removeFromBank(amount);
 	}
 
 	@Override
 	public boolean supportsIslandBalance() {
 		return true;
+	}
+
+	@Override
+	public String pluginHookName() {
+		return "FabledSkyBlock";
 	}
 
 	@Override

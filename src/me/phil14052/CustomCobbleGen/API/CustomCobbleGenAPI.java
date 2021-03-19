@@ -1,28 +1,28 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * CustomCobbleGenAPI.java
- */
 package me.phil14052.CustomCobbleGen.API;
 
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import me.phil14052.CustomCobbleGen.Hooks.IslandHook;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * CustomCobbleGenAPI.java
  */
 public class CustomCobbleGenAPI {
 
 	private CustomCobbleGenAPI instance = null;
-	private TierManager tierManager;
+	private final TierManager tierManager;
+	private final CustomCobbleGen plugin;
 	
 	/**
 	 * Instantiate the API
 	 * Use CustomCobbleGenAPI.getAPI() to get instance!
 	 */
 	public CustomCobbleGenAPI() {
+		plugin = CustomCobbleGen.getInstance();
 		tierManager = TierManager.getInstance();
 	}
 	
@@ -42,6 +42,15 @@ public class CustomCobbleGenAPI {
 	public CustomCobbleGenAPI getAPI() {
 		if(instance == null) instance = new CustomCobbleGenAPI();
 		return instance;
+	}
+
+	/**
+	 * Add an custom hook
+	 * @param hook the new hook
+	 */
+	public void addIslandHook(IslandHook hook){
+		plugin.getIslandHooks().add(hook);
+		plugin.connectToIslandPlugin();
 	}
 	
 }

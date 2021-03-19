@@ -505,15 +505,10 @@ public class GUIManager {
 			}
 			
 			// FORCE SAVE
-			if(pm.hasPermission(p, "customcobblegen.admin.forcesave", false)) {
-				saveIcon.addClickAction(new ClickAction() {
-
-					@Override
-					public void execute(Player p) {
-						p.performCommand("ccg admin forcesave");
-						p.closeInventory();
-					}
-					
+			if(pm.hasPermission(p, "customcobblegen.admin.database.forcesave", false)) {
+				saveIcon.addClickAction(player -> {
+					player.performCommand("ccg admin database forcesave");
+					player.closeInventory();
 				});
 				ch.setIcon(11, saveIcon);
 			}else {
@@ -522,15 +517,7 @@ public class GUIManager {
 			
 			// FORCE BUY
 			if(pm.hasPermission(p, "customcobblegen.admin.forcebuy", false)) {
-				forceBuyIcon.addClickAction(new ClickAction() {
-
-					@Override
-					public void execute(Player p) {
-						
-						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.FORCEBUY).open();
-					}
-					
-				});
+				forceBuyIcon.addClickAction(player -> GUIManager.getInstance().new PlayerSelectGUI(player, GUIActionType.FORCEBUY).open());
 				
 				ch.setIcon(12, forceBuyIcon);
 			}else {
@@ -539,15 +526,7 @@ public class GUIManager {
 			
 			// GIVE TIER
 			if(pm.hasPermission(p, "customcobblegen.admin.givetier", false)) {
-				giveTierIcon.addClickAction(new ClickAction() {
-
-					@Override
-					public void execute(Player p) {
-						
-						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.GIVETIER).open();
-					}
-					
-				});
+				giveTierIcon.addClickAction(player -> GUIManager.getInstance().new PlayerSelectGUI(player, GUIActionType.GIVETIER).open());
 				ch.setIcon(14, giveTierIcon);
 			}else {
 				ch.setIcon(14, getNoPermissionsIcon("customcobblegen.admin.givetier"));
@@ -555,15 +534,7 @@ public class GUIManager {
 			
 			// SET TIER
 			if(pm.hasPermission(p, "customcobblegen.admin.settier", false)) {
-				setTierIcon.addClickAction(new ClickAction() {
-
-					@Override
-					public void execute(Player p) {
-						
-						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.SETTIER).open();
-					}
-					
-				});
+				setTierIcon.addClickAction(player -> GUIManager.getInstance().new PlayerSelectGUI(player, GUIActionType.SETTIER).open());
 				
 				ch.setIcon(15, setTierIcon);
 			}else {
@@ -571,13 +542,7 @@ public class GUIManager {
 			}
 			// SET TIER
 			if(pm.hasPermission(p, "customcobblegen.admin.withdraw", false)) {
-				withdrawIcon.addClickAction(new ClickAction() {
-					@Override
-					public void execute(Player p) {	
-						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.WITHDRAW).open();
-					}
-								
-				});
+				withdrawIcon.addClickAction(player -> GUIManager.getInstance().new PlayerSelectGUI(player, GUIActionType.WITHDRAW).open());
 				ch.setIcon(16, withdrawIcon);
 			}else {
 				ch.setIcon(16, getNoPermissionsIcon("customcobblegen.admin.withdraw"));

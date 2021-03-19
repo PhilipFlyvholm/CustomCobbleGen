@@ -1,5 +1,5 @@
 
-package me.phil14052.CustomCobbleGen.Utils.pastebin;
+package me.phil14052.CustomCobbleGen.Utils;
 
 /**
  * CustomCobbleGen By @author Philip Flyvholm
@@ -7,7 +7,7 @@ package me.phil14052.CustomCobbleGen.Utils.pastebin;
  */
 public class Response<T> {
 	private final T result;
-	private boolean isError;
+	private final boolean isError;
 
 	public Response(final T result, boolean isError) {
 	    this.result = result;

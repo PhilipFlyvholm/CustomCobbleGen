@@ -7,6 +7,7 @@ package me.phil14052.CustomCobbleGen.databases;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
+import me.phil14052.CustomCobbleGen.Utils.Response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public abstract class PlayerDatabase {
 		tierManager = TierManager.getInstance();
 	}
 	
-	public abstract void establishConnection();
+	public abstract Response<String> establishConnection();
 	public abstract void reloadConnection();
 	public abstract void closeConnection();
 	public abstract boolean isConnectionEstablished();
@@ -76,6 +77,9 @@ public abstract class PlayerDatabase {
 			this.addToDatabase(data);
 		}
 		this.playerData.add(data);
+	}
+	public void setAllPlayerData(List<PlayerData> playerData){
+		this.playerData = playerData;
 	}
 	
 	public abstract void loadEverythingFromDatabase();

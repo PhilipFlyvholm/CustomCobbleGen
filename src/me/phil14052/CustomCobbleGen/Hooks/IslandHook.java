@@ -13,28 +13,30 @@ import java.util.UUID;
  *
  */
 public interface IslandHook {
+
+	String pluginHookName();
+
+	String getHookName();
 	
-	public String getHookName();
+	boolean isPlayerLeader(UUID uuid);
 	
-	public boolean isPlayerLeader(UUID uuid);
+	UUID getIslandLeaderFromPlayer(UUID uuid);
 	
-	public UUID getIslandLeaderFromPlayer(UUID uuid);
+	int getIslandLevel(UUID uuid);
 	
-	public int getIslandLevel(UUID uuid);
+	boolean hasIsland(UUID uuid);
 	
-	public boolean hasIsland(UUID uuid);
+	Player[] getArrayOfIslandMembers(UUID uuid);
 	
-	public Player[] getArrayOfIslandMembers(UUID uuid);
+	void sendMessageToIslandMembers(String message, UUID uuid);
 	
-	public void sendMessageToIslandMembers(String message, UUID uuid);
+	void sendMessageToIslandMembers(String message, UUID uuid, boolean withoutSender);
 	
-	public void sendMessageToIslandMembers(String message, UUID uuid, boolean withoutSender);
+	double getBalance(UUID uuid);
 	
-	public double getBalance(UUID uuid);
+	void removeFromBalance(UUID uuid, double amount);
+	boolean supportsIslandBalance();
 	
-	public void removeFromBalance(UUID uuid, double amount);
-	public boolean supportsIslandBalance();
-	
-	public void onGeneratorBlockBreak(UUID uuid);
+	void onGeneratorBlockBreak(UUID uuid);
 	
 }

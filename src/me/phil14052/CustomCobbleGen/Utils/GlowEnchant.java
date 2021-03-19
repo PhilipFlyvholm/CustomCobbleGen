@@ -31,7 +31,7 @@ public class GlowEnchant extends Enchantment{
 	}
 
 	@Override
-	public EnchantmentTarget getItemTarget() {
+	public @NotNull EnchantmentTarget getItemTarget() {
 		return null;
 	}
 
@@ -41,7 +41,7 @@ public class GlowEnchant extends Enchantment{
 	}
 
 	@Deprecated @Override
-	public String getName() {
+	public @NotNull String getName() {
 		return "CCG_GLOW";
 	}
 

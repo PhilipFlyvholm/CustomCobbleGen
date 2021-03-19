@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * TierManager.java
- */
 package me.phil14052.CustomCobbleGen.Managers;
 
 import me.phil14052.CustomCobbleGen.API.Tier;
@@ -20,10 +16,14 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.*;
 
+/**
+ * CustomCobbleGen By @author Philip Flyvholm
+ * TierManager.java
+ */
 public class TierManager {
 	
 	private static TierManager instance = null;
-	private CustomCobbleGen plugin = null;
+	private final CustomCobbleGen plugin;
 	private Map<String, List<Tier>> tiers;
 	private final PermissionManager pm;
 	private final GeneratorModeManager gm;
@@ -49,7 +49,9 @@ public class TierManager {
 		for(String tierClass : configTiers.getKeys(false)){
 			boolean classNeedsUserChange = false;
 			List<Tier> tierLevelsList = new ArrayList<>();
-			for(String tierLevelString : configTiers.getConfigurationSection(tierClass).getKeys(false)){
+			ConfigurationSection levelSection = configTiers.getConfigurationSection(tierClass);
+			if(levelSection == null) continue;
+			for(String tierLevelString : levelSection.getKeys(false)){
 				boolean levelNeedsUserChange = false;
 				if(StringUtils.isNotInteger(tierLevelString)){plugin.error(tierClass + " has a text as level instead of a number.", true); continue;}
 				ConfigurationSection tierSection = configTiers.getConfigurationSection(tierClass + "." + tierLevelString);
@@ -59,11 +61,11 @@ public class TierManager {
 				}
 				int tierLevel = Integer.parseInt(tierLevelString);
 				String name = tierSection.getString("name");
-				Material iconMaterial = Material.matchMaterial(tierSection.getString("icon").toUpperCase());
+				Material iconMaterial = Material.matchMaterial(Objects.requireNonNull(tierSection.getString("icon")).toUpperCase());
 				if(iconMaterial == null) iconMaterial = Material.COBBLESTONE;
 				Map<Material, Double> results = new HashMap<>();
 				double totalPercentage = 0D;
-				for(String resultMaterialString : tierSection.getConfigurationSection("contains").getKeys(false)){
+				for(String resultMaterialString : Objects.requireNonNull(tierSection.getConfigurationSection("contains")).getKeys(false)){
 					Material resultMaterial = Material.matchMaterial(resultMaterialString.toUpperCase());
 					if(resultMaterial == null) {
 						plugin.error("The material " + resultMaterialString + " under class: "+ tierClass + " tier: " + tierLevel + " is not a material. Check spelling and if outdated material name", true);
@@ -75,47 +77,57 @@ public class TierManager {
 					totalPercentage += percentage;
 					results.put(resultMaterial, percentage);
 				}
-				//Warning if under 99.9% or over 100.1% The buffer on 0.1 procentpoints is because of Java miscalculating
-				if(totalPercentage > 99.9D) {
+				//Warning if under 99.8% or over 100.2% The buffer on 0.1 procentpoints is because of Java miscalculating
+				if(totalPercentage > 99.8D) {
 					plugin.warning("&c&lUser Error: &7Results total percentage is over 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage);
-				}else if(totalPercentage < 100.1D) {
+				}else if(totalPercentage < 100.2D) {
 					plugin.error("Results total percentage is under 100% in the &e" + name + "&c&l tier. Total percentage = &e" + totalPercentage, true);
 					plugin.error("&c&lTHIS CAN GIVE NULL POINTER ERRORS! THESE ARE USER ERRORS AND NEED TO BE FIXED BY YOU!", true);
 				}
 
 				List<Requirement> requirements = new ArrayList<>();
-				
-				if(tierSection.contains("price.money")) {
-					int priceMoney = tierSection.getInt("price.money");
-					if(priceMoney > 0) {
-						requirements.add(new MoneyRequirement(priceMoney));
-					}
+				ConfigurationSection requirementSection = null;
+				if(tierSection.contains("price")){
+					requirementSection = tierSection.getConfigurationSection("price");
+				}else if(tierSection.contains("requirements")){
+					requirementSection = tierSection.getConfigurationSection("requirements");
 				}
-				if(tierSection.contains("price.xp")) {
-					int priceXp = tierSection.getInt("price.xp");
-
-					if(priceXp > 0) {
-						requirements.add(new XpRequirement(priceXp));
+				if(requirementSection != null){
+					if(requirementSection.contains("money")) {
+						int priceMoney = requirementSection.getInt("money");
+						if(priceMoney > 0) {
+							requirements.add(new MoneyRequirement(priceMoney));
+						}
 					}
-				}
-				if(tierSection.contains("price.items")) {
-					HashMap<Material, Integer> priceItems = new HashMap<>();
-					for(String itemMaterial : tierSection.getConfigurationSection("price.items").getKeys(false)) {
-						Material m = Material.getMaterial(itemMaterial.toUpperCase());
-						if(m == null) continue;
-						priceItems.put(m, tierSection.getInt("price.items." + itemMaterial));
+					if(requirementSection.contains("xp")) {
+						int priceXp = requirementSection.getInt("xp");
+
+						if(priceXp > 0) {
+							requirements.add(new XpRequirement(priceXp));
+						}
+					}
+					if(requirementSection.contains("items")) {
+						HashMap<Material, Integer> priceItems = new HashMap<>();
+						ConfigurationSection itemSection = requirementSection.getConfigurationSection("items");
+						if(itemSection != null){
+							for(String itemMaterial : itemSection.getKeys(false)) {
+								Material m = Material.getMaterial(itemMaterial.toUpperCase());
+								if(m == null) continue;
+								priceItems.put(m, requirementSection.getInt("items." + itemMaterial));
+							}
+
+							if(priceItems.size() > 0) {
+								requirements.add(new ItemsRequirement(priceItems));
+							}
+						}
 					}
 
-					if(priceItems != null && priceItems.size() > 0) {
-						requirements.add(new ItemsRequirement(priceItems));
-					}
-				}
-				
-				if(tierSection.contains("price.level")) {
-					int levelRequirement = tierSection.getInt("price.level");
+					if(requirementSection.contains("level")) {
+						int levelRequirement = requirementSection.getInt("level");
 
-					if(levelRequirement > 0) {
-						requirements.add(new LevelRequirement(levelRequirement));
+						if(levelRequirement > 0) {
+							requirements.add(new LevelRequirement(levelRequirement));
+						}
 					}
 				}
 
@@ -140,7 +152,7 @@ public class TierManager {
 					if(supportedGenerationModeString != null && !supportedGenerationModeString.equalsIgnoreCase("ALL")) {
 
 						try {
-							int id = Integer.parseInt(tierSection.getString("supportedGenerationMode"));
+							int id = Integer.parseInt(Objects.requireNonNull(tierSection.getString("supportedGenerationMode")));
 							supportedMode = gm.getModeById(id);
 						}catch(NumberFormatException e) {
 							plugin.error(supportedGenerationModeString + " is not a valid generation mode id. MOST BE A NUMBER or \"ALL\" - Fallback: Will allow all generators", true);
@@ -247,7 +259,7 @@ public class TierManager {
 		}
 		plugin.getPlayerDatabase().getPlayerData(uuid).addPurchasedTier(tier);
 		//Save the players.yml file so players don't repay
-		if(Setting.SAVEONTIERPURCHASE.getBoolean()) plugin.getPlayerDatabase().saveToDatabase(uuid);;
+		if(Setting.SAVEONTIERPURCHASE.getBoolean()) plugin.getPlayerDatabase().saveToDatabase(uuid);
 		return true;
 	}
 	
@@ -277,7 +289,6 @@ public class TierManager {
 		}
 		for(Tier tierI : purchasedTiersByClass) {
 			if(tierI.getLevel() == tier.getLevel()) return true;
-			else continue;
 		}
 		return false;
 	}
@@ -313,7 +324,7 @@ public class TierManager {
 	public void givePlayerStartPurchases(Player p) {
 		Tier tier = this.getTierByLevel("DEFAULT", 0);
 		UUID uuid = p.getUniqueId();
-		List<Tier> startList = new ArrayList<Tier>();
+		List<Tier> startList = new ArrayList<>();
 		startList.add(tier);
 		plugin.getPlayerDatabase().getPlayerData(uuid).setPurchasedTiers(startList);
 		this.purchaseTier(p, tier, true);
@@ -354,7 +365,7 @@ public class TierManager {
 	}
 	
 	public List<Tier> focusListOnClass(List<Tier> list, String tierClass) {
-		List<Tier> newList = new ArrayList<Tier>();
+		List<Tier> newList = new ArrayList<>();
 		if(list == null || list.isEmpty()) return newList;
 		for(Tier tier : list) {
 			if(tier == null || tier.getTierClass() == null) continue;
@@ -386,16 +397,13 @@ public class TierManager {
 
 	public void startAutoSave(){
 		if(this.isAutoSaveActive()) this.stopAutoSave();
-		task = scheduler.scheduleSyncRepeatingTask(plugin, new Runnable() {
-			@Override
-			public void run() {
-				plugin.log("Auto saving player data...");
-				long time1 = System.currentTimeMillis();
-				plugin.getPlayerDatabase().saveEverythingToDatabase();
-				long time2 = System.currentTimeMillis();
-				double time3 = Double.longBitsToDouble(time2-time1)/1000;
-				plugin.log("Player data has been saved. It took: " + time3 + " seconds");
-			}
+		task = scheduler.scheduleSyncRepeatingTask(plugin, () -> {
+			plugin.log("Auto saving player data...");
+			long time1 = System.currentTimeMillis();
+			plugin.getPlayerDatabase().saveEverythingToDatabase();
+			long time2 = System.currentTimeMillis();
+			double time3 = Double.longBitsToDouble(time2-time1)/1000;
+			plugin.log("Player data has been saved. It took: " + time3 + " seconds");
 		}, 0L, Setting.AUTO_SAVE_DELAY.getInt()*20L);
 	}
 	public void stopAutoSave(){

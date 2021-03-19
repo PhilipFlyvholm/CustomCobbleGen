@@ -39,6 +39,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -57,6 +59,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	private SignManager signManager;
 	private GeneratorModeManager generatorModeManager;
 	public boolean isUsingPlaceholderAPI = false;
+	private List<IslandHook> islandHooks;
 	public static IslandHook islandPluginHooked = null;
 	private static String connectedMinionPlugin = "None";
 	private static String connectedIslandPlugin = "None";
@@ -97,7 +100,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		signManager.loadSignsFromFile(true);
 		this.debug("Signs is now setup&2 \u2713");
 		plugin.getPlayerDatabase().loadEverythingFromDatabase();
-		
+		islandHooks = new ArrayList<>(Arrays.asList(new ASkyBlockHook(), new BentoboxHook(), new FabledHook(), new SuperiorSkyblock2Hook(), new uSkyBlockHook()));
 		this.setupHooks();
 
 		if(Setting.AUTO_SAVE_ENABLED.getBoolean()){
@@ -178,8 +181,6 @@ public class CustomCobbleGen extends JavaPlugin {
 	private void setupPlayerDatabase() {
 		switch (Setting.DATABASE_TYPE.getString().toUpperCase()) {
 			case "YAML":
-				this.playerDatabase = new YamlPlayerDatabase();
-				break;
 			case "YML":
 				this.playerDatabase = new YamlPlayerDatabase();
 				break;
@@ -210,19 +211,18 @@ public class CustomCobbleGen extends JavaPlugin {
 		connectToIslandPlugin();
 		
 	}
-	
-	public static void connectToIslandPlugin() {
+
+	public List<IslandHook> getIslandHooks() {
+		return islandHooks;
+	}
+
+	public void connectToIslandPlugin() {
 		PluginManager pm = Bukkit.getPluginManager();
-		if(pm.getPlugin("BentoBox") != null) {
-			islandPluginHooked = new BentoboxHook();
-		}else if(pm.getPlugin("uSkyBlock") != null) {
-			islandPluginHooked = new uSkyBlockHook();
-		}else if(pm.getPlugin("FabledSkyBlock") != null) {
-			islandPluginHooked = new FabledHook();
-		}else if(pm.getPlugin("ASkyBlock") != null) {
-			islandPluginHooked = new ASkyBlockHook();
-		}else if(pm.getPlugin("SuperiorSkyblock2") != null) {
-			islandPluginHooked = new SuperiorSkyblock2Hook();
+		for(IslandHook hook : islandHooks){
+			if(pm.getPlugin(hook.pluginHookName()) != null){
+				islandPluginHooked = hook;
+				break;
+			}
 		}
 		if(islandPluginHooked != null) {
 			connectedIslandPlugin = islandPluginHooked.getHookName();

@@ -112,7 +112,12 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 	public boolean supportsIslandBalance() {
 		return true;
 	}
-	
+
+	@Override
+	public String pluginHookName() {
+		return "SuperiorSkyblock2";
+	}
+
 	@Override
 	public String getHookName() {
 		return "SuperiorSkyBlock2";

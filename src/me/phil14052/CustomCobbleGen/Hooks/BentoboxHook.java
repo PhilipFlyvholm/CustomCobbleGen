@@ -112,7 +112,7 @@ public class BentoboxHook implements IslandHook{
 			Player p = Bukkit.getServer().getPlayer(pUUID);
 			if(p != null && p.isOnline()) onlinePlayers.add(p);
 		}
-		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+		return onlinePlayers.toArray(new Player[0]);
 	}
 
 	@Override
@@ -149,7 +149,12 @@ public class BentoboxHook implements IslandHook{
 	public boolean supportsIslandBalance() {
 		return false;
 	}
-	
+
+	@Override
+	public String pluginHookName() {
+		return "BentoBox";
+	}
+
 	@Override
 	public String getHookName() {
 		return "BentoBox";

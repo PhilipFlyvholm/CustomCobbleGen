@@ -11,10 +11,13 @@ import me.phil14052.CustomCobbleGen.Managers.GenPiston;
 import me.phil14052.CustomCobbleGen.Managers.PermissionManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
-import me.phil14052.CustomCobbleGen.Utils.pastebin.FileUploader;
-import me.phil14052.CustomCobbleGen.Utils.pastebin.Response;
 import me.phil14052.CustomCobbleGen.Utils.SelectedTiers;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import me.phil14052.CustomCobbleGen.Utils.pastebin.FileUploader;
+import me.phil14052.CustomCobbleGen.Utils.Response;
+import me.phil14052.CustomCobbleGen.databases.MySQLPlayerDatabase;
+import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
+import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -203,15 +206,6 @@ public class MainCommand implements CommandExecutor{
 					plugin.log(p.getName() + " reloaded the plugin");
 				}
 				sender.sendMessage(Lang.PREFIX.toString() + Lang.RELOAD_SUCCESS.toString().replaceAll("%time%", String.valueOf(time3)));
-			}else if(args[1].equalsIgnoreCase("forcesave")) {
-				if(!pm.hasPermission(sender, "customcobblegen.admin.forcesave", true)) return false;
-				plugin.getPlayerDatabase().saveEverythingToDatabase();
-				if(sender instanceof Player) {
-					Player p = (Player) sender;
-					plugin.log(p.getName() + " force saved the player data");
-				}
-				sender.sendMessage(Lang.PREFIX.toString() + Lang.FORCE_SAVE_SUCCESS.toString());
-				
 			}else if(args[1].equalsIgnoreCase("settier")) {
 				if(!pm.hasPermission(sender, "customcobblegen.admin.settier", true)) return false;
 				if(args.length < 5){
@@ -247,7 +241,7 @@ public class MainCommand implements CommandExecutor{
 			}else if(args[1].equalsIgnoreCase("givetier")) {
 				if(!pm.hasPermission(sender, "customcobblegen.admin.givetier", true)) return false;
 				if(args.length < 5){
-					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin givetier (Player) (Class) (Level)");
+					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /ccg admin givetier (Player) (Class) (Level)");
 					return false;
 				}
 				Player p = Bukkit.getPlayer(args[2]);
@@ -282,7 +276,7 @@ public class MainCommand implements CommandExecutor{
 			}else if(args[1].equalsIgnoreCase("withdraw")) {
 				if(!pm.hasPermission(sender, "customcobblegen.admin.withdraw", true)) return false;
 				if(args.length < 5){
-					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin givetier (Player) (Class) (Level)");
+					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /ccg admin givetier (Player) (Class) (Level)");
 					return false;
 				}
 				Player p = Bukkit.getPlayer(args[2]);
@@ -326,7 +320,7 @@ public class MainCommand implements CommandExecutor{
 			} else if(args[1].equalsIgnoreCase("forcebuy")) {
 				if(!pm.hasPermission(sender, "customcobblegen.admin.forcebuy", true)) return false;
 				if(args.length < 5){
-					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /oregen admin forcebuy (Player) (Class) (Level)");
+					sender.sendMessage(Lang.PREFIX.toString() + "Usage: /ccg admin forcebuy (Player) (Class) (Level)");
 					return false;
 				}
 				Player p = Bukkit.getPlayer(args[2]);
@@ -446,6 +440,59 @@ public class MainCommand implements CommandExecutor{
 					return false;
 				}
 				
+			}else if(args[1].equalsIgnoreCase("database")){
+				if(!pm.hasPermission(sender, "customcobblegen.admin.database", true)) return false;
+				if(args.length < 3) {
+					sender.sendMessage(Lang.DATABASE_USAGE.toString().replaceAll("%command%", label));
+					return true;
+				}
+				if(args[2].equalsIgnoreCase("forcesave")) {
+					if(!pm.hasPermission(sender, "customcobblegen.admin.database.forcesave", true)) return false;
+					plugin.getPlayerDatabase().saveEverythingToDatabase();
+					if(sender instanceof Player) {
+						Player p = (Player) sender;
+						plugin.log(p.getName() + " force saved the player data");
+					}
+					sender.sendMessage(Lang.PREFIX.toString() + Lang.FORCE_SAVE_SUCCESS.toString());
+
+				}else if(args[2].equalsIgnoreCase("migrate")){
+					// label [0]    [1]      [2]   [3]   [4]
+					//  ccg admin database migrate YAML MYSQL
+					if(args.length < 5) {
+						sender.sendMessage(Lang.DATABASE_MIGRATE_USAGE.toString().replaceAll("%command%", label));
+						return true;
+					}
+					String fromType = args[3].toUpperCase();
+					String newType = args[4].toUpperCase();
+					PlayerDatabase fromDatabase = this.getDatabaseFromType(fromType);
+					if(fromDatabase == null){
+						sender.sendMessage(Lang.DATABASE_MIGRATE_INVALID_DATABASE.toString(fromType));
+						return true;
+					}
+					PlayerDatabase newDatabase = this.getDatabaseFromType(newType);
+					if(newDatabase == null){
+						sender.sendMessage(Lang.DATABASE_MIGRATE_INVALID_DATABASE.toString(newType));
+						return true;
+					}
+					sender.sendMessage(Lang.DATABASE_MIGRATE_STARTING.toString());
+					if(fromDatabase.getAllPlayerData().isEmpty()){
+						sender.sendMessage(Lang.DATABASE_MIGRATE_LOADING_START.toString(fromType));
+						fromDatabase.loadEverythingFromDatabase();
+						sender.sendMessage(Lang.DATABASE_MIGRATE_LOADING_DONE.toString(fromType));
+					}
+					if(newDatabase.isConnectionEstablished()){
+						sender.sendMessage(Lang.DATABASE_MIGRATE_ESTABLISHING_CONNECTION.toString(newType));
+						Response<String> response = newDatabase.establishConnection();
+						if(response.isError()){
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c" + response.getResult()));
+							return true;
+						}
+					}
+					newDatabase.setAllPlayerData(fromDatabase.getAllPlayerData());
+					sender.sendMessage(Lang.DATABASE_MIGRATE_SAVING_START.toString(newType));
+					newDatabase.saveEverythingToDatabase();
+					sender.sendMessage(Lang.DATABASE_MIGRATE_SAVING_DONE.toString(newType));
+				}
 			}else {
 				if(!pm.hasPermission(sender, "customcobblegen.admin", true)) return false;
 				sender.sendMessage(adminUsage);
@@ -465,6 +512,20 @@ public class MainCommand implements CommandExecutor{
 		for(String s : helpStrings) {
 			s = s.replace("%command%", label);
 			sender.sendMessage(s);
+		}
+	}
+
+	private PlayerDatabase getDatabaseFromType(String type){
+		PlayerDatabase database = plugin.getPlayerDatabase();
+		switch (type){
+			case "MYSQL":
+				if(database instanceof MySQLPlayerDatabase) return database;
+				else return new MySQLPlayerDatabase();
+			case "YAML":
+				if(database instanceof YamlPlayerDatabase) return database;
+				else return new YamlPlayerDatabase();
+			default:
+				return null;
 		}
 	}
 }
