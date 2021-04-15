@@ -109,7 +109,7 @@ public class GUIManager {
 							lore.add(Lang.GUI_SELECT.toString());	
 						}
 					}else if(!tier.doesPlayerHavePermission(p)){
-						if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+						if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial()));
 						if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
 						lore.add(Lang.GUI_LOCKED_PERMISSION.toString());
 					}else if(!tm.hasPlayerPurchasedPreviousLevel(p, tier)){
@@ -117,12 +117,12 @@ public class GUIManager {
 								&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
 								&& !isLeader) {
 
-							if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+							if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial()));
 							if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
 							//Only owners can select and player is not a owner/leader
 							lore.add(Lang.GUI_BUY_LEADER_ONLY.toString());
 						}else {
-							if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial(true)));
+							if(Setting.GUI_SHOWBARRIERBLOCKIFLOCKED.getBoolean()) item.setType(Objects.requireNonNull(XMaterial.BARRIER.parseMaterial()));
 							if(Setting.GUI_HIDEINFOIFLOCKED.getBoolean()) lore = new ArrayList<>();
 						
 							lore.add(Lang.GUI_LOCKED_PREV.toString());
@@ -312,7 +312,7 @@ public class GUIManager {
 				}
 			});
 			
-			ItemStack buyItem = XMaterial.LIME_DYE.parseItem(true);
+			ItemStack buyItem = XMaterial.LIME_DYE.parseItem();
 			ItemMeta buyItemMeta = buyItem.getItemMeta();
 			buyItemMeta.setDisplayName(Lang.GUI_CONFIRM_BUY.toString());
 			List<String> buyLore = new ArrayList<String>();

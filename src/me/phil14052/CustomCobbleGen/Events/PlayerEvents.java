@@ -149,11 +149,11 @@ public class PlayerEvents implements Listener {
 	}
 	
 	public boolean isSign(Material material) {
-		return material == XMaterial.ACACIA_SIGN.parseMaterial(true) || material == XMaterial.ACACIA_WALL_SIGN.parseMaterial(true)
-				|| material == XMaterial.BIRCH_SIGN.parseMaterial(true) || material == XMaterial.BIRCH_WALL_SIGN.parseMaterial(true)
-				|| material == XMaterial.DARK_OAK_SIGN.parseMaterial(true) || material == XMaterial.DARK_OAK_WALL_SIGN.parseMaterial(true)
-				|| material == XMaterial.JUNGLE_SIGN.parseMaterial(true) || material == XMaterial.JUNGLE_WALL_SIGN.parseMaterial(true)
-				|| material == XMaterial.OAK_SIGN.parseMaterial(true) || material == XMaterial.OAK_WALL_SIGN.parseMaterial(true);
+		return material == XMaterial.ACACIA_SIGN.parseMaterial() || material == XMaterial.ACACIA_WALL_SIGN.parseMaterial()
+				|| material == XMaterial.BIRCH_SIGN.parseMaterial() || material == XMaterial.BIRCH_WALL_SIGN.parseMaterial()
+				|| material == XMaterial.DARK_OAK_SIGN.parseMaterial() || material == XMaterial.DARK_OAK_WALL_SIGN.parseMaterial()
+				|| material == XMaterial.JUNGLE_SIGN.parseMaterial() || material == XMaterial.JUNGLE_WALL_SIGN.parseMaterial()
+				|| material == XMaterial.OAK_SIGN.parseMaterial() || material == XMaterial.OAK_WALL_SIGN.parseMaterial();
 	}
 	
 	private final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + String.valueOf('&') + "[0-9A-FK-OR]");
