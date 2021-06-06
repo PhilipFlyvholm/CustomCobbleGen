@@ -34,6 +34,8 @@ public enum Setting {
 	GUI_CUSTOM_GUI_ENABLED("options.gui.custom.enabled", false),
 	GUI_CUSTOM_GUI_SIZE("options.gui.custom.size", 27),
 	SIGNS_ENABLED("options.signs.enabled", true),
+	SOUND_VOLUME("options.sounds.volume", 2f),
+	SOUND_PITCH("options.sounds.pitch", 1f),
 	ISLANDS_USEPERISLANDUNLOCKEDGENERATORS("options.islands.usePerIslandUnlockedGenerators", false),
 	ISLANDS_SENDMESSAGESTOTEAM("options.islands.sendMessagesToTeam", true),
 	ISLANDS_ONLYOWNER_BUY("options.islands.onlyOwnerCan.buy", false),
@@ -68,7 +70,7 @@ public enum Setting {
 
 	/**
 	 * Set the {@code FileConfiguration} to use.
-	 * 
+	 *
 	 * @param config The config to set.
 	 */
 	public static void setFile(FileConfiguration config) {
@@ -78,7 +80,8 @@ public enum Setting {
 		return CONFIG != null;
 	}
 
-	public String getPath() {
+
+    public String getPath() {
 		return this.path;
 	}
 
@@ -93,36 +96,40 @@ public enum Setting {
 	public List<Boolean> getBooleanList() {
 		return CONFIG.getBooleanList(this.getPath());
 	}
-	
+
 	public String getString() {
 		return CONFIG.getString(this.getPath());
 	}
 	public List<String> getStringList() {
 		return CONFIG.getStringList(this.getPath());
 	}
-	
+
 	public int getInt() {
 		return CONFIG.getInt(this.getPath());
 	}
 	public List<Integer> getIntegerList() {
 		return CONFIG.getIntegerList(this.getPath());
 	}
-	public Double getDouble() {
+	public double getDouble() {
 		return CONFIG.getDouble(this.getPath());
 	}
-	
+
 	public List<Double> getDoubleList() {
 		return CONFIG.getDoubleList(this.getPath());
 	}
-	
+	public float getFloat() {
+		return (float) getDouble();
+	}
+
 	public List<Float> getFloatList() {
 		return CONFIG.getFloatList(this.getPath());
 	}
-	
+
 	public ConfigurationSection getConfigurationSection() {
 		return CONFIG.getConfigurationSection(this.getPath());
 	}
 	public boolean isSection() {
 		return section;
 	}
+
 }

@@ -68,6 +68,7 @@ public class BlockEvents implements Listener{
 			if(toBlockMaterial.equals(Material.AIR) || mode.containsBlock(toBlockMaterial)){
 				if(isGenerating(mode, m, toBlock)){
 					Location l = toBlock.getLocation();
+					if(l.getWorld() == null) return;
 					//Checks if the block has been broken before and if it is a known gen location
 					if(!bm.isGenLocationKnown(l) && mode.isSearchingForPlayersNearby()) {
 						double searchRadius = Setting.PLAYERSEARCHRADIUS.getDouble();
@@ -116,15 +117,16 @@ public class BlockEvents implements Listener{
 							return;
 						}
 
-						float soundVolume = (float)CustomCobbleGen.getInstance().getConfig().getDouble("options.sound.volume", 2.0d);
-						float pitch = (float)CustomCobbleGen.getInstance().getConfig().getDouble("options.sound.pitch", 1.0d);
+						float soundVolume = Setting.SOUND_VOLUME.getFloat();
+						float pitch = Setting.SOUND_PITCH.getFloat();
+
 						if(tier != null) {
 							Material result = tier.getRandomResult();
 							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
 							Bukkit.getPluginManager().callEvent(event);
 							if(event.isCancelled()) return;
 							if(event.getResult() == null) {
-								plugin.error("&cUnkown material in " + event.getTierUsed().getName() + " tier.", true);
+								plugin.error("&cUnknown material in " + event.getTierUsed().getName() + " tier.", true);
 								return;
 							}
 							e.setCancelled(true);
@@ -176,7 +178,7 @@ public class BlockEvents implements Listener{
 	public void onSignChange(SignChangeEvent e) {
 		if(signManager.areSignsDisabled()) return;
 		Location l = e.getBlock().getLocation();
-		if(isWorldDisabled(l.getWorld())) return;
+		if(l.getWorld() == null || isWorldDisabled(l.getWorld())) return;
 		Player p = e.getPlayer();
 		String[] lines = e.getLines();
 		if(!lines[0].equalsIgnoreCase("[CCG]")) return;
