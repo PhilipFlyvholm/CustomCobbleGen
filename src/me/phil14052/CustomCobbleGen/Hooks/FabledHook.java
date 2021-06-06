@@ -4,18 +4,17 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import com.songoda.skyblock.api.SkyBlockAPI;
 import com.songoda.skyblock.api.island.Island;
 import com.songoda.skyblock.api.island.IslandManager;
-
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * @author Philip
@@ -23,9 +22,8 @@ import me.phil14052.CustomCobbleGen.CustomCobbleGen;
  */
 public class FabledHook implements IslandHook{
 	
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
-
 	private IslandManager getIslandManager() {
 		return SkyBlockAPI.getIslandManager();
 	}
@@ -43,7 +41,12 @@ public class FabledHook implements IslandHook{
 		if(is == null) return 0;
 		return (int) is.getLevel().getLevel();
 	}
-
+	
+	public void updateIslandLevel(UUID uuid) {
+		Island is = this.getIslandFromPlayer(uuid);
+		if(is == null) return;
+		SkyBlockAPI.getLevellingManager().calculatePoints(is);
+	}
 
 	@Override
 	public boolean isPlayerLeader(UUID uuid) {
@@ -53,9 +56,9 @@ public class FabledHook implements IslandHook{
 		return leaderUUID.equals(uuid);
 	}
 
-
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		if(uuid == null) return null;
 		plugin.debug("#getIslandLeaderFromPlayer - UUID:" + uuid);
 //		Player p = plugin.getServer().getPlayer(uuid);
 //		plugin.debug("Player:" + p);
@@ -83,7 +86,7 @@ public class FabledHook implements IslandHook{
 			Player p = Bukkit.getServer().getPlayer(pUUID);
 			if(p != null && p.isOnline()) onlinePlayers.add(p);
 		}
-		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+		return onlinePlayers.toArray(new Player[0]);
 	}
 	
 	@Override
@@ -104,12 +107,12 @@ public class FabledHook implements IslandHook{
 
 	@Override
 	public double getBalance(UUID uuid) {
-		return this.getIslandFromPlayer(uuid).getIsland().getBankBalance();
+		return Objects.requireNonNull(this.getIslandFromPlayer(uuid)).getIsland().getBankBalance();
 	}
 
 	@Override
 	public void removeFromBalance(UUID uuid, double amount) {
-		this.getIslandFromPlayer(uuid).getIsland().removeFromBank(amount);
+		Objects.requireNonNull(this.getIslandFromPlayer(uuid)).getIsland().removeFromBank(amount);
 	}
 
 	@Override
@@ -118,8 +121,18 @@ public class FabledHook implements IslandHook{
 	}
 
 	@Override
+	public String pluginHookName() {
+		return "FabledSkyBlock";
+	}
+
+	@Override
 	public String getHookName() {
 		return "FabledSkyBlock";
+	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {
+		this.updateIslandLevel(uuid);
 	}
 
 }

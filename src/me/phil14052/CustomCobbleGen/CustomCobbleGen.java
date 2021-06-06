@@ -8,10 +8,11 @@ import me.phil14052.CustomCobbleGen.Commands.MainTabComplete;
 import me.phil14052.CustomCobbleGen.Events.BlockEvents;
 import me.phil14052.CustomCobbleGen.Events.MinionEvents;
 import me.phil14052.CustomCobbleGen.Events.PlayerEvents;
-import me.phil14052.CustomCobbleGen.Files.*;
+import me.phil14052.CustomCobbleGen.Files.Files;
+import me.phil14052.CustomCobbleGen.Files.Lang;
+import me.phil14052.CustomCobbleGen.Files.Setting;
 import me.phil14052.CustomCobbleGen.Files.updaters.ConfigUpdater;
 import me.phil14052.CustomCobbleGen.Files.updaters.LangFileUpdater;
-import me.phil14052.CustomCobbleGen.Files.updaters.PlayerFileUpdater;
 import me.phil14052.CustomCobbleGen.Files.updaters.SignsFileUpdater;
 import me.phil14052.CustomCobbleGen.GUI.InventoryEvents;
 import me.phil14052.CustomCobbleGen.Hooks.*;
@@ -23,8 +24,12 @@ import me.phil14052.CustomCobbleGen.Signs.SignManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
 import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
 import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
+import me.phil14052.CustomCobbleGen.databases.MySQLPlayerDatabase;
+import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
+import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -34,8 +39,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 /**
@@ -43,22 +49,21 @@ import java.util.logging.Level;
  * CustomCobbleGen.java
  */
 public class CustomCobbleGen extends JavaPlugin {
+
 	private static CustomCobbleGen plugin;
 	public Files lang;
-	private FileConfiguration playerConfig;
-	private File playerConfigFile;
+	private PlayerDatabase playerDatabase;
 	private FileConfiguration signsConfig;
 	private File signsConfigFile;
 	private TierManager tierManager;
 	private SignManager signManager;
 	private GeneratorModeManager generatorModeManager;
-	private EconomyManager econManager;
 	public boolean isUsingPlaceholderAPI = false;
+	private List<IslandHook> islandHooks;
 	public static IslandHook islandPluginHooked = null;
 	private static String connectedMinionPlugin = "None";
 	private static String connectedIslandPlugin = "None";
 	private final String CONSOLEPREFIX = "&8[&3&lCustomCobbleGen&8]: ";
-	
 	
 	@Override
 	public void onEnable(){
@@ -77,16 +82,14 @@ public class CustomCobbleGen extends JavaPlugin {
 		generatorModeManager = GeneratorModeManager.getInstance();
 		generatorModeManager.loadFromConfig();
 		this.debug("The config is now setup&2 \u2713");
+		// Setup player database
+		setupPlayerDatabase();
+		
 		// Setup lang file
 		lang = new Files(this, "lang.yml");
 		new LangFileUpdater(plugin);
 		Lang.setFile(lang);
 		this.debug("Lang is now setup&2 \u2713");
-		// Setup player configs
-		playerConfig = null;
-		playerConfigFile = null;
-		new PlayerFileUpdater(plugin);
-		this.debug("Players is now setup&2 \u2713");
 		// Setup tiers
 		tierManager.load();
 		this.debug("Tiers is now setup&2 \u2713");
@@ -96,6 +99,8 @@ public class CustomCobbleGen extends JavaPlugin {
 		new SignsFileUpdater(plugin);
 		signManager.loadSignsFromFile(true);
 		this.debug("Signs is now setup&2 \u2713");
+		plugin.getPlayerDatabase().loadEverythingFromDatabase();
+		islandHooks = new ArrayList<>(Arrays.asList(new ASkyBlockHook(), new BentoboxHook(), new FabledHook(), new SuperiorSkyblock2Hook(), new uSkyBlockHook()));
 		this.setupHooks();
 
 		if(Setting.AUTO_SAVE_ENABLED.getBoolean()){
@@ -105,9 +110,14 @@ public class CustomCobbleGen extends JavaPlugin {
 
 		registerEvents();
 		plugin.debug("Events loaded&2 \u2713");
-		plugin.getCommand("cobblegen").setExecutor(new MainCommand());
-		plugin.getCommand("cobblegen").setTabCompleter(new MainTabComplete());
-		plugin.debug("Commands loaded&2 \u2713");
+		PluginCommand mainCommand = plugin.getCommand("cobblegen");
+		if(mainCommand != null){
+			mainCommand.setExecutor(new MainCommand());
+			mainCommand.setTabCompleter(new MainTabComplete());
+			plugin.debug("Commands loaded&2 \u2713");
+		}else{
+			plugin.error("Failed load of command");
+		}
 		
 		// Register a enchantment without effects to give items a glow effect
 		registerGlow();
@@ -115,82 +125,30 @@ public class CustomCobbleGen extends JavaPlugin {
 		// Connect to BStats
 		int pluginId = 5454;
 		Metrics metrics = new Metrics(this, pluginId);
-        Metrics.SingleLineChart genChart = new Metrics.SingleLineChart("generators", new Callable<Integer>() {
-        	
-			@Override
-			public Integer call() throws Exception {
-				int numOfGenerators = BlockManager.getInstance().getKnownGenLocations().size();
-				if(numOfGenerators > 10000) { // Over 10000 generators found - Prob a mistake
-					plugin.warning("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
-					plugin.warning("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
-				}
-				return numOfGenerators;
+        Metrics.SingleLineChart genChart = new Metrics.SingleLineChart("generators", () -> {
+			int numOfGenerators = BlockManager.getInstance().getKnownGenLocations().size();
+			if(numOfGenerators > 10000) { // Over 10000 generators found - Prob a mistake
+				plugin.warning("&c&lOver 10.000 generators in use. If you believe this is a mistake, then contact the dev (phil14052 on SpigotMC.org)");
+				plugin.warning("&cQuick link: https://www.spigotmc.org/conversations/add?to=phil14052&title=CCG%20Support:%20" + numOfGenerators + "%20generators%20are%20active%20on%20my%20server");
 			}
-        	
-        });
-        Metrics.SimplePie pistonChart = new Metrics.SimplePie("servers_using_pistons_for_automation", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return Setting.AUTOMATION_PISTONS.getBoolean() ? "Enabled" : "Disabled";
-			}
-        	
-        });
-        Metrics.SimplePie signChart = new Metrics.SimplePie("servers_using_signs", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return Setting.SIGNS_ENABLED.getBoolean() ? "Enabled" : "Disabled";
-			}
-        	
-        });
-        Metrics.SimplePie minionChart = new Metrics.SimplePie("connected_minion_plugins", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return connectedMinionPlugin;
-			}
-        	
-        });
-        Metrics.SimplePie islandChart = new Metrics.SimplePie("connected_island_plugins", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return connectedIslandPlugin;
-			}
-        	
-        });
+			return numOfGenerators;
+		});
+        Metrics.SimplePie pistonChart = new Metrics.SimplePie("servers_using_pistons_for_automation", () -> Setting.AUTOMATION_PISTONS.getBoolean() ? "Enabled" : "Disabled");
+        Metrics.SimplePie signChart = new Metrics.SimplePie("servers_using_signs", () -> Setting.SIGNS_ENABLED.getBoolean() ? "Enabled" + (signManager.getSigns().isEmpty() ? " but not in use" : "") : "Disabled");
+        Metrics.SimplePie minionChart = new Metrics.SimplePie("connected_minion_plugins", () -> connectedMinionPlugin);
+        Metrics.SimplePie islandChart = new Metrics.SimplePie("connected_island_plugins", () -> connectedIslandPlugin);
 
-        Metrics.SimplePie selectOptionChart = new Metrics.SimplePie("tier_unlock_system", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() ? "Island based" : "Player based";
-			}
-        	
-        });
+        Metrics.SimplePie selectOptionChart = new Metrics.SimplePie("tier_unlock_system", () -> Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() ? "Island based" : "Player based");
         
-        Metrics.SimplePie tiersActiveChart = new Metrics.SimplePie("tiers_active", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				int numOfTiers = 0;
-				for(List<Tier> tiers : tierManager.getTiers().values()) {
-					numOfTiers += tiers.size();
-				}
-				return numOfTiers + " tiers active";
+        Metrics.SimplePie tiersActiveChart = new Metrics.SimplePie("tiers_active", () -> {
+			int numOfTiers = 0;
+			for(List<Tier> tiers : tierManager.getTiers().values()) {
+				numOfTiers += tiers.size();
 			}
-        	
-        });
+			return numOfTiers + " tiers active";
+		});
         
-        Metrics.SimplePie modesActiveChart = new Metrics.SimplePie("modes_active", new Callable<String>() {
-        	
-			@Override
-			public String call() throws Exception {
-				return generatorModeManager.getModes().size() + " generation modes active";
-			}
-        	
-        });
+        Metrics.SimplePie modesActiveChart = new Metrics.SimplePie("modes_active", () -> generatorModeManager.getModes().size() + " generation modes active");
         metrics.addCustomChart(genChart);
         metrics.addCustomChart(pistonChart);
         metrics.addCustomChart(signChart);
@@ -211,32 +169,60 @@ public class CustomCobbleGen extends JavaPlugin {
 		
 		tierManager.unload();
 		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
-		this.savePlayerConfig();
+		if(this.getPlayerDatabase() != null) {
+			this.getPlayerDatabase().saveEverythingToDatabase();
+		}
     	signManager.saveSignsToFile();
 		tierManager = null;
 		signManager = null;
 		plugin = null;
 	}
 	
-	public void setupHooks() {
+	private void setupPlayerDatabase() {
+		switch (Setting.DATABASE_TYPE.getString().toUpperCase()) {
+			case "YAML":
+			case "YML":
+				this.playerDatabase = new YamlPlayerDatabase();
+				break;
+			case "MYSQL":
+				this.playerDatabase = new MySQLPlayerDatabase();
+				break;
+			default:
+				plugin.error("Unknown database type. Will use YAML", true);
+				this.playerDatabase = new YamlPlayerDatabase();
+				break;
+		}
+		plugin.debug("Setting up a " + this.playerDatabase.getType() + " player database");
+		try {
+			this.playerDatabase.establishConnection();
+		}catch(Exception e) {
+			plugin.error("FAILED SETTING UP " + this.playerDatabase.getType() + " PLAYER DATABASE. DISABLING PLUGIN!");
+			plugin.error(e.getLocalizedMessage());
+			for(StackTraceElement s : e.getCause().getStackTrace()) {
+				plugin.error(s.toString());
+			}
+			Bukkit.getServer().getPluginManager().disablePlugin(this);
+		}
+	}
+	
+	private void setupHooks() {
 		this.connectToPlaceholderAPI();
 		this.connectToVault();
 		connectToIslandPlugin();
 		
 	}
-	
-	public static void connectToIslandPlugin() {
+
+	public List<IslandHook> getIslandHooks() {
+		return islandHooks;
+	}
+
+	public void connectToIslandPlugin() {
 		PluginManager pm = Bukkit.getPluginManager();
-		if(pm.getPlugin("BentoBox") != null) {
-			islandPluginHooked = new BentoboxHook();
-		}else if(pm.getPlugin("uSkyBlock") != null) {
-			islandPluginHooked = new uSkyBlockHook();
-		}else if(pm.getPlugin("FabledSkyBlock") != null) {
-			islandPluginHooked = new FabledHook();
-		}else if(pm.getPlugin("ASkyBlock") != null) {
-			islandPluginHooked = new ASkyBlockHook();
-		}else if(pm.getPlugin("SuperiorSkyblock2") != null) {
-			islandPluginHooked = new SuperiorSkyblock2Hook();
+		for(IslandHook hook : islandHooks){
+			if(pm.getPlugin(hook.pluginHookName()) != null){
+				islandPluginHooked = hook;
+				break;
+			}
 		}
 		if(islandPluginHooked != null) {
 			connectedIslandPlugin = islandPluginHooked.getHookName();
@@ -259,7 +245,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	
 	public void connectToVault() {
 		// Connect to vault
-		econManager = EconomyManager.getInstance();
+		EconomyManager econManager = EconomyManager.getInstance();
 		if(econManager.setupEconomy()) {
 			this.debug("Economy is now setup");	
 		}else {
@@ -277,11 +263,10 @@ public class CustomCobbleGen extends JavaPlugin {
 	
 	public void reloadPlugin() {
 		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
-		BlockManager.getInstance().saveGenPistonData();
 		this.reloadConfig();
 		Setting.setFile(this.getConfig());
 		this.lang.reload();
-		this.reloadPlayerConfig();
+		this.getPlayerDatabase().reloadConnection();
 		this.reloadSignsConfig();
 		generatorModeManager.loadFromConfig();
 		signManager.loadSignsFromFile(true);
@@ -290,34 +275,10 @@ public class CustomCobbleGen extends JavaPlugin {
 		if(Setting.AUTO_SAVE_ENABLED.getBoolean()) tierManager.startAutoSave();
 	}
 	
-	public void reloadPlayerConfig(){
-		if(this.playerConfigFile == null){
-			this.playerConfigFile = new File(new File(plugin.getDataFolder(), "Data"),"players.yml");
-			this.playerConfig = YamlConfiguration.loadConfiguration(this.playerConfigFile);
-			
-		}
+	public PlayerDatabase getPlayerDatabase() {
+		return this.playerDatabase;
 	}
-	 //Return the player config
-    public FileConfiguration getPlayerConfig() {
- 
-        if(this.playerConfigFile == null) this.reloadPlayerConfig();
- 
-        return this.playerConfig;
- 
-    }
- 
-    //Save the player config
-    public void savePlayerConfig() {
- 
-        if(this.playerConfig == null || this.playerConfigFile == null) return;
- 
-        try {
-            this.getPlayerConfig().save(this.playerConfigFile);
-        } catch (IOException ex) {
-            plugin.getServer().getLogger().log(Level.SEVERE, "Could not save Player config to " + this.playerConfigFile +"!", ex);
-        }
- 
-    }
+	
 	
     public void reloadSignsConfig(){
 		if(this.signsConfigFile == null){

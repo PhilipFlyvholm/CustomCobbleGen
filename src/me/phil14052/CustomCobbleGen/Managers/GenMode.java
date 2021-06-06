@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * GenMode.java
- */
 package me.phil14052.CustomCobbleGen.Managers;
 
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
@@ -14,23 +10,28 @@ import java.util.*;
 import java.util.Map.Entry;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By
+ * @author Philip Flyvholm
+ * GenMode.java
  */
 public class GenMode {
+
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+
+	private int id;
+	private boolean valid;
 	private boolean searchForPlayersNearby = false;
+	private boolean canGenWhileRaining = true;
+
+	private String name = null;
 	private List<Material> blocks = null;
 	private Map<BlockFace, Material> fixedBlocks = null;
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+
 	private List<String> disabledWorlds = new ArrayList<>();
-	private int id;
-	private boolean valid = false;
-	private String name = null;
 	private Sound genSound = null;
 	private Material fallbackMaterial = null;
 	private ParticleEffect particleEffect = null;
-	private boolean canGenWhileRaining = true;
-	
+
 	public GenMode(int id, List<Material> blocks, String name, Material fallbackMaterial) {
 		this(id, blocks, null, true, null, name, fallbackMaterial);
 	}

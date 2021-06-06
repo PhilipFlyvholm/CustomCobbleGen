@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * TierPlaceholderExpansion.java
- */
 package me.phil14052.CustomCobbleGen.Utils;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -21,13 +17,15 @@ import java.util.StringJoiner;
 import java.util.UUID;
 
 /**
+ * CustomCobbleGen By @author Philip Flyvholm
+ * TierPlaceholderExpansion.java
  * This class will be registered through the register-method in the 
  * plugins onEnable-method.
  */
 public class TierPlaceholderExpansion extends PlaceholderExpansion {
 
-    private CustomCobbleGen plugin;
-    private TierManager tm = TierManager.getInstance();
+    private final CustomCobbleGen plugin;
+    private final TierManager tm = TierManager.getInstance();
 
     /**
      * Since we register the expansion inside our own plugin, we
@@ -66,7 +64,7 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
 
     /**
      * The name of the person who created this expansion should go here.
-     * <br>For convienience do we return the author from the plugin.yml
+     * <br>For convenience do we return the author from the plugin.yml
      * 
      * @return The name of the author as a String.
      */
@@ -93,7 +91,7 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
      * This is the version of the expansion.
      * <br>You don't have to use numbers, since it is set as a String.
      *
-     * For convienience do we return the version from the plugin.yml
+     * For convenience do we return the version from the plugin.yml
      *
      * @return The version as a String.
      */
@@ -108,8 +106,7 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
      * <br>We specify the value identifier in this method.
      * <br>Since version 2.9.1 can you use OfflinePlayers in your requests.
      *
-     * @param  player
-     *         A {@link org.bukkit.Player Player}.
+     * @param  player player
      * @param  identifier
      *         A String containing the identifier/value.
      *
@@ -178,7 +175,7 @@ public class TierPlaceholderExpansion extends PlaceholderExpansion {
     		        	for(Entry<Material, Integer> entry : tier.getPriceItems().entrySet()) {
     		        		if(!first) sb.append(", ");
     		        		else first = false;
-    		        		sb.append(entry.getValue() + "x" + entry.getKey().name()); 
+    		        		sb.append(entry.getValue()).append("x").append(entry.getKey().name());
     		        	}
     		            return sb.toString();
     				}

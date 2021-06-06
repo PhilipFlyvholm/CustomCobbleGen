@@ -33,7 +33,7 @@ public class ConfigUpdater extends YamlConfiguration {
 			config.addDefault(setting.getPath(), setting.getDefaultValue());
 		}
 		String genertionModePath = Setting.SECTION_GENERATIONMODES.getPath();
-		if(!config.contains(genertionModePath) || config.contains(genertionModePath + ".0")) {
+		if(!config.contains(genertionModePath) || !config.contains(genertionModePath + ".0")) {
 			config.addDefault(genertionModePath + ".0.blocks", new String[] {"WATER", "LAVA"});
 			config.addDefault(genertionModePath + ".0.displayName", "Cobblestone generator");
 			config.addDefault(genertionModePath + ".0.fallback", "COBBLESTONE");

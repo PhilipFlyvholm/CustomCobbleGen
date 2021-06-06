@@ -87,7 +87,6 @@ public class ItemsRequirement implements Requirement{
 			ItemStack is = new ItemStack(m.getKey(), m.getValue());
 			inv.removeItem(is);
 		}
-		return;
 	}
 
 	

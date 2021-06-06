@@ -71,6 +71,7 @@ public class BlockEvents implements Listener{
 					//Checks if the block has been broken before and if it is a known gen location
 					if(!bm.isGenLocationKnown(l) && mode.isSearchingForPlayersNearby()) {
 						double searchRadius = Setting.PLAYERSEARCHRADIUS.getDouble();
+						if(l.getWorld() == null) return;
 						Collection<Entity> entitiesNearby = l.getWorld().getNearbyEntities(l, searchRadius, searchRadius, searchRadius);
 						Player closestPlayer = null;
 						double closestDistance = 100D;
@@ -173,7 +174,7 @@ public class BlockEvents implements Listener{
 	
 	@EventHandler
 	public void onSignChange(SignChangeEvent e) {
-		if(!signManager.areSignsEnabled()) return;
+		if(signManager.areSignsDisabled()) return;
 		Location l = e.getBlock().getLocation();
 		if(isWorldDisabled(l.getWorld())) return;
 		Player p = e.getPlayer();
@@ -325,6 +326,7 @@ public class BlockEvents implements Listener{
 			PlayerBreakGeneratedBlock event = new PlayerBreakGeneratedBlock(p,l);
 			Bukkit.getPluginManager().callEvent(event);
 			if(event.isCancelled()) return;
+			plugin.getIslandHook().onGeneratorBlockBreak(p.getUniqueId());
 			bm.setPlayerForLocation(p.getUniqueId(), l, false);
 		}
 	}
@@ -367,6 +369,7 @@ public class BlockEvents implements Listener{
 				}
 			}	
 		}
+
 		if(mode.getBlocks() != null && !mode.getBlocks().isEmpty()) {
 			for(BlockFace face : faces){
 				if(testedFaces.contains(face)) continue;
@@ -379,13 +382,17 @@ public class BlockEvents implements Listener{
 						if(waterloggedBlock.isWaterlogged()) rm = Material.WATER; //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
 					}
 				}
+				/*
+				This also sadly disables LAVA and LAVA generators
+				 */
 				if(this.isSameMaterial(rm.name(), fromM.name())) { // Should not check for the original block
+
 					continue;
 				}
 				
 				for(Material mirrorMaterial : mode.getBlocks()) {
 					if(this.isSameMaterial(rm.name(), mirrorMaterial.name())){
-						blocksFound++; /** This block is positioned correctly; */
+						blocksFound++; /* This block is positioned correctly; */
 					}
 				}
 			}

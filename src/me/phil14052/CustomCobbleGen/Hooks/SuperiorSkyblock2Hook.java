@@ -48,6 +48,7 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
+		if(uuid == null) return null;
 		SuperiorPlayer sp = SuperiorSkyblockAPI.getPlayer(uuid);
 		if(sp == null) return null;
 		SuperiorPlayer leader = sp.getIslandLeader();
@@ -111,9 +112,25 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 	public boolean supportsIslandBalance() {
 		return true;
 	}
-	
+
+	@Override
+	public String pluginHookName() {
+		return "SuperiorSkyblock2";
+	}
+
 	@Override
 	public String getHookName() {
 		return "SuperiorSkyBlock2";
+	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {
+		updateIslandLevel(uuid);
+	}
+
+	public void updateIslandLevel(UUID uuid) {
+		Island is = this.getIslandFromPlayer(uuid);
+		if(is == null) return;
+		is.calcIslandWorth(null);
 	}
 }

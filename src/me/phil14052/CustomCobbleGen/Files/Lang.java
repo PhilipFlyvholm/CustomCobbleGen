@@ -73,7 +73,7 @@ public enum Lang {
     UPGRADE_NOT_PURCHASABLE_LEVEL("upgrade-not-purchasable-level", "&cYou need a island level of atleast %tier_price_level% to buy the tier"),
     UPGRADE_NOT_PURCHASABLE_ITEMS("upgrade-not-purchasable-items", "&cYou need %tier_price_items% to buy this tier"),
     FORCE_PURCHASED("force-purchased", "You have now force bought %selected_tier_name% for %player_name%"),
-    ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, forcesave, settier, givetier, forcebuy, withdraw]"),
+    ADMIN_USAGE("admin-command-usage", "&cUsage: /%command% [reload, database, settier, givetier, forcebuy, withdraw]"),
     GUI_BUY("gui.main.buy", "&aClick to buy"),
     GUI_BUY_LEADER_ONLY("gui.main.buy-leader-only", "&cOnly leaders of the island can buy"),
     GUI_CAN_NOT_AFFORD("gui.main.can-not-afford", "&cCan't afford"),
@@ -188,9 +188,18 @@ public enum Lang {
     CHATINPUT_INFO_RESULTS_MATERIAL("chatinput.info.results.material", "ARRAYLIST: &7Editing result &amaterial , &7Write the result &amaterial name , &cUse Bukkit material names!"),
     PLACEHOLDER_RESPONSE_OWNED("placeholders.response.owned", "owned"),
     PLACEHOLDER_RESPONSE_NOT_OWNED("placeholders.response.not-owned", "not owned"),
-    PLACEHOLDER_RESPONSE_ALL("placeholder.response.all", "ALL");
-    
-    
+    PLACEHOLDER_RESPONSE_ALL("placeholder.response.all", "ALL"),
+    DATABASE_USAGE("database.usage", "&cUsage: /%command% admin database [forcesave, migrate]"),
+    DATABASE_MIGRATE_USAGE("database.migrate.usage", "&cUsage: /%command% admin database migrate (From) (To)"),
+    DATABASE_MIGRATE_INVALID_DATABASE("database.migrate.invalid", "&cError: %s1 is not a valid database type"),
+    DATABASE_MIGRATE_STARTING("database.migrate.starting", "&cStarting migration..."),
+    DATABASE_MIGRATE_LOADING_START("database.migrate.loading.start", "&cDatabase &l%s1&c not loaded. Starting loading..."),
+    DATABASE_MIGRATE_LOADING_DONE("database.migrate.loading.done", "&aDatabase &l%s1&a loaded. Continuing migration..."),
+    DATABASE_MIGRATE_ESTABLISHING_CONNECTION("database.migrate.establishing-connection", "&aEstablishing connection to new &l%s1&a database"),
+    DATABASE_MIGRATE_SAVING_START("database.migrate.saving.start", "&aStarting saving data to &l%s1&a database"),
+    DATABASE_MIGRATE_SAVING_DONE("database.migrate.saving.done", "&a&lSuccessful migration to %s1 database");
+
+
     private String path;
     private String def;
     private static YamlConfiguration LANG;

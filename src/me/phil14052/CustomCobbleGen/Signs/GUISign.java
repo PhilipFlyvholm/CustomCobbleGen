@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * GUISign.java
- */
 package me.phil14052.CustomCobbleGen.Signs;
 
 import me.phil14052.CustomCobbleGen.GUI.GUIManager;
@@ -12,15 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * GUISign.java
  */
 public class GUISign implements ClickableSign{
 	
 	private Location loc = null;
-	private ClickableSignType signType = ClickableSignType.GUI;
-	private GUIManager guiManager = GUIManager.getInstance();
-	private boolean valid = false;
+	private final ClickableSignType signType = ClickableSignType.GUI;
+	private final GUIManager guiManager = GUIManager.getInstance();
+	private boolean valid;
 	
 	public GUISign(Location loc) {
 		this.setLocation(loc);
@@ -43,17 +39,11 @@ public class GUISign implements ClickableSign{
 		return this.signType;
 	}
 
-	@Override
-	public void setSignType(ClickableSignType signType) {
-		this.signType = signType;
-		
-	}
-
-	@Override
+    @Override
 	public String serializeSign() {
 		// [World, x, y, z, type, data]
 		List<String> items = new ArrayList<>();
-		items.add(loc.getWorld().getName() + "");
+		items.add(loc.getWorld() != null ? loc.getWorld().getName() + "" : "");
 		items.add(loc.getX() + "");
 		items.add(loc.getY() + "");
 		items.add(loc.getZ() + "");

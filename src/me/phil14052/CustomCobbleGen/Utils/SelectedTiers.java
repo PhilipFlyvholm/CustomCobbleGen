@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * SelectedTiers.java
- */
 package me.phil14052.CustomCobbleGen.Utils;
 
 import me.phil14052.CustomCobbleGen.API.Tier;
@@ -11,6 +7,8 @@ import me.phil14052.CustomCobbleGen.Managers.GenMode;
 import java.util.*;
 
 /**
+ * CustomCobbleGen By @author Philip Flyvholm
+ * SelectedTiers.java
  * @author Philip
  *
  */
@@ -18,9 +16,9 @@ public class SelectedTiers {
 	/**
 	 * THIS CLASS HELPS WITH CONTROLLING THAT THERE ONLY WILL BE ONE TIER PER GENMODE
 	 */
-	private Map<GenMode, Tier> selectedTiers;
+	private final Map<GenMode, Tier> selectedTiers;
 	private UUID uuid;
-	private CustomCobbleGen plugin = CustomCobbleGen.getInstance();
+	private final CustomCobbleGen plugin = CustomCobbleGen.getInstance();
 	
 	public SelectedTiers(UUID uuid, List<Tier> tiers) {
 		this.uuid = uuid;
@@ -40,9 +38,6 @@ public class SelectedTiers {
 
 	public Map<GenMode, Tier> getSelectedTiersMap() {
 		return selectedTiers;
-	}
-	public void setSelectedTiersMap(Map<GenMode, Tier> selectedTiers) {
-		this.selectedTiers = selectedTiers;
 	}
 	
 	public UUID getUUID() {
@@ -64,14 +59,13 @@ public class SelectedTiers {
 	}
 	
 	public void removeTier(GenMode mode) {
-		if(this.selectedTiers.containsKey(mode)) this.selectedTiers.remove(mode);
+		this.selectedTiers.remove(mode);
 	}
 	
 	public boolean isTierSelected(Tier tier) {
 		if(this.getSelectedTiersMap().containsKey(tier.getSupportedMode())) {
-			if(this.getSelectedTiersMap().get(tier.getSupportedMode()).getTierClass().equalsIgnoreCase(tier.getTierClass()) 
-					&& this.getSelectedTiersMap().get(tier.getSupportedMode()).getLevel() == (tier.getLevel())) 
-				return true;
+			return this.getSelectedTiersMap().get(tier.getSupportedMode()).getTierClass().equalsIgnoreCase(tier.getTierClass())
+					&& this.getSelectedTiersMap().get(tier.getSupportedMode()).getLevel() == (tier.getLevel());
 		}
 		return false;
 	}

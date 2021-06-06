@@ -67,15 +67,14 @@ public class BentoboxHook implements IslandHook{
 		Player p = Bukkit.getPlayer(uuid);
 		if(p == null) return false;
 		if(api.getIslands().hasIsland(p.getWorld(), uuid)) return true;
-		return this.getIslandLeaderFromPlayer(uuid).equals(uuid);
+		UUID island = this.getIslandLeaderFromPlayer(uuid);
+		if(island == null) return false;
+		return island.equals(uuid);
 	}
 
 	@Override
 	public UUID getIslandLeaderFromPlayer(UUID uuid) {
-		if(uuid == null) {
-			plugin.error("UUID given is null in BentoboxHook#getIslandLeaderFromPlayer(UUID uuid);");
-			return null;
-		}
+		if(uuid == null) return null;
 		Player p = Bukkit.getPlayer(uuid);
 		if(p != null && api.getIslands().hasIsland(p.getWorld(), uuid)) return uuid;
 
@@ -113,7 +112,7 @@ public class BentoboxHook implements IslandHook{
 			Player p = Bukkit.getServer().getPlayer(pUUID);
 			if(p != null && p.isOnline()) onlinePlayers.add(p);
 		}
-		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+		return onlinePlayers.toArray(new Player[0]);
 	}
 
 	@Override
@@ -150,10 +149,21 @@ public class BentoboxHook implements IslandHook{
 	public boolean supportsIslandBalance() {
 		return false;
 	}
-	
+
+	@Override
+	public String pluginHookName() {
+		return "BentoBox";
+	}
+
 	@Override
 	public String getHookName() {
 		return "BentoBox";
+	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

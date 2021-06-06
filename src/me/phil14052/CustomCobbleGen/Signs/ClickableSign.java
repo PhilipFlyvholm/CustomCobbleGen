@@ -1,31 +1,26 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * ClickableSign.java
- */
 package me.phil14052.CustomCobbleGen.Signs;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * ClickableSign.java
  */
 public interface ClickableSign {
 	
-	public Location getLocation();
-	public void setLocation(Location loc);
+	Location getLocation();
+	void setLocation(Location loc);
 	
-	public ClickableSignType getSignType();
-	public void setSignType(ClickableSignType signType);
+	ClickableSignType getSignType();
+
+	String serializeSign();
 	
-	public String serializeSign();
+	void onInteract(Player p);
 	
-	public void onInteract(Player p);
+	boolean isValid();
 	
-	public boolean isValid();
-	
-	public boolean validateData();
+	boolean validateData();
 	
 	
 }

@@ -13,6 +13,7 @@ import me.phil14052.CustomCobbleGen.Requirements.ItemsRequirement;
 import me.phil14052.CustomCobbleGen.Requirements.Requirement;
 import me.phil14052.CustomCobbleGen.Requirements.RequirementType;
 import me.phil14052.CustomCobbleGen.Utils.StringUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -36,6 +37,7 @@ public class Tier {
 	private PermissionManager pm = new PermissionManager();
 	private GenMode supportedMode = null;
 	private GeneratorModeManager gm = GeneratorModeManager.getInstance();
+	private int GUISlot = -1;
 	
 	public Tier() {
 		this.name = "";
@@ -49,7 +51,7 @@ public class Tier {
 	}
 	
 	public Tier(String name, String tierClass, int level, Material iconMaterial, Map<Material, Double> results, List<Requirement> requirements, List<String> description, String permission, GenMode supportedMode){
-		this.name = name;
+		this.name = ChatColor.translateAlternateColorCodes('&', name);
 		this.tierClass = tierClass;
 		this.level = level;
 
@@ -80,7 +82,7 @@ public class Tier {
 		return name;
 	}
 	public void setName(String name) {
-		this.name = name;
+		this.name = ChatColor.translateAlternateColorCodes('&', name);
 	}
 	public ItemStack getIcon() {
 		return icon;
@@ -233,6 +235,14 @@ public class Tier {
 			}
 			return formatetDescription;
 		}
+	}
+
+	public int getGUISlot() {
+		return GUISlot;
+	}
+
+	public void setGUISlot(int GUISlot) {
+		this.GUISlot = GUISlot;
 	}
 }
 

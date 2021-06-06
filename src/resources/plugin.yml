@@ -1,6 +1,6 @@
 name: CustomCobbleGen
 main: me.phil14052.CustomCobbleGen.CustomCobbleGen
-version: 1.4.5
+version: 1.5.0-BETA
 author: phil14052
 description: Adds the ability to change the cobblestone generator
 api-version: 1.13

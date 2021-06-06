@@ -1,7 +1,3 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * SignManager.java
- */
 package me.phil14052.CustomCobbleGen.Signs;
 
 import me.phil14052.CustomCobbleGen.API.Tier;
@@ -15,15 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * SignManager.java
  */
 public class SignManager {
 
 	
 	private static SignManager instance = null;
-	private CustomCobbleGen plugin = null;
-	private TierManager tm = null;
+	private final CustomCobbleGen plugin;
+	private final TierManager tm;
 	List<ClickableSign> signs;
 	
 	public SignManager() {
@@ -32,8 +28,8 @@ public class SignManager {
 		signs = new ArrayList<>();
 	}
 	
-	public boolean areSignsEnabled() {
-		return plugin.getConfig().getBoolean("options.signs.enabled");
+	public boolean areSignsDisabled() {
+		return !plugin.getConfig().getBoolean("options.signs.enabled");
 	}
 	
 	public List<ClickableSign> getSigns(){
@@ -77,19 +73,19 @@ public class SignManager {
 	public boolean loadSignsFromFile(boolean forceReload) {
 		if(!this.getSigns().isEmpty() && !forceReload) return false;
 		signs = new ArrayList<>();
-		List<String> serilizedSigns = plugin.getSignsConfig().getStringList("signs");
-		for(String s : serilizedSigns) {
+		List<String> serializedSigns = plugin.getSignsConfig().getStringList("signs");
+		for(String s : serializedSigns) {
 			// [World, x, y, z, type]
 			s = s.replace("[", "");
 			s = s.replace("]", "");
 			String[] items = s.split(",");
 			World world = Bukkit.getServer().getWorld(items[0]);
-			Double x = Double.parseDouble(items[1]);
-			Double y = Double.parseDouble(items[2]);
-			Double z = Double.parseDouble(items[3]);
+			double x = Double.parseDouble(items[1]);
+			double y = Double.parseDouble(items[2]);
+			double z = Double.parseDouble(items[3]);
 			
 			Location loc = new Location(world, x,y, z);
-			ClickableSignType type = null;
+			ClickableSignType type;
 			try {
 
 				type = ClickableSignType.valueOf(items[4].toUpperCase());	
@@ -108,7 +104,7 @@ public class SignManager {
 				Tier tier = tm.getTierByLevel(tierClass, tierLevel);
 				if(type == ClickableSignType.SELECT)  sign = new SelectSign(loc, tier);
 				if(type == ClickableSignType.BUY) sign = new BuySign(loc, tier);
-				if(sign == null || !sign.validateData()) continue;
+				if(!sign.validateData()) continue;
 			}
 			this.getSigns().add(sign);
 		}
@@ -118,6 +114,7 @@ public class SignManager {
 	public ClickableSign getSignFromLocation(Location loc) {
 		for(ClickableSign sign : this.getSigns()) {
 			Location signLoc = sign.getLocation();
+			if(loc.getWorld() == null || signLoc.getWorld() == null) return null;
 			if(loc.getX() == signLoc.getX() && loc.getY() == signLoc.getY() && loc.getZ() == signLoc.getZ() && loc.getWorld().getName().equals(signLoc.getWorld().getName())) {
 				return sign;
 			}

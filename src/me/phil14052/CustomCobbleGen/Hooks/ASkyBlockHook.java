@@ -1,7 +1,4 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * BentoboxHook.java
- */
+
 package me.phil14052.CustomCobbleGen.Hooks;
 
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
@@ -15,12 +12,12 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * BentoboxHook.java
  */
 public class ASkyBlockHook implements IslandHook{
 
-	private ASkyBlockAPI api;
+	private final ASkyBlockAPI api;
 	
 	public ASkyBlockHook() {
 		api = ASkyBlockAPI.getInstance();
@@ -34,9 +31,7 @@ public class ASkyBlockHook implements IslandHook{
 	private Island getIslandFromPlayer(UUID uuid) {
 		Location loc = api.getIslandLocation(uuid);
 		if(loc == null) return null;
-		Island island = api.getIslandAt(loc);
-		if(island == null) return null;
-		return island;
+		return api.getIslandAt(loc);
 	}
 	
 	@Override
@@ -65,7 +60,7 @@ public class ASkyBlockHook implements IslandHook{
 			Player p = Bukkit.getServer().getPlayer(pUUID);
 			if(p != null && p.isOnline()) onlinePlayers.add(p);
 		}
-		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+		return onlinePlayers.toArray(new Player[0]);
 	}
 
 
@@ -101,13 +96,19 @@ public class ASkyBlockHook implements IslandHook{
 	 * ASkyBlock does not support balance
 	 */
 	@Override
-	public void removeFromBalance(UUID uuid, double amount) {
-		return;
+	public void removeFromBalance(UUID uuid, double amount) {}
+
+	@Override
+	public String pluginHookName() {
+		return "ASkyBlock";
 	}
-	
+
 	@Override
 	public String getHookName() {
 		return "ASkyBlock";
 	}
+
+	@Override
+	public void onGeneratorBlockBreak(UUID uuid) {}
 	
 }

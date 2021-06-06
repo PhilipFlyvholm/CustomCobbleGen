@@ -1,7 +1,4 @@
-/**
- * CustomCobbleGen By @author Philip Flyvholm
- * HttpParametersUtils.java
- */
+
 package me.phil14052.CustomCobbleGen.Utils.pastebin;
 
 import java.io.UnsupportedEncodingException;
@@ -12,8 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * @author Philip
- *
+ * CustomCobbleGen By @author Philip Flyvholm
+ * HttpParametersUtils.java
  */
 public class HttpParametersUtils {
 	private final ConcurrentMap<String, String> parameters = new ConcurrentHashMap<>();

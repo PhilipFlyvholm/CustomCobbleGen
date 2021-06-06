@@ -69,7 +69,7 @@ public class GUIManager {
 			for(String tierClass : tiers.keySet()) {
 				int j = 0; //Current pos in class
 				List<Tier> classTiers = tiers.get(tierClass); //Tiers in current class
-				
+				if(classTiers.isEmpty()) continue;
 				for(Tier tier : classTiers) {
 					if(j == 0) {
 						if(newLines) {
@@ -221,7 +221,15 @@ public class GUIManager {
 							}
 						}
 					});
-					ch.setIcon(i, icon);
+					int slot = i;
+					if(Setting.GUI_CUSTOM_GUI_ENABLED.getBoolean()){
+						slot = tier.getGUISlot();
+					}
+					if(slot >= 0 && slot <= guiSize){
+						ch.setIcon(slot, icon);
+					}else{
+						plugin.error("Unknown slot for " + tier.getName(), true);
+					}
 					//numOfPreviousTiers += classTiers.size();
 					if(j >= classTiers.size() && centerItems) {
 						i += Math.ceil(4.5-(classTiers.size()/2));
@@ -244,6 +252,9 @@ public class GUIManager {
 		}
 		
 		private int getGUISize(Map<String, List<Tier>> tiers, boolean closeLine) {
+			if(Setting.GUI_CUSTOM_GUI_ENABLED.getBoolean()){
+				return Setting.GUI_CUSTOM_GUI_SIZE.getInt();
+			}
 			int rows = 0;
 			boolean newLines = Setting.GUI_SEPERATECLASSESBYLINES.getBoolean();
 			if(newLines) {
@@ -494,15 +505,10 @@ public class GUIManager {
 			}
 			
 			// FORCE SAVE
-			if(pm.hasPermission(p, "customcobblegen.admin.forcesave", false)) {
-				saveIcon.addClickAction(new ClickAction() {
-
-					@Override
-					public void execute(Player p) {
-						p.performCommand("ccg admin forcesave");
-						p.closeInventory();
-					}
-					
+			if(pm.hasPermission(p, "customcobblegen.admin.database.forcesave", false)) {
+				saveIcon.addClickAction(player -> {
+					player.performCommand("ccg admin database forcesave");
+					player.closeInventory();
 				});
 				ch.setIcon(11, saveIcon);
 			}else {
@@ -511,15 +517,7 @@ public class GUIManager {
 			
 			// FORCE BUY
 			if(pm.hasPermission(p, "customcobblegen.admin.forcebuy", false)) {
-				forceBuyIcon.addClickAction(new ClickAction() {
-
-					@Override
-					public void execute(Player p) {
-						
-						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.FORCEBUY).open();
-					}
-					
-				});
+				forceBuyIcon.addClickAction(player -> GUIManager.getInstance().new PlayerSelectGUI(player, GUIActionType.FORCEBUY).open());
 				
 				ch.setIcon(12, forceBuyIcon);
 			}else {
@@ -528,15 +526,7 @@ public class GUIManager {
 			
 			// GIVE TIER
 			if(pm.hasPermission(p, "customcobblegen.admin.givetier", false)) {
-				giveTierIcon.addClickAction(new ClickAction() {
-
-					@Override
-					public void execute(Player p) {
-						
-						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.GIVETIER).open();
-					}
-					
-				});
+				giveTierIcon.addClickAction(player -> GUIManager.getInstance().new PlayerSelectGUI(player, GUIActionType.GIVETIER).open());
 				ch.setIcon(14, giveTierIcon);
 			}else {
 				ch.setIcon(14, getNoPermissionsIcon("customcobblegen.admin.givetier"));
@@ -544,15 +534,7 @@ public class GUIManager {
 			
 			// SET TIER
 			if(pm.hasPermission(p, "customcobblegen.admin.settier", false)) {
-				setTierIcon.addClickAction(new ClickAction() {
-
-					@Override
-					public void execute(Player p) {
-						
-						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.SETTIER).open();
-					}
-					
-				});
+				setTierIcon.addClickAction(player -> GUIManager.getInstance().new PlayerSelectGUI(player, GUIActionType.SETTIER).open());
 				
 				ch.setIcon(15, setTierIcon);
 			}else {
@@ -560,13 +542,7 @@ public class GUIManager {
 			}
 			// SET TIER
 			if(pm.hasPermission(p, "customcobblegen.admin.withdraw", false)) {
-				withdrawIcon.addClickAction(new ClickAction() {
-					@Override
-					public void execute(Player p) {	
-						GUIManager.getInstance().new PlayerSelectGUI(p, GUIActionType.WITHDRAW).open();
-					}
-								
-				});
+				withdrawIcon.addClickAction(player -> GUIManager.getInstance().new PlayerSelectGUI(player, GUIActionType.WITHDRAW).open());
 				ch.setIcon(16, withdrawIcon);
 			}else {
 				ch.setIcon(16, getNoPermissionsIcon("customcobblegen.admin.withdraw"));

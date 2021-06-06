@@ -1,19 +1,17 @@
+
+package me.phil14052.CustomCobbleGen.Utils;
+
 /**
  * CustomCobbleGen By @author Philip Flyvholm
  * Response.java
  */
-package me.phil14052.CustomCobbleGen.Utils.pastebin;
-
-/**
- * @author Philip
- *
- */
 public class Response<T> {
 	private final T result;
-	private boolean isError = false;
-	
+	private final boolean isError;
+
 	public Response(final T result, boolean isError) {
 	    this.result = result;
+	    this.isError = isError;
 	  }
 
 	public T getResult() {
