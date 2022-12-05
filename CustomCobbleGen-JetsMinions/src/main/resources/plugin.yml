@@ -1,0 +1,9 @@
+  name: CustomCobbleGen-JetsMinions
+  main: me.phil14052.CustomCobbleGen.JetsMinions.CCGJetsMinions
+  version: 1.0
+  api-version: 1.13
+  author: phil14052
+  description: Adds support for JetsMinions for CustomCobbleGen
+  depend:
+    - CustomCobbleGen
+    - JetsMinions

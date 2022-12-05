@@ -1,0 +1,83 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'java'
+}
+
+group 'me.phil14052.CustomCobbleGen'
+version '1.5.0-Beta'
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+
+        // As of Gradle 5.1, you can limit this to only those
+        // dependencies you expect from it
+        content {
+            includeGroup 'org.bukkit'
+            includeGroup 'org.spigotmc'
+        }
+    }
+    /*
+   As Spigot-API depends on the BungeeCord ChatComponent-API,
+  we need to add the Sonatype OSS repository, as Gradle,
+  in comparison to maven, doesn't want to understand the ~/.m2
+  directory unless added using mavenLocal(). Maven usually just gets
+  it from there, as most people have run the BuildTools at least once.
+  This is therefore not needed if you're using the full Spigot/CraftBukkit,
+  or if you're using the Bukkit API.
+  */
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/central' }
+    maven { url = "https://repo.codemc.org/repository/maven-public/" }
+    maven {
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+    maven {
+        url = 'https://www.uskyblock.ovh/maven/uskyblock/'
+    }
+    maven {
+        url = 'https://repo.songoda.com/repository/public/'
+    }
+    maven { url = 'https://jitpack.io' }
+    maven {
+        url = 'https://repo.bg-software.com/repository/api/'
+    }
+}
+
+dependencies {
+    implementation 'se.eris:notnull-instrumenter-maven-plugin:1.1.1'
+    implementation 'org.jetbrains:annotations:23.0.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    implementation 'com.zaxxer:HikariCP:3.4.5'
+    implementation 'com.github.cryptomorin:XSeries:7.9.1.1'
+    implementation 'xyz.xenondevs:particle:1.8.1'
+    implementation 'io.github.cdimascio:dotenv-java:2.3.1'
+
+    compileOnly 'org.spigotmc:spigot-api:1.19-R0.1-SNAPSHOT' // The Spigot API with no shadowing. Requires the OSS repo.
+    compileOnly 'world.bentobox:bentobox:1.22.0-SNAPSHOT'
+    compileOnly 'me.clip:placeholderapi:2.11.2'
+    compileOnly "com.github.rlf:uSkyBlock-API:2.7.7"
+    compileOnly 'com.songoda:skyblock:2.3.30'
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+    compileOnly 'commons-io:commons-io:2.7'
+    compileOnly 'com.bgsoftware:SuperiorSkyblockAPI:2022.9'
+    compileOnly 'com.wasteofplastic:askyblock:3.0.9.4'
+
+
+}
+shadowJar {
+    dependsOn(jar)
+    configurations = [project.configurations.runtimeClasspath]
+}
+
+
+build {
+    dependsOn shadowJar
+}
+
+test {
+    useJUnitPlatform()
+}
