@@ -48,7 +48,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	public Response<String> establishConnection() {
 		HikariConfig databaseConfig = new HikariConfig();
 		HOST = Setting.DATABASE_HOST.getString();
-		DATABASE_NAME = Setting.DATABASE_DATABASE.getString().toUpperCase();
+		DATABASE_NAME = Setting.DATABASE_DATABASE.getString();
 		String jdbcUrl = "jdbc:mysql://" + HOST + "/" +  DATABASE_NAME + "?useSSL=false";
 		databaseConfig.setJdbcUrl(jdbcUrl);
 		databaseConfig.setUsername(Setting.DATABASE_USERNAME.getString());
@@ -64,21 +64,27 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 			PreparedStatement stmt = null;
 	        ResultSet rs = null;
 	        try {
-	        	stmt = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?");
+	        	stmt = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?",
+						ResultSet.TYPE_SCROLL_INSENSITIVE,
+						ResultSet.CONCUR_UPDATABLE);
 				stmt.setString(1, DATABASE_NAME);
 				stmt.setString(2, TABLE_NAME);
 				rs = stmt.executeQuery();
-				if(!rs.last()) {
+				if(!rs.next()) {
 					plugin.log("Table (" + TABLE_NAME +  ") in database (" + DATABASE_NAME + ") does not exits. Trying to create it instead...");
 					stmt.close();
 					rs.close();
-					stmt = connection.prepareStatement("CREATE TABLE ? (uuid VARCHAR(36), selected_tiers TEXT, purchased_tiers TEXT, pistons TEXT)");
+					stmt = connection.prepareStatement("CREATE TABLE ? (uuid VARCHAR(36), selected_tiers TEXT, purchased_tiers TEXT, pistons TEXT)",
+							ResultSet.TYPE_SCROLL_INSENSITIVE,
+							ResultSet.CONCUR_UPDATABLE);
 					stmt.setString(1, TABLE_NAME);
 					stmt.execute();
 				}else {
 					plugin.debug("Found table + " +  TABLE_NAME + " in database");
 				}
-	        }finally {
+	        } catch (SQLException e) {
+				return new Response<>("Failed to connect to " + HOST + "/" + DATABASE_NAME + " - Unsupported database", true);
+			} finally {
 	        	if(stmt != null) stmt.close();
 	        	if(rs != null) rs.close();
 	        }
@@ -91,7 +97,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
         	if(ds != null){
         		ds = null;
         	}
-			response =  new Response<>("Failed to connect to " + HOST + "/" + DATABASE_NAME, false);
+			response =  new Response<>("Failed to connect to " + HOST + "/" + DATABASE_NAME +  " - " + e.getMessage(), true);
 		}
 		plugin.debug("Players is now setup&2 ✓");
         return response;

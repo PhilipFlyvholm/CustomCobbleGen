@@ -471,6 +471,7 @@ public class MainCommand implements CommandExecutor{
 					}
 					sender.sendMessage(Lang.DATABASE_MIGRATE_STARTING.toString());
 					if(fromDatabase.getAllPlayerData().isEmpty()){
+						//TODO CHECK IF CONNECTION IS ESTABLISHED
 						sender.sendMessage(Lang.DATABASE_MIGRATE_LOADING_START.toString(fromType));
 						fromDatabase.loadEverythingFromDatabase();
 						sender.sendMessage(Lang.DATABASE_MIGRATE_LOADING_DONE.toString(fromType));
