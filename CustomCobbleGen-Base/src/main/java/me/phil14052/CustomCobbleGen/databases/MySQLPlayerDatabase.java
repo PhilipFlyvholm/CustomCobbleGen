@@ -107,7 +107,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 
 	@Override
 	public void reloadConnection() {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 		this.closeConnection();
 		this.establishConnection();
 	}
@@ -118,8 +118,8 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	}
 
 	@Override
-	public boolean isConnectionEstablished() {
-		return ds != null && !ds.isClosed();
+	public boolean isConnectionClosed() {
+		return ds == null || ds.isClosed();
 	}
 
 	private String getSelectedTiersString(PlayerData data){
@@ -144,7 +144,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	}
 	@Override
 	protected void addToDatabase(PlayerData data, boolean async) {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 		Runnable r = () -> {
 			try {
 				Connection connection = getConnection();
@@ -181,7 +181,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 
 	@Override
 	public void loadEverythingFromDatabase(boolean async) {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 		this.playerData = new HashMap<>();
 		blockManager.setKnownGenPistons(new HashMap<>());
 
@@ -217,7 +217,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	}
 
 	public void loadFromDatabase(UUID uuid, boolean async) {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 			try {
 				Connection connection = getConnection();
@@ -331,7 +331,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 
 	@Override
 	public void saveToDatabase(PlayerData data, boolean async) {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 		Runnable r = () -> {
 			try {
 				Connection connection = getConnection();
@@ -381,7 +381,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 
 	@Override
 	public void savePistonsToDatabase(UUID uuid) {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 
 		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 			try {
@@ -411,7 +411,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 
 	@Override
 	public void loadPistonsFromDatabase(UUID uuid) {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 
 		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 			try {

@@ -23,9 +23,9 @@ public class GeneratorModeManager {
 	private static GeneratorModeManager instance = null;
 	private static CustomCobbleGen plugin = null;
 	
-	private List<GenMode> generatorModes = null;
-	private GenMode defaultGenMode = null;
-	private GenMode universalGenMode = null;
+	private List<GenMode> generatorModes;
+	private final GenMode defaultGenMode;
+	private final GenMode universalGenMode;
 	
 	
 	public GeneratorModeManager() {
@@ -49,7 +49,7 @@ public class GeneratorModeManager {
 			}
 			for(String s : section.getKeys(false)) {
 				List<String> blockNames = section.getStringList(s + ".blocks");
-				List<Material> blockMaterials = null;
+				List<Material> blockMaterials;
 				blockMaterials = new ArrayList<>();
 				for(String name : blockNames) {
 					Material m = Material.valueOf(name.toUpperCase());
@@ -58,7 +58,7 @@ public class GeneratorModeManager {
 				Map<BlockFace, Material> fixedBlockMaterials = null;
 				if(section.isConfigurationSection(s + ".fixedBlocks")) {
 					fixedBlockMaterials = new HashMap<>();
-					for(String fixedBlockFace : section.getConfigurationSection(s + ".fixedBlocks").getKeys(false)) {
+					for(String fixedBlockFace : Objects.requireNonNull(section.getConfigurationSection(s + ".fixedBlocks")).getKeys(false)) {
 						BlockFace blockFace = BlockFace.valueOf(fixedBlockFace.toUpperCase());
 						if(!this.isSupportedBlockFace(blockFace)) {
 							plugin.error(fixedBlockFace.toUpperCase() + " &c&l is not a valid block face. Use UP, DOWN, EAST, NORTH, WEST or SOUTH", true);
@@ -112,9 +112,7 @@ public class GeneratorModeManager {
 						Arrays.stream(Sound.values())
 								.filter(sound -> sound.name().equalsIgnoreCase(soundString))
 								.findFirst()
-								.ifPresentOrElse(mode::setGenSound, () -> {
-									plugin.error("The sound " + soundString + " does not exist", true);
-								});
+								.ifPresentOrElse(mode::setGenSound, () -> plugin.error("The sound " + soundString + " does not exist", true));
 					}
 				}
 				if(section.contains(s + ".particleEffect")) {

@@ -36,7 +36,7 @@ public abstract class PlayerDatabase {
 
     public abstract void closeConnection();
 
-    public abstract boolean isConnectionEstablished();
+    public abstract boolean isConnectionClosed();
 
     public Map<UUID, PlayerData> getAllPlayerData() {
         return this.playerData;
@@ -103,9 +103,6 @@ public abstract class PlayerDatabase {
 
     public abstract void saveToDatabase(UUID uuid, boolean async);
 
-    public void saveToDatabase(PlayerData data) {
-        saveToDatabase(data, true);
-    }
 
     public abstract void saveToDatabase(PlayerData data, boolean async);
 
@@ -114,7 +111,7 @@ public abstract class PlayerDatabase {
     }
 
     public void saveEverythingToDatabase(boolean async) {
-        if (!this.isConnectionEstablished()) return;
+        if (this.isConnectionClosed()) return;
         for (PlayerData data : this.getAllPlayerData().values()) {
             this.saveToDatabase(data, async);
         }

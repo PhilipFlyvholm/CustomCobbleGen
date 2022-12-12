@@ -76,13 +76,13 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 
     @Override
     public void reloadConnection() {
-        if (!this.isConnectionEstablished()) return;
+        if (this.isConnectionClosed()) return;
         this.reloadPlayerConfig();
     }
 
     @Override
     public void closeConnection() {
-        if (!this.isConnectionEstablished()) return;
+        if (this.isConnectionClosed()) return;
         this.saveEverythingToDatabase(false);
         this.playerConfig = null;
         this.playerConfigFile = null;
@@ -91,13 +91,13 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 
     @Override
     protected void addToDatabase(PlayerData data, boolean async) {
-        if (!this.isConnectionEstablished()) return;
+        if (this.isConnectionClosed()) return;
         this.playerData.put(data.getUUID(), data);
     }
 
     @Override
     public void loadEverythingFromDatabase(boolean async) {
-        if (!this.isConnectionEstablished()) return;
+        if (this.isConnectionClosed()) return;
         this.playerData = new HashMap<>();
         blockManager.setKnownGenPistons(new HashMap<>());
         ConfigurationSection playerSection = this.getPlayerConfig().getConfigurationSection("players");
@@ -122,7 +122,7 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 
     @Override
     public void loadFromDatabase(UUID uuid, boolean async) {
-        if (!this.isConnectionEstablished()){
+        if (this.isConnectionClosed()){
             plugin.debug("Connection not established to players.yml");
             return;
         }
@@ -190,7 +190,7 @@ public class YamlPlayerDatabase extends PlayerDatabase {
     }
 
     public void saveToDatabase(PlayerData data, boolean async) {
-        if (!this.isConnectionEstablished()) return;
+        if (this.isConnectionClosed()) return;
         UUID uuid = data.getUUID();
         String path = this.getPlayerPath(uuid);
 
@@ -272,8 +272,8 @@ public class YamlPlayerDatabase extends PlayerDatabase {
     }
 
     @Override
-    public boolean isConnectionEstablished() {
-        return playerConfig != null && playerConfigFile != null;
+    public boolean isConnectionClosed() {
+        return playerConfig == null || playerConfigFile == null;
     }
 
     @Override

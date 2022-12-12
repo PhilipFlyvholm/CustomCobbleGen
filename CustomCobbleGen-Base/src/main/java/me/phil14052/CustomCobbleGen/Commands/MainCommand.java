@@ -476,7 +476,7 @@ public class MainCommand implements CommandExecutor{
 						fromDatabase.loadEverythingFromDatabase();
 						sender.sendMessage(Lang.DATABASE_MIGRATE_LOADING_DONE.toString(fromType));
 					}
-					if(!newDatabase.isConnectionEstablished()){
+					if(newDatabase.isConnectionClosed()){
 						sender.sendMessage(Lang.DATABASE_MIGRATE_ESTABLISHING_CONNECTION.toString(newType));
 						Response<String> response = newDatabase.establishConnection();
 						if(response.isError()){
