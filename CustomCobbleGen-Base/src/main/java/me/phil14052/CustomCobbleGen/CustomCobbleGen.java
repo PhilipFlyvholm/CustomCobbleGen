@@ -135,7 +135,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		if(tierManager.isAutoSaveActive()) tierManager.stopAutoSave();
 		if(this.getPlayerDatabase() != null) {
 			plugin.log("Saving player data&2 \u2713");
-			this.getPlayerDatabase().saveEverythingToDatabase();
+			this.getPlayerDatabase().saveEverythingToDatabase(false);
 		}
     	signManager.saveSignsToFile();
 		tierManager = null;

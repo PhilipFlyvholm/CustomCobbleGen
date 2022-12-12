@@ -83,20 +83,20 @@ public class YamlPlayerDatabase extends PlayerDatabase {
     @Override
     public void closeConnection() {
         if (!this.isConnectionEstablished()) return;
-        this.saveEverythingToDatabase();
+        this.saveEverythingToDatabase(false);
         this.playerConfig = null;
         this.playerConfigFile = null;
     }
 
 
     @Override
-    protected void addToDatabase(PlayerData data) {
+    protected void addToDatabase(PlayerData data, boolean async) {
         if (!this.isConnectionEstablished()) return;
         this.playerData.put(data.getUUID(), data);
     }
 
     @Override
-    public void loadEverythingFromDatabase() {
+    public void loadEverythingFromDatabase(boolean async) {
         if (!this.isConnectionEstablished()) return;
         this.playerData = new HashMap<>();
         blockManager.setKnownGenPistons(new HashMap<>());
@@ -109,19 +109,19 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 
         if (Setting.ONLY_LOAD_ONLINE_PLAYERS.getBoolean()) {
             for (Player p : Bukkit.getServer().getOnlinePlayers()){
-                if (p != null) this.loadFromDatabase(p.getUniqueId());
+                if (p != null) this.loadFromDatabase(p.getUniqueId(),async);
             }
         } else {
             for (String uuidString : playerSection.getKeys(false)) {
                 UUID uuid = UUID.fromString(uuidString);
-                this.loadFromDatabase(uuid);
+                this.loadFromDatabase(uuid, async);
             }
         }
 
     }
 
     @Override
-    public void loadFromDatabase(UUID uuid) {
+    public void loadFromDatabase(UUID uuid, boolean async) {
         if (!this.isConnectionEstablished()){
             plugin.debug("Connection not established to players.yml");
             return;
@@ -183,13 +183,13 @@ public class YamlPlayerDatabase extends PlayerDatabase {
     }
 
     @Override
-    public void saveToDatabase(UUID uuid) {
+    public void saveToDatabase(UUID uuid, boolean async) {
         PlayerData data = this.getPlayerData(uuid);
         if (data == null) return;
-        this.saveToDatabase(data);
+        this.saveToDatabase(data, async);
     }
 
-    public void saveToDatabase(PlayerData data) {
+    public void saveToDatabase(PlayerData data, boolean async) {
         if (!this.isConnectionEstablished()) return;
         UUID uuid = data.getUUID();
         String path = this.getPlayerPath(uuid);

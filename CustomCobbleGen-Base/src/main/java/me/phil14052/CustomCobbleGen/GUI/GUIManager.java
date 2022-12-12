@@ -721,9 +721,8 @@ public class GUIManager {
 		
 		public ResultsEditTierGUI(Player p, Tier createdTier) {
 			this.player = p;
-			boolean tierCreated = createdTier != null;
 			Map<Material, Double> results = null;
-			if(tierCreated) {
+			if(createdTier != null) {
 				results = createdTier.getResults();
 			}else {
 				results = new HashMap<Material, Double>();

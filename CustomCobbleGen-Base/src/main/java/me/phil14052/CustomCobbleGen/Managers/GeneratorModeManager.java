@@ -12,10 +12,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import xyz.xenondevs.particle.ParticleEffect;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Philip
@@ -97,7 +94,7 @@ public class GeneratorModeManager {
 				}
 				Material fallbackMaterial = null;
 				if(section.contains(s + ".fallback")) {
-					fallbackMaterial = Material.getMaterial(section.getString(s + ".fallback").toUpperCase());
+					fallbackMaterial = Material.getMaterial(Objects.requireNonNull(section.getString(s + ".fallback")).toUpperCase());
 					if(fallbackMaterial == null) {
 						plugin.error(section.getString(s + ".fallback") + " is not a valid fallback material", true);
 					}
@@ -111,22 +108,23 @@ public class GeneratorModeManager {
 				}
 				if(section.contains(s + ".generationSound")) {
 					String soundString = section.getString(s+ ".generationSound");
-					if(!soundString.equalsIgnoreCase("none")) {
-						try {
-							Sound sound = Sound.valueOf(soundString);
-							if(sound != null) {
-								mode.setGenSound(sound);	
-							}	
-						}catch(IllegalArgumentException e) {
-							//Unknown sound
-							plugin.error("The sound " + soundString + " does not exist", true);
-						}	
+					if(soundString != null && !soundString.equalsIgnoreCase("none")) {
+						Arrays.stream(Sound.values())
+								.filter(sound -> sound.name().equalsIgnoreCase(soundString))
+								.findFirst()
+								.ifPresentOrElse(mode::setGenSound, () -> {
+									plugin.error("The sound " + soundString + " does not exist", true);
+								});
 					}
 				}
 				if(section.contains(s + ".particleEffect")) {
-					ParticleEffect effect = ParticleEffect.valueOf(section.getString(s+ ".particleEffect"));
-					if(effect != null) {
-						mode.setParticleEffect(effect);	
+					String particle = section.getString(s+ ".particleEffect");
+					if(particle != null) {
+						ParticleEffect[] effects = ParticleEffect.values();
+						Arrays.stream(effects)
+								.filter(particleEffect -> particleEffect.name().equalsIgnoreCase(particle))
+								.findFirst()
+								.ifPresent(mode::setParticleEffect);
 					}
 				}
 
