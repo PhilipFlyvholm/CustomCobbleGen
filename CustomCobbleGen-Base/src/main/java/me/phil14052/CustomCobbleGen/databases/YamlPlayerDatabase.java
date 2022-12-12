@@ -76,28 +76,28 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 
     @Override
     public void reloadConnection() {
-        if (!this.isConnectionEstablished()) return;
+        if (this.isConnectionClosed()) return;
         this.reloadPlayerConfig();
     }
 
     @Override
     public void closeConnection() {
-        if (!this.isConnectionEstablished()) return;
-        this.saveEverythingToDatabase();
+        if (this.isConnectionClosed()) return;
+        this.saveEverythingToDatabase(false);
         this.playerConfig = null;
         this.playerConfigFile = null;
     }
 
 
     @Override
-    protected void addToDatabase(PlayerData data) {
-        if (!this.isConnectionEstablished()) return;
+    protected void addToDatabase(PlayerData data, boolean async) {
+        if (this.isConnectionClosed()) return;
         this.playerData.put(data.getUUID(), data);
     }
 
     @Override
-    public void loadEverythingFromDatabase() {
-        if (!this.isConnectionEstablished()) return;
+    public void loadEverythingFromDatabase(boolean async) {
+        if (this.isConnectionClosed()) return;
         this.playerData = new HashMap<>();
         blockManager.setKnownGenPistons(new HashMap<>());
         ConfigurationSection playerSection = this.getPlayerConfig().getConfigurationSection("players");
@@ -109,20 +109,20 @@ public class YamlPlayerDatabase extends PlayerDatabase {
 
         if (Setting.ONLY_LOAD_ONLINE_PLAYERS.getBoolean()) {
             for (Player p : Bukkit.getServer().getOnlinePlayers()){
-                if (p != null) this.loadFromDatabase(p.getUniqueId());
+                if (p != null) this.loadFromDatabase(p.getUniqueId(),async);
             }
         } else {
             for (String uuidString : playerSection.getKeys(false)) {
                 UUID uuid = UUID.fromString(uuidString);
-                this.loadFromDatabase(uuid);
+                this.loadFromDatabase(uuid, async);
             }
         }
 
     }
 
     @Override
-    public void loadFromDatabase(UUID uuid) {
-        if (!this.isConnectionEstablished()){
+    public void loadFromDatabase(UUID uuid, boolean async) {
+        if (this.isConnectionClosed()){
             plugin.debug("Connection not established to players.yml");
             return;
         }
@@ -183,14 +183,14 @@ public class YamlPlayerDatabase extends PlayerDatabase {
     }
 
     @Override
-    public void saveToDatabase(UUID uuid) {
+    public void saveToDatabase(UUID uuid, boolean async) {
         PlayerData data = this.getPlayerData(uuid);
         if (data == null) return;
-        this.saveToDatabase(data);
+        this.saveToDatabase(data, async);
     }
 
-    public void saveToDatabase(PlayerData data) {
-        if (!this.isConnectionEstablished()) return;
+    public void saveToDatabase(PlayerData data, boolean async) {
+        if (this.isConnectionClosed()) return;
         UUID uuid = data.getUUID();
         String path = this.getPlayerPath(uuid);
 
@@ -272,8 +272,8 @@ public class YamlPlayerDatabase extends PlayerDatabase {
     }
 
     @Override
-    public boolean isConnectionEstablished() {
-        return playerConfig != null && playerConfigFile != null;
+    public boolean isConnectionClosed() {
+        return playerConfig == null || playerConfigFile == null;
     }
 
     @Override

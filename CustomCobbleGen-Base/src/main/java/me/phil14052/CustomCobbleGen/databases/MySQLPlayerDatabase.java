@@ -48,7 +48,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	public Response<String> establishConnection() {
 		HikariConfig databaseConfig = new HikariConfig();
 		HOST = Setting.DATABASE_HOST.getString();
-		DATABASE_NAME = Setting.DATABASE_DATABASE.getString().toUpperCase();
+		DATABASE_NAME = Setting.DATABASE_DATABASE.getString();
 		String jdbcUrl = "jdbc:mysql://" + HOST + "/" +  DATABASE_NAME + "?useSSL=false";
 		databaseConfig.setJdbcUrl(jdbcUrl);
 		databaseConfig.setUsername(Setting.DATABASE_USERNAME.getString());
@@ -59,26 +59,33 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 		TABLE_NAME = Setting.DATABASE_TABLE.getString().toUpperCase();
         ds = new HikariDataSource(databaseConfig);
         Response<String> response;
+		plugin.debug("Establishing connection...");
         try {
 			Connection connection = this.getConnection();
 			PreparedStatement stmt = null;
 	        ResultSet rs = null;
 	        try {
-	        	stmt = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?");
+	        	stmt = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?",
+						ResultSet.TYPE_SCROLL_INSENSITIVE,
+						ResultSet.CONCUR_UPDATABLE);
 				stmt.setString(1, DATABASE_NAME);
 				stmt.setString(2, TABLE_NAME);
 				rs = stmt.executeQuery();
-				if(!rs.last()) {
-					plugin.log("Table (" + TABLE_NAME +  ") in database (" + DATABASE_NAME + ") does not exits. Trying to create it instead...");
+
+				if(!rs.next()) {
 					stmt.close();
 					rs.close();
-					stmt = connection.prepareStatement("CREATE TABLE ? (uuid VARCHAR(36), selected_tiers TEXT, purchased_tiers TEXT, pistons TEXT)");
+					stmt = connection.prepareStatement("CREATE TABLE ? (uuid VARCHAR(36), selected_tiers TEXT, purchased_tiers TEXT, pistons TEXT)",
+							ResultSet.TYPE_SCROLL_INSENSITIVE,
+							ResultSet.CONCUR_UPDATABLE);
 					stmt.setString(1, TABLE_NAME);
 					stmt.execute();
 				}else {
-					plugin.debug("Found table + " +  TABLE_NAME + " in database");
+					plugin.debug("Found table " +  TABLE_NAME + " in database");
 				}
-	        }finally {
+	        } catch (SQLException e) {
+				return new Response<>("Failed to connect to " + HOST + "/" + DATABASE_NAME + " - Unsupported database", true);
+			} finally {
 	        	if(stmt != null) stmt.close();
 	        	if(rs != null) rs.close();
 	        }
@@ -91,15 +98,16 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
         	if(ds != null){
         		ds = null;
         	}
-			response =  new Response<>("Failed to connect to " + HOST + "/" + DATABASE_NAME, false);
+			response =  new Response<>("Failed to connect to " + HOST + "/" + DATABASE_NAME +  " - " + e.getMessage(), true);
 		}
-		plugin.debug("Players is now setup&2 ✓");
+		if(response.isError()) plugin.error(response.getResult());
+		else plugin.debug("Players is now setup&2 ✓");
         return response;
 	}
 
 	@Override
 	public void reloadConnection() {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 		this.closeConnection();
 		this.establishConnection();
 	}
@@ -110,35 +118,46 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	}
 
 	@Override
-	public boolean isConnectionEstablished() {
-		return ds != null && !ds.isClosed();
+	public boolean isConnectionClosed() {
+		return ds == null || ds.isClosed();
+	}
+
+	private String getSelectedTiersString(PlayerData data){
+		StringJoiner selectedTiers = new StringJoiner(",");
+		data.getSelectedTiers().getSelectedTiersMap().values().forEach(e ->
+				selectedTiers.add(e.getTierClass() + ":" + e.getLevel())
+		);
+		return selectedTiers.toString();
+	}
+
+	private String getPurchasedTiers(PlayerData data) {
+		StringJoiner purchasedTiers = new StringJoiner(",");
+		data.getPurchasedTiers().forEach(e ->
+				purchasedTiers.add(e.getTierClass() + ":" + e.getLevel())
+		);
+		return purchasedTiers.toString();
 	}
 
 	@Override
-	protected void addToDatabase(PlayerData data) {
-		if(!this.isConnectionEstablished()) return;
-
-
-		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+	protected void addToDatabase(PlayerData data){
+		this.addToDatabase(data, true);
+	}
+	@Override
+	protected void addToDatabase(PlayerData data, boolean async) {
+		if(this.isConnectionClosed()) return;
+		Runnable r = () -> {
 			try {
 				Connection connection = getConnection();
 				PreparedStatement stmt = null;
-				StringJoiner selectedTiers = new StringJoiner(",");
-				data.getSelectedTiers().getSelectedTiersMap().values().forEach(e ->
-					selectedTiers.add(e.getTierClass() + ":" + e.getLevel())
-				);
-				StringJoiner purchasedTiers = new StringJoiner(",");
-				data.getPurchasedTiers().forEach(e ->
-					purchasedTiers.add(e.getTierClass() + ":" + e.getLevel())
-				);
+				String selectedTiers = getSelectedTiersString(data);
+				String purchasedTiers = getPurchasedTiers(data);
 				try {
 					UUID uuid = data.getUUID();
-					stmt = connection.prepareStatement("INSERT INTO ? (`uuid`, `selected_tiers`, `purchased_tiers`, `pistons`) VALUES (?,?,?,?)");
-					stmt.setString(1, TABLE_NAME);
-					stmt.setString(2, uuid.toString());
-					stmt.setString(3, selectedTiers.toString());
-					stmt.setString(4, purchasedTiers.toString());
-					stmt.setString(5, getPistonString(uuid));
+					stmt = connection.prepareStatement("INSERT INTO `" + TABLE_NAME +"` (`uuid`, `selected_tiers`, `purchased_tiers`, `pistons`) VALUES (?,?,?,?)");
+					stmt.setString(1, uuid.toString());
+					stmt.setString(2, selectedTiers);
+					stmt.setString(3, purchasedTiers);
+					stmt.setString(4, getPistonString(uuid));
 					if(stmt.executeUpdate() <= 0) {
 						plugin.error("Failed to add player data for uuid " + uuid);
 					}
@@ -155,42 +174,35 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 					ds = null;
 				}
 			}
-		});
-		
+		};
+		if(async) Bukkit.getScheduler().runTaskAsynchronously(plugin, r);
+		else r.run();
 	}
-	
+
 	@Override
-	public void loadEverythingFromDatabase() {
-		if(!this.isConnectionEstablished()) return;
+	public void loadEverythingFromDatabase(boolean async) {
+		if(this.isConnectionClosed()) return;
 		this.playerData = new HashMap<>();
 		blockManager.setKnownGenPistons(new HashMap<>());
 
-		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+		Runnable r = () -> {
+			plugin.debug("Loading everything from database:", this.getType());
 			try {
 				Connection connection = getConnection();
-				PreparedStatement stmt = null;
-				ResultSet rs = null;
-				try {
-					stmt = connection.prepareStatement("SELECT uuid, selected_tiers, purchased_tiers, pistons FROM ?");
-					stmt.setString(1, TABLE_NAME);
-					rs = stmt.executeQuery();
+				try (PreparedStatement stmt = connection.prepareStatement("SELECT uuid, selected_tiers, purchased_tiers, pistons FROM `" + TABLE_NAME + "`"); ResultSet rs = stmt.executeQuery()) {
 					while (rs.next()) {
 						String result = rs.getString("uuid");
-						if(result == null) continue;
+						if (result == null) continue;
 						UUID uuid = UUID.fromString(result);
-						if(!load(uuid, rs.getString("selected_tiers"), rs.getString("purchased_tiers"))) {
+						if (!load(uuid, rs.getString("selected_tiers"), rs.getString("purchased_tiers"))) {
 							plugin.error("Failed loading user data for " + uuid);
 						}
-						if(!loadPiston(uuid, rs.getString("pistons"))) {
+						if (!loadPiston(uuid, rs.getString("pistons"))) {
 							plugin.error("Failed loading piston data for " + uuid);
 						}
-					 }
+					}
 
-				}finally {
-					if(stmt != null) stmt.close();
-					if(rs != null) rs.close();
 				}
-
 				plugin.debug("Connected to " + HOST + "/" + DATABASE_NAME);
 			} catch (SQLException e) {
 				plugin.error("Failed to connect to " + HOST + "/" + DATABASE_NAME);
@@ -199,26 +211,23 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 					ds = null;
 				}
 			}
-		});
-		
-		
-
+		};
+		if(async) Bukkit.getScheduler().runTaskAsynchronously(plugin, r);
+		else r.run();
 	}
 
-	@Override
-	public void loadFromDatabase(UUID uuid) {
-		if(!this.isConnectionEstablished()) return;
+	public void loadFromDatabase(UUID uuid, boolean async) {
+		if(this.isConnectionClosed()) return;
 		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 			try {
 				Connection connection = getConnection();
 				PreparedStatement stmt = null;
 				ResultSet rs = null;
 				try {
-					stmt = connection.prepareStatement("SELECT selected_tiers, purchased_tiers, pistons FROM ? WHERE uuid = ?");
-					stmt.setString(1, TABLE_NAME);
-					stmt.setString(2, uuid.toString());
+					stmt = connection.prepareStatement("SELECT selected_tiers, purchased_tiers, pistons FROM `" + TABLE_NAME +"` WHERE uuid = ?");
+					stmt.setString(1, uuid.toString());
 					rs = stmt.executeQuery();
-					if(rs.first()) {
+					if(rs.next()) {
 						if(!load(uuid, rs.getString("selected_tiers"), rs.getString("purchased_tiers"))) {
 							plugin.error("Failed loading user data for " + uuid);
 						}
@@ -314,40 +323,33 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 	}
 	
 	@Override
-	public void saveToDatabase(UUID uuid) {
+	public void saveToDatabase(UUID uuid, boolean async) {
 		PlayerData data = this.getPlayerData(uuid);
 		if(data == null) return;
-		this.saveToDatabase(data);
+		this.saveToDatabase(data, async);
 	}
 
 	@Override
-	public void saveToDatabase(PlayerData data) {
-		if(!this.isConnectionEstablished()) return;
-		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+	public void saveToDatabase(PlayerData data, boolean async) {
+		if(this.isConnectionClosed()) return;
+		Runnable r = () -> {
 			try {
 				Connection connection = getConnection();
 				PreparedStatement stmt = null;
-				StringJoiner selectedTiers = new StringJoiner(",");
-				data.getSelectedTiers().getSelectedTiersMap().values().forEach(e ->
-					selectedTiers.add(e.getTierClass() + ":" + e.getLevel())
-				);
-				StringJoiner purchasedTiers = new StringJoiner(",");
-				data.getPurchasedTiers().forEach(e ->
-					purchasedTiers.add(e.getTierClass() + ":" + e.getLevel())
-				);
+
+				String selectedTiers = getSelectedTiersString(data);
+				String purchasedTiers = getPurchasedTiers(data);
 				try {
 					UUID uuid = data.getUUID();
-					stmt = connection.prepareStatement("UPDATE " + TABLE_NAME +
-							" SET selected_tiers = '" + selectedTiers + "', purchased_tiers = '" + purchasedTiers +
-							"', pistons = '" + getPistonString(data.getUUID()) + "' WHERE uuid = '" + uuid.toString() + "'");
-					stmt.setString(1, TABLE_NAME);
-					stmt.setString(2, selectedTiers.toString());
-					stmt.setString(3, purchasedTiers.toString());
-					stmt.setString(4, getPistonString(uuid));
-					stmt.setString(5, uuid.toString());
+					stmt = connection.prepareStatement("UPDATE `" + TABLE_NAME +"` SET selected_tiers = ?, purchased_tiers = ?, pistons = ? WHERE uuid = ?");
+					stmt.setString(1, selectedTiers);
+					stmt.setString(2, purchasedTiers);
+					stmt.setString(3, getPistonString(uuid));
+					stmt.setString(4, uuid.toString());
 
 					if(stmt.executeUpdate() <= 0) {
-						plugin.error("Failed to save player data for uuid " + uuid);
+						//plugin.error("Failed to save player data for uuid " + uuid);
+						addToDatabase(data);
 					}
 
 				}finally {
@@ -362,8 +364,9 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 					ds = null;
 				}
 			}
-		});
-		
+		};
+		if(async) Bukkit.getScheduler().runTaskAsynchronously(plugin, r);
+		else r.run();
 	}
 
 	private String getPistonString(UUID uuid) {
@@ -378,15 +381,14 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 
 	@Override
 	public void savePistonsToDatabase(UUID uuid) {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 
 		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 			try {
 				Connection connection = getConnection();
-				try (PreparedStatement stmt = connection.prepareStatement("UPDATE ? SET pistons = ? WHERE uuid = ?")) {
-					stmt.setString(1, TABLE_NAME);
-					stmt.setString(2, getPistonString(uuid));
-					stmt.setString(3, uuid.toString());
+				try (PreparedStatement stmt = connection.prepareStatement("UPDATE `" + TABLE_NAME +"` SET pistons = ? WHERE uuid = ?")) {
+					stmt.setString(1, getPistonString(uuid));
+					stmt.setString(2, uuid.toString());
 
 					if (stmt.executeUpdate() >= 0) {
 						plugin.error("Failed to save piston data for uuid " + uuid);
@@ -409,7 +411,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 
 	@Override
 	public void loadPistonsFromDatabase(UUID uuid) {
-		if(!this.isConnectionEstablished()) return;
+		if(this.isConnectionClosed()) return;
 
 		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 			try {
@@ -417,9 +419,8 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 				PreparedStatement stmt = null;
 				ResultSet rs = null;
 				try {
-					stmt = connection.prepareStatement("SELECT pistons FROM ? WHERE uuid = ?");
-					stmt.setString(1, TABLE_NAME);
-					stmt.setString(2, uuid.toString());
+					stmt = connection.prepareStatement("SELECT pistons FROM `" + TABLE_NAME +"` WHERE uuid = ?");
+					stmt.setString(1, uuid.toString());
 					rs = stmt.executeQuery();
 					if(rs.first()) {
 						if(!loadPiston(uuid, rs.getString("pistons"))) {

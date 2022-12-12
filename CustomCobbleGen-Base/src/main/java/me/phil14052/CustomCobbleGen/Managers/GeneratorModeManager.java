@@ -12,10 +12,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import xyz.xenondevs.particle.ParticleEffect;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Philip
@@ -26,9 +23,9 @@ public class GeneratorModeManager {
 	private static GeneratorModeManager instance = null;
 	private static CustomCobbleGen plugin = null;
 	
-	private List<GenMode> generatorModes = null;
-	private GenMode defaultGenMode = null;
-	private GenMode universalGenMode = null;
+	private List<GenMode> generatorModes;
+	private final GenMode defaultGenMode;
+	private final GenMode universalGenMode;
 	
 	
 	public GeneratorModeManager() {
@@ -52,7 +49,7 @@ public class GeneratorModeManager {
 			}
 			for(String s : section.getKeys(false)) {
 				List<String> blockNames = section.getStringList(s + ".blocks");
-				List<Material> blockMaterials = null;
+				List<Material> blockMaterials;
 				blockMaterials = new ArrayList<>();
 				for(String name : blockNames) {
 					Material m = Material.valueOf(name.toUpperCase());
@@ -61,7 +58,7 @@ public class GeneratorModeManager {
 				Map<BlockFace, Material> fixedBlockMaterials = null;
 				if(section.isConfigurationSection(s + ".fixedBlocks")) {
 					fixedBlockMaterials = new HashMap<>();
-					for(String fixedBlockFace : section.getConfigurationSection(s + ".fixedBlocks").getKeys(false)) {
+					for(String fixedBlockFace : Objects.requireNonNull(section.getConfigurationSection(s + ".fixedBlocks")).getKeys(false)) {
 						BlockFace blockFace = BlockFace.valueOf(fixedBlockFace.toUpperCase());
 						if(!this.isSupportedBlockFace(blockFace)) {
 							plugin.error(fixedBlockFace.toUpperCase() + " &c&l is not a valid block face. Use UP, DOWN, EAST, NORTH, WEST or SOUTH", true);
@@ -97,7 +94,7 @@ public class GeneratorModeManager {
 				}
 				Material fallbackMaterial = null;
 				if(section.contains(s + ".fallback")) {
-					fallbackMaterial = Material.getMaterial(section.getString(s + ".fallback").toUpperCase());
+					fallbackMaterial = Material.getMaterial(Objects.requireNonNull(section.getString(s + ".fallback")).toUpperCase());
 					if(fallbackMaterial == null) {
 						plugin.error(section.getString(s + ".fallback") + " is not a valid fallback material", true);
 					}
@@ -111,22 +108,21 @@ public class GeneratorModeManager {
 				}
 				if(section.contains(s + ".generationSound")) {
 					String soundString = section.getString(s+ ".generationSound");
-					if(!soundString.equalsIgnoreCase("none")) {
-						try {
-							Sound sound = Sound.valueOf(soundString);
-							if(sound != null) {
-								mode.setGenSound(sound);	
-							}	
-						}catch(IllegalArgumentException e) {
-							//Unknown sound
-							plugin.error("The sound " + soundString + " does not exist", true);
-						}	
+					if(soundString != null && !soundString.equalsIgnoreCase("none")) {
+						Arrays.stream(Sound.values())
+								.filter(sound -> sound.name().equalsIgnoreCase(soundString))
+								.findFirst()
+								.ifPresentOrElse(mode::setGenSound, () -> plugin.error("The sound " + soundString + " does not exist", true));
 					}
 				}
 				if(section.contains(s + ".particleEffect")) {
-					ParticleEffect effect = ParticleEffect.valueOf(section.getString(s+ ".particleEffect"));
-					if(effect != null) {
-						mode.setParticleEffect(effect);	
+					String particle = section.getString(s+ ".particleEffect");
+					if(particle != null) {
+						ParticleEffect[] effects = ParticleEffect.values();
+						Arrays.stream(effects)
+								.filter(particleEffect -> particleEffect.name().equalsIgnoreCase(particle))
+								.findFirst()
+								.ifPresent(mode::setParticleEffect);
 					}
 				}
 

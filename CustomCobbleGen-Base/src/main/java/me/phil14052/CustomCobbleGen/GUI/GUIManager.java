@@ -164,58 +164,55 @@ public class GUIManager {
 					itemMeta.setLore(lore);
 					item.setItemMeta(itemMeta);
 					Icon icon = new Icon(item);
-					icon.addClickAction(new ClickAction() {
-						@Override
-						public void execute(Player p) {
-							//Check if the player has purchased the level
-							if(tm.hasPlayerPurchasedLevel(p, tier)) {
-								if(plugin.isConnectedToIslandPlugin() 
-										&& Setting.ISLANDS_ONLYOWNER_SELECT.getBoolean()
-										&& !isLeader) {
-									return;
-								}
-								UUID uuid = p.getUniqueId();
-								SelectedTiers selectedTiers = tm.getSelectedTiers(uuid);
-								if(selectedTiers == null) {
-									tm.givePlayerStartSelect(uuid);
-									selectedTiers = tm.getSelectedTiers(uuid);
-								}
-								selectedTiers.addTier(tier);
-								tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
-								p.sendMessage(Lang.PREFIX + Lang.TIER_CHANGED.toString(tier));
-								if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
-									plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX + Lang.TIER_CHANGED_BY_TEAM.toString(p, tier),
-													uuid,
+					icon.addClickAction(p1 -> {
+						//Check if the player has purchased the level
+						if(tm.hasPlayerPurchasedLevel(p1, tier)) {
+							if(plugin.isConnectedToIslandPlugin()
+									&& Setting.ISLANDS_ONLYOWNER_SELECT.getBoolean()
+									&& !isLeader) {
+								return;
+							}
+							UUID uuid = p1.getUniqueId();
+							SelectedTiers selectedTiers1 = tm.getSelectedTiers(uuid);
+							if(selectedTiers1 == null) {
+								tm.givePlayerStartSelect(uuid);
+								selectedTiers1 = tm.getSelectedTiers(uuid);
+							}
+							selectedTiers1.addTier(tier);
+							tm.setPlayerSelectedTiers(p1.getUniqueId(), selectedTiers1);
+							p1.sendMessage(Lang.PREFIX + Lang.TIER_CHANGED.toString(tier));
+							if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
+								plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX + Lang.TIER_CHANGED_BY_TEAM.toString(p1, tier),
+												uuid,
+												true);
+							}
+							p1.closeInventory();
+						}else {
+							if(plugin.isConnectedToIslandPlugin()
+									&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
+									&& !isLeader) {
+								return;
+							}
+							//Player has not purchased the level. Now check if the player can buy the level
+							if(tm.canPlayerBuyTier(p1, tier)) {
+								if(Setting.GUI_CONFIRMPURCHASES.getBoolean()) {
+									new ConfirmGUI(p1, tier).open();
+								}else {
+									if(tm.purchaseTier(p1, tier)) {
+										SelectedTiers selectedTiers1 = tm.getSelectedTiers(p1.getUniqueId());
+										selectedTiers1.addTier(tier);
+										tm.setPlayerSelectedTiers(p1.getUniqueId(), selectedTiers1);
+										p1.sendMessage(Lang.PREFIX + Lang.TIER_PURCHASED.toString(tier));
+										p1.sendMessage(Lang.PREFIX + Lang.TIER_CHANGED.toString(tier));
+										if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
+											plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX + Lang.TIER_PURCHASED_BY_TEAM.toString(p1, tier),
+													p1.getUniqueId(),
 													true);
-								}
-								p.closeInventory();
-							}else {
-								if(plugin.isConnectedToIslandPlugin() 
-										&& Setting.ISLANDS_ONLYOWNER_BUY.getBoolean()
-										&& !isLeader) {
-									return;
-								}
-								//Player has not purchased the level. Now check if the player can buy the level
-								if(tm.canPlayerBuyTier(p, tier)) {
-									if(Setting.GUI_CONFIRMPURCHASES.getBoolean()) {
-										new ConfirmGUI(p, tier).open();	
-									}else {
-										if(tm.purchaseTier(p, tier)) {
-											SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
-											selectedTiers.addTier(tier);
-											tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
-											p.sendMessage(Lang.PREFIX + Lang.TIER_PURCHASED.toString(tier));
-											p.sendMessage(Lang.PREFIX + Lang.TIER_CHANGED.toString(tier));
-											if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && Setting.ISLANDS_SENDMESSAGESTOTEAM.getBoolean()) {
-												plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX + Lang.TIER_PURCHASED_BY_TEAM.toString(p, tier),
-														p.getUniqueId(),
-														true);
-												plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX + Lang.TIER_CHANGED_BY_TEAM.toString(p, tier),
-																p.getUniqueId(),
-																true);
-											}
-											p.closeInventory();
+											plugin.getIslandHook().sendMessageToIslandMembers(Lang.PREFIX + Lang.TIER_CHANGED_BY_TEAM.toString(p1, tier),
+															p1.getUniqueId(),
+															true);
 										}
+										p1.closeInventory();
 									}
 								}
 							}
@@ -721,9 +718,8 @@ public class GUIManager {
 		
 		public ResultsEditTierGUI(Player p, Tier createdTier) {
 			this.player = p;
-			boolean tierCreated = createdTier != null;
 			Map<Material, Double> results = null;
-			if(tierCreated) {
+			if(createdTier != null) {
 				results = createdTier.getResults();
 			}else {
 				results = new HashMap<Material, Double>();

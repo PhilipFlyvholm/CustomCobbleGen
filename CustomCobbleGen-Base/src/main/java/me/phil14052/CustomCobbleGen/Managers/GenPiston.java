@@ -41,9 +41,6 @@ public class GenPiston {
 	public void setHasBeenUsed(boolean hasBeenUsed) {
 		this.hasBeenUsed = hasBeenUsed;
 	}	
-	
-	public void setUsed() {
-		this.hasBeenUsed = true;
-	}
+
 	
 }
