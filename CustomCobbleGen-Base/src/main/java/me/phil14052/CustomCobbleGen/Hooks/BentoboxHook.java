@@ -3,6 +3,7 @@ package me.phil14052.CustomCobbleGen.Hooks;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import world.bentobox.bentobox.BentoBox;
 import world.bentobox.bentobox.api.user.User;
@@ -170,5 +171,7 @@ public class BentoboxHook implements IslandHook{
 	public void onGeneratorBlockBreak(UUID uuid) {
 		// DO NOTHING
 	}
-	
+	@Override
+	public void onGeneratorGenerate(UUID uuid, Block block) {
+	}
 }

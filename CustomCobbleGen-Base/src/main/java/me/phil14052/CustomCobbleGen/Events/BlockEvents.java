@@ -130,6 +130,7 @@ public class BlockEvents implements Listener{
 							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
 							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), soundVolume, pitch); //Play sound if configured
 							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
+							if(plugin.isConnectedToIslandPlugin()) plugin.getIslandHook().onGeneratorGenerate(event.getPlayerGenerating(), event.getGenerationLocation().getBlock());
 							return;
 						}else if(mode.hasFallBackMaterial()){
 							Material fallback = mode.getFallbackMaterial();
@@ -144,6 +145,7 @@ public class BlockEvents implements Listener{
 							event.getGenerationLocation().getBlock().setType(fallback); //Get a random material and replace the block
 							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), soundVolume, pitch); //Play sound if configured
 							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
+							if(plugin.isConnectedToIslandPlugin()) plugin.getIslandHook().onGeneratorGenerate(event.getPlayerGenerating(), event.getGenerationLocation().getBlock());
 							
 							return;
 						}

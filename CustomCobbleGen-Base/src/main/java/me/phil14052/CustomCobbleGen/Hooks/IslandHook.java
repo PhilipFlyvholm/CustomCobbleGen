@@ -4,6 +4,7 @@
  */
 package me.phil14052.CustomCobbleGen.Hooks;
 
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -40,5 +41,6 @@ public interface IslandHook {
 	boolean supportsIslandBalance();
 	
 	void onGeneratorBlockBreak(UUID uuid);
+	void onGeneratorGenerate(UUID uuid, Block block);
 	
 }
