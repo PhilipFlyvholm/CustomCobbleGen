@@ -3,6 +3,7 @@ package me.phil14052.CustomCobbleGen.Hooks;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Utils.Response;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -219,6 +220,10 @@ public class uSkyBlockHook implements IslandHook {
 
     @Override
     public void onGeneratorBlockBreak(UUID uuid) {
+    }
+
+    @Override
+    public void onGeneratorGenerate(UUID uuid, Block block) {
     }
 
 }

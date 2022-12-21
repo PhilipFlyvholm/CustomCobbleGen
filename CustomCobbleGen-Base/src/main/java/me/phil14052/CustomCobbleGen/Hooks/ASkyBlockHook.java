@@ -5,6 +5,7 @@ import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -110,5 +111,7 @@ public class ASkyBlockHook implements IslandHook{
 
 	@Override
 	public void onGeneratorBlockBreak(UUID uuid) {}
-	
+	@Override
+	public void onGeneratorGenerate(UUID uuid, Block block) {
+	}
 }

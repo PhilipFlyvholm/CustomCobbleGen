@@ -9,6 +9,7 @@ import com.songoda.skyblock.api.island.Island;
 import com.songoda.skyblock.api.island.IslandManager;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -140,5 +141,7 @@ public class FabledHook implements IslandHook{
 	public void onGeneratorBlockBreak(UUID uuid) {
 		this.updateIslandLevel(uuid);
 	}
-
+	@Override
+	public void onGeneratorGenerate(UUID uuid, Block block) {
+	}
 }

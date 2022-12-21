@@ -9,6 +9,7 @@ import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.island.bank.IslandBank;
 import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.math.BigDecimal;
@@ -129,4 +130,8 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 
 	@Override
 	public void onGeneratorBlockBreak(UUID uuid) {}
+
+	@Override
+	public void onGeneratorGenerate(UUID uuid, Block block) {
+	}
 }
