@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'me.phil14052.CustomCobbleGen'
-version '1.5.0-Beta'
+version '1.5.0'
 repositories {
     mavenCentral()
     maven {
