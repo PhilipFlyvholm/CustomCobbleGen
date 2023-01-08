@@ -28,6 +28,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -45,15 +46,18 @@ public class BlockEvents implements Listener{
 	public void onBlockFlow(BlockFromToEvent e){
 		Block b = e.getBlock();
 		if(isWorldDisabled(Objects.requireNonNull(b.getLocation().getWorld()))) return;
+
 		Material m = b.getType();
 		if(XMaterial.supports(13) && Setting.SUPPORTWATERLOGGEDBLOCKS.getBoolean()) { //Check for waterlogged block
 			if(b.getBlockData() instanceof Waterlogged waterloggedBlock) { //Checked separately so prev 1.13 do not try to use a class that does not exist
 				if(waterloggedBlock.isWaterlogged()) m = Material.WATER; //If it is waterlogged then check for generators as if it is a water block. In the future check if stairs are flowing the right way. Possible bug here
 			}
 		}
+
 		List<GenMode> modes = genModeManager.getModesContainingMaterial(m);
 		for(GenMode mode : modes) {
 			if(!mode.containsLiquidBlock() || !mode.isValid() || mode.isWorldDisabled(b.getLocation().getWorld())) continue;
+
 			Block toBlock = e.getToBlock();
 			Material toBlockMaterial = toBlock.getType();
 			if(XMaterial.supports(13) && Setting.SUPPORTWATERLOGGEDBLOCKS.getBoolean()) { //Check for waterlogged block
@@ -63,6 +67,7 @@ public class BlockEvents implements Listener{
 					}
 				}
 			}
+
 			if(toBlockMaterial.equals(Material.AIR) || mode.containsBlock(toBlockMaterial)){
 				if(isGenerating(mode, m, toBlock)){
 					Location l = toBlock.getLocation();
@@ -72,17 +77,7 @@ public class BlockEvents implements Listener{
 						double searchRadius = Setting.PLAYERSEARCHRADIUS.getDouble();
 						if(l.getWorld() == null) return;
 						Collection<Entity> entitiesNearby = l.getWorld().getNearbyEntities(l, searchRadius, searchRadius, searchRadius);
-						Player closestPlayer = null;
-						double closestDistance = 100D;
-						for(Entity entity : entitiesNearby) {
-							if(entity instanceof Player p) {
-								double distance = l.distance(p.getLocation());
-								if(closestPlayer == null || closestDistance > distance) {
-									closestPlayer = p;
-									closestDistance = distance;
-								}
-							}
-						}
+						Player closestPlayer = getClosestPlayer(l, entitiesNearby);
 						if(closestPlayer != null) {
 							bm.addKnownGenLocation(l);
 							bm.setPlayerForLocation(closestPlayer.getUniqueId(), l, false);	
@@ -94,7 +89,7 @@ public class BlockEvents implements Listener{
 						//A player has prev broken a block here
 						GenBlock gb = bm.getGenBreaks().get(l); //Get the GenBlock in this location
 						if (gb.hasExpired()) {
-							plugin.debug("GB has expired");
+							plugin.debug("GB has expired", gb.getLocation());
 							bm.removeKnownGenLocation(l);
 							return;
 						}
@@ -102,12 +97,11 @@ public class BlockEvents implements Listener{
 						UUID uuid = gb.getUUID(); //Get the uuid of the player who broke the blocks tier
 						SelectedTiers selectedTiers = tm.getSelectedTiers(uuid); // ^
 						if(selectedTiers == null) return;
-						Tier tier = null;
-						if(selectedTiers.getSelectedTiersMap().get(mode) == null) {
-							tier = selectedTiers.getSelectedTiersMap().get(genModeManager.getUniversalGenMode());
-						}else {
-							tier = selectedTiers.getSelectedTiersMap().get(mode);
-						}
+
+						Tier tier = selectedTiers.getSelectedTiersMap().get(mode);
+
+						if(tier == null) tier = selectedTiers.getSelectedTiersMap().get(genModeManager.getUniversalGenMode());
+
 						if(!mode.canGenerateWhileRaining() && toBlock.getWorld().hasStorm()) {
 							e.setCancelled(true);
 							if(!toBlock.getLocation().getBlock().getType().equals(Material.COBBLESTONE)) toBlock.getLocation().getBlock().setType(Material.COBBLESTONE);
@@ -116,39 +110,26 @@ public class BlockEvents implements Listener{
 
 						float soundVolume = Setting.SOUND_VOLUME.getFloat();
 						float pitch = Setting.SOUND_PITCH.getFloat();
+						Material result = null;
+						if(tier != null){
+							result = tier.getRandomResult();
+						}
+						else if (mode.hasFallBackMaterial()){
+							result = mode.getFallbackMaterial();
+						}
 
-						if(tier != null) {
-							Material result = tier.getRandomResult();
-							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
-							Bukkit.getPluginManager().callEvent(event);
-							if(event.isCancelled()) return;
-							if(event.getResult() == null) {
-								plugin.error("&cUnknown material in " + event.getTierUsed().getName() + " tier.", true);
-								return;
-							}
-							e.setCancelled(true);
-							event.getGenerationLocation().getBlock().setType(result); //Get a random material and replace the block
-							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), soundVolume, pitch); //Play sound if configured
-							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
-							if(plugin.isConnectedToIslandPlugin()) plugin.getIslandHook().onGeneratorGenerate(event.getPlayerGenerating(), event.getGenerationLocation().getBlock());
-							return;
-						}else if(mode.hasFallBackMaterial()){
-							Material fallback = mode.getFallbackMaterial();
-							GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, fallback, uuid, toBlock.getLocation(), true);
-							Bukkit.getPluginManager().callEvent(event);
-							if(event.isCancelled()) return;
-							if(event.getResult() == null) {
-								plugin.error("Unkown fallback material in " + mode.getId() + " mode.", true);
-								return;
-							}
-							e.setCancelled(true);
-							event.getGenerationLocation().getBlock().setType(fallback); //Get a random material and replace the block
-							if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), soundVolume, pitch); //Play sound if configured
-							if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
-							if(plugin.isConnectedToIslandPlugin()) plugin.getIslandHook().onGeneratorGenerate(event.getPlayerGenerating(), event.getGenerationLocation().getBlock());
-							
+						GeneratorGenerateEvent event = new GeneratorGenerateEvent(mode, tier, result, uuid, toBlock.getLocation());
+						Bukkit.getPluginManager().callEvent(event);
+						if(event.isCancelled()) return;
+						e.setCancelled(true);
+						if(event.getResult() == null) {
+							plugin.error("&cUnknown material in " + event.getTierUsed().getName() + " tier.", true);
 							return;
 						}
+						event.getGenerationLocation().getBlock().setType(event.getResult()); //Get a random material and replace the block
+						if(mode.hasGenSound()) l.getWorld().playSound(l, mode.getGenSound(), soundVolume, pitch); //Play sound if configured
+						if(mode.hasParticleEffect()) mode.displayGenerationParticles(l);
+						if(plugin.isConnectedToIslandPlugin()) plugin.getIslandHook().onGeneratorGenerate(event.getPlayerGenerating(), event.getGenerationLocation().getBlock());
 					}else {
 						bm.addKnownGenLocation(l);
 						return;
@@ -157,7 +138,24 @@ public class BlockEvents implements Listener{
 			}
 		}
 	}
-	
+
+	@Nullable
+	private static Player getClosestPlayer(Location l, Collection<Entity> entitiesNearby) {
+		Player closestPlayer = null;
+		double closestDistance = 100D;
+		for(Entity entity : entitiesNearby) {
+			if(entity instanceof Player p) {
+				double distance = l.distance(p.getLocation());
+				if (closestPlayer != null && !(closestDistance > distance)) {
+					continue;
+				}
+				closestPlayer = p;
+				closestDistance = distance;
+			}
+		}
+		return closestPlayer;
+	}
+
 	@EventHandler
 	public void onBlockChange(EntityChangeBlockEvent e) { // Makes it possible to spawn sand, gravel and other falling blocks
 		if(!e.getEntityType().equals(EntityType.FALLING_BLOCK) 
@@ -318,11 +316,13 @@ public class BlockEvents implements Listener{
 			}
 			l.setY(l.getY()-1);
 		}
+
 		if(bm.getKnownGenPistons().containsKey(l)) {
 			bm.getKnownGenPistons().remove(l);
 			return;
 		}
-		if(isWorldDisabled(l.getWorld())) return;
+
+		if(l.getWorld() == null || isWorldDisabled(l.getWorld())) return;
 		if(bm.isGenLocationKnown(l)) {
 			PlayerBreakGeneratedBlock event = new PlayerBreakGeneratedBlock(p,l);
 			Bukkit.getPluginManager().callEvent(event);
@@ -348,7 +348,7 @@ public class BlockEvents implements Listener{
 	
 	private boolean isGenerating(GenMode mode, Material fromM, Block toB){
 		if(!mode.isValid()) return false;
-		int blocksFound = 0; /** We need all blocks to be correct */
+		int blocksFound = 0; /* We need all blocks to be correct */
 		List<BlockFace> testedFaces = new ArrayList<>();
 		if(mode.getFixedBlocks() != null && !mode.getFixedBlocks().isEmpty()) {
 			for(Entry<BlockFace, Material> entry : mode.getFixedBlocks().entrySet()) {
@@ -363,9 +363,9 @@ public class BlockEvents implements Listener{
 					}
 				}
 				if(this.isSameMaterial(rm.name(), entry.getValue().name())){
-					blocksFound++; /** This block is positioned correctly; */
+					blocksFound++; /* This block is positioned correctly; */
 				}else {
-					return false; /** This block is not positioned correctly so we stop testing */
+					return false; /* This block is not positioned correctly so we stop testing */
 				}
 			}	
 		}
@@ -404,7 +404,7 @@ public class BlockEvents implements Listener{
 	
 
 	private boolean isSameMaterial(String materialName1, String materialName2) {
-		/** Version 1.12 and under have multiple names for lava and water so both needs to be tested for */
+		/* Version 1.12 and under have multiple names for lava and water so both needs to be tested for */
 		if(materialName1.equalsIgnoreCase(materialName2)) return true;
 		else if(isWater(materialName1) && isWater(materialName2)) return true;
 		else return isLava(materialName1) && isLava(materialName2);
