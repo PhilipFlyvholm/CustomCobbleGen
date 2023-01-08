@@ -327,7 +327,7 @@ public class BlockEvents implements Listener{
 			PlayerBreakGeneratedBlock event = new PlayerBreakGeneratedBlock(p,l);
 			Bukkit.getPluginManager().callEvent(event);
 			if(event.isCancelled()) return;
-			if(plugin.isConnectedToIslandPlugin()) plugin.getIslandHook().onGeneratorBlockBreak(p.getUniqueId());
+			if(plugin.isConnectedToIslandPlugin()) plugin.getIslandHook().onGeneratorBlockBreak(p.getUniqueId(), event.getBlock());
 			bm.setPlayerForLocation(p.getUniqueId(), l, false);
 		}
 	}

@@ -110,7 +110,7 @@ public class ASkyBlockHook implements IslandHook{
 	}
 
 	@Override
-	public void onGeneratorBlockBreak(UUID uuid) {}
+	public void onGeneratorBlockBreak(UUID uuid, Block block) {}
 	@Override
 	public void onGeneratorGenerate(UUID uuid, Block block) {
 	}

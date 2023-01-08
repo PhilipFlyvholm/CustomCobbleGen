@@ -138,7 +138,7 @@ public class FabledHook implements IslandHook{
 	}
 
 	@Override
-	public void onGeneratorBlockBreak(UUID uuid) {
+	public void onGeneratorBlockBreak(UUID uuid, Block block) {
 		this.updateIslandLevel(uuid);
 	}
 	@Override
