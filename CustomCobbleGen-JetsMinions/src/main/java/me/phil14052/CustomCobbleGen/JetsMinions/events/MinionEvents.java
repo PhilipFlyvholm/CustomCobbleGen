@@ -15,7 +15,7 @@ public class MinionEvents implements Listener {
     public void onMinionBreak(MinerBlockBreakEvent e) {
         Location loc = e.getBlock().getLocation();
         try {
-            Field f = e.getMinion().getClass().getDeclaredField("Player");
+            Field f = e.getMinion().getClass().getDeclaredField("player");
             f.setAccessible(true);
             Player p = (Player) f.get(e.getMinion());
             CustomCobbleGenAPI.getAPI().registerBlockBreak(p, loc);
