@@ -168,7 +168,7 @@ public class BentoboxHook implements IslandHook{
 	}
 
 	@Override
-	public void onGeneratorBlockBreak(UUID uuid) {
+	public void onGeneratorBlockBreak(UUID uuid, Block block) {
 		// DO NOTHING
 	}
 	@Override

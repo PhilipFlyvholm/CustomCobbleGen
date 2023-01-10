@@ -40,7 +40,7 @@ public interface IslandHook {
 	void removeFromBalance(UUID uuid, double amount);
 	boolean supportsIslandBalance();
 	
-	void onGeneratorBlockBreak(UUID uuid);
+	void onGeneratorBlockBreak(UUID uuid, Block block);
 	void onGeneratorGenerate(UUID uuid, Block block);
 	
 }
