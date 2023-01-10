@@ -71,6 +71,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		Setting.setFile(plugin.getConfig());
 		new ConfigUpdater();
 		saveConfig();
+		reloadConfig();
 		plugin.debug("Enabling CustomCobbleGen plugin");
 		plugin.log("&cIF YOU ENCOUNTER ANY BUGS OR ERRORS PLEASE REPORT THEM ON SPIGOT!");
 		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub), Fang_Zhijian (Chinese translation) and Xitrine (testing)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
@@ -181,17 +182,12 @@ public class CustomCobbleGen extends JavaPlugin {
 
 	private void setupPlayerDatabase() {
 		switch (Setting.DATABASE_TYPE.getString().toUpperCase()) {
-			case "YAML":
-			case "YML":
-				this.playerDatabase = new YamlPlayerDatabase();
-				break;
-			case "MYSQL":
-				this.playerDatabase = new MySQLPlayerDatabase();
-				break;
-			default:
+			case "YAML", "YML" -> this.playerDatabase = new YamlPlayerDatabase();
+			case "MYSQL" -> this.playerDatabase = new MySQLPlayerDatabase();
+			default -> {
 				plugin.error("Unknown database type. Will use YAML", true);
 				this.playerDatabase = new YamlPlayerDatabase();
-				break;
+			}
 		}
 		plugin.debug("Setting up a " + this.playerDatabase.getType() + " player database");
 		try {
@@ -328,7 +324,7 @@ public class CustomCobbleGen extends JavaPlugin {
                 GlowEnchant glow = new GlowEnchant(new NamespacedKey(this, "GlowEnchant"));
                 Enchantment.registerEnchantment(glow);
             }
-            catch (IllegalArgumentException e){
+            catch (IllegalArgumentException ignored){
             }
             catch(Exception e){
                 e.printStackTrace();
@@ -345,21 +341,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	
 	public void debug(boolean overrideConfigOption, Object... objects) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for(Object s : objects) {
-			if(!first) {
-				sb.append(", ");
-			}else first = false;
-			if(s == null) {
-				sb.append("NULL");
-			}else if(s instanceof String) {
-				sb.append((String) s);
-			}else {
-				sb.append("[" + s.getClass().getTypeName() + ": " + s + "]");
-			}
-		}
-		this.debug(sb.toString());
+		this.debug(createLogString(objects), overrideConfigOption);
 	}
 	
 	public void debug(Object... objects) {
@@ -375,10 +357,14 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	public void debug(String message, boolean overrideConfigOption){
 		if(!overrideConfigOption && !Setting.DEBUG.getBoolean()) return;
-		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message).replace("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message).replace("&", "§"));
 	}
 	
 	public void log(Object... objects) {
+		this.log(createLogString(objects));
+	}
+
+	private String createLogString(Object[] objects) {
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
 		for(Object s : objects) {
@@ -390,14 +376,14 @@ public class CustomCobbleGen extends JavaPlugin {
 			}else if(s instanceof String) {
 				sb.append((String) s);
 			}else {
-				sb.append("[" + s.getClass().getTypeName() + ": " + s + "]");
+				sb.append("[").append(s.getClass().getTypeName()).append(": ").append(s).append("]");
 			}
 		}
-		this.log(sb.toString());
+		return sb.toString();
 	}
-	
+
 	public void log(String message){
-		Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&8&lLog &8-&7 " + message).replace("&", "\u00A7"));
+		Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&8&lLog &8-&7 " + message).replace("&", "§"));
 	}
 	
 	public void error(String message) {
