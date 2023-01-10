@@ -25,7 +25,9 @@ import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.databases.MySQLPlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
+import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -357,7 +359,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 	public void debug(String message, boolean overrideConfigOption){
 		if(!overrideConfigOption && !Setting.DEBUG.getBoolean()) return;
-		Bukkit.getConsoleSender().sendMessage(("&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message).replace("&", "§"));
+		Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', "&8[&3&lCustomCobbleGen&8]: &c&lDebug &8-&7 " + message));
 	}
 	
 	public void log(Object... objects) {
@@ -383,7 +385,7 @@ public class CustomCobbleGen extends JavaPlugin {
 	}
 
 	public void log(String message){
-		Bukkit.getConsoleSender().sendMessage((CONSOLEPREFIX + "&8&lLog &8-&7 " + message).replace("&", "§"));
+		Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', CONSOLEPREFIX + "&8&lLog &8-&7 " + message));
 	}
 	
 	public void error(String message) {
