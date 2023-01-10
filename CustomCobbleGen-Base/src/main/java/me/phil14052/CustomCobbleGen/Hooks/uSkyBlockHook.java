@@ -225,6 +225,4 @@ public class uSkyBlockHook implements IslandHook {
     @Override
     public void onGeneratorGenerate(UUID uuid, Block block) {
     }
-
-
 }
