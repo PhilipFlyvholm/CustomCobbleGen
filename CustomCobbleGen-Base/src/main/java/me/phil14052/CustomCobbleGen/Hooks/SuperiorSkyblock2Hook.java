@@ -7,14 +7,19 @@ package me.phil14052.CustomCobbleGen.Hooks;
 import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
 import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.island.bank.IslandBank;
+import com.bgsoftware.superiorskyblock.api.modules.PluginModule;
 import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
+import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.RegisteredListener;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -25,7 +30,15 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 
 	@Override
 	public void init() {
-		//DO NOTHING
+		PluginModule generatorModule = SuperiorSkyblockAPI.getModules().getModule("generators");
+		if(generatorModule != null)	generatorModule.disableModule();
+		try {
+		for (RegisteredListener l : HandlerList.getRegisteredListeners(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("SuperiorSkyblock2")))){
+			if(l.getListener().getClass() != Class.forName("com.bgsoftware.superiorskyblock.module.generators.listeners.GeneratorsListener")) continue;
+			HandlerList.unregisterAll(l.getListener());
+			CustomCobbleGen.getInstance().debug("Disabled event for SuperiorSkyblock2");
+		}
+		} catch (ClassNotFoundException ignored) {}
 	}
 
 	private Island getIslandFromPlayer(UUID uuid)  {
@@ -76,7 +89,7 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 			Player p = Bukkit.getServer().getPlayer(superiorPlayer.getUniqueId());
 			if(p != null && p.isOnline()) onlinePlayers.add(p);
 		}
-		return onlinePlayers.toArray(new Player[onlinePlayers.size()]);
+		return onlinePlayers.toArray(new Player[0]);
 	}
 
 	@Override
@@ -129,9 +142,20 @@ public class SuperiorSkyblock2Hook implements IslandHook {
 	}
 
 	@Override
-	public void onGeneratorBlockBreak(UUID uuid) {}
+	public void onGeneratorBlockBreak(UUID uuid, Block block) {
+		Island i = SuperiorSkyblockAPI.getIslandAt(block.getLocation());
+		if(i != null){
+			CustomCobbleGen.getInstance().debug("Block broken", block.getType());
+			i.handleBlockBreak(block,1);
+		}
+	}
 
 	@Override
 	public void onGeneratorGenerate(UUID uuid, Block block) {
+		Island i = SuperiorSkyblockAPI.getIslandAt(block.getLocation());
+		if(i != null){
+			CustomCobbleGen.getInstance().debug("Block placed", block.getType());
+			i.handleBlockPlace(block,1);
+		}
 	}
 }
