@@ -70,7 +70,7 @@ public class YamlPlayerDatabase extends PlayerDatabase {
         this.getPlayerConfig().options().copyDefaults(true);
         this.savePlayerConfig();
 
-        plugin.debug("Players is now setup&2 ✓");
+        plugin.debug("Players is now setup&2 \u2713");
         return new Response<>("Success establishing connection to YAML file", false);
     }
 

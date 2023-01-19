@@ -101,7 +101,7 @@ public class MySQLPlayerDatabase extends PlayerDatabase {
 			response =  new Response<>("Failed to connect to " + HOST + "/" + DATABASE_NAME +  " - " + e.getMessage(), true);
 		}
 		if(response.isError()) plugin.error(response.getResult());
-		else plugin.debug("Players is now setup&2 ✓");
+		else plugin.debug("Players is now setup&2 \u2713");
         return response;
 	}
 
