@@ -51,16 +51,18 @@ public class PlayerEvents implements Listener {
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
 		UUID uuid = e.getPlayer().getUniqueId();
-		// If the player has previously used the plugin, then load the player info.
 		PlayerDatabase database = plugin.getPlayerDatabase();
-		if(!database.containsPlayerData(uuid)) database.loadFromDatabase(uuid);
 		PlayerData data = database.getPlayerData(uuid);
-		if(data == null) {
+		if (data == null) {
 			data = new PlayerData(uuid);
 			database.setPlayerData(data);
 		}
-		if(data.getPurchasedTiers() == null || data.getPurchasedTiers().isEmpty()) tm.givePlayerStartPurchases(e.getPlayer());
-		if(data.getSelectedTiers() == null || data.getSelectedTiers().getSelectedTiersMap().isEmpty()) tm.givePlayerStartSelect(uuid);
+		if (data.getPurchasedTiers() == null || data.getPurchasedTiers().isEmpty()) {
+			tm.givePlayerStartPurchases(e.getPlayer(), true);
+		}
+		if (data.getSelectedTiers() == null || data.getSelectedTiers().getSelectedTiersMap().isEmpty()) {
+			tm.givePlayerStartSelect(uuid);
+		}
 	}
 	
 	@EventHandler

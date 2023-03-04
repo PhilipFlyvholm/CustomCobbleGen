@@ -344,7 +344,7 @@ public class MainCommand implements CommandExecutor{
 					sender.sendMessage(Lang.PREFIX.toString() + Lang.PLAYER_ALREADY_OWNS_TIER);
 					return false;
 				}
-				tm.purchaseTier(p, tier, true);
+				tm.purchaseTier(p, tier, true,false);
 				SelectedTiers selectedTiers = tm.getSelectedTiers(p.getUniqueId());
 				selectedTiers.addTier(tier);
 				tm.setPlayerSelectedTiers(p.getUniqueId(), selectedTiers);
@@ -513,15 +513,18 @@ public class MainCommand implements CommandExecutor{
 
 	private PlayerDatabase getDatabaseFromType(String type){
 		PlayerDatabase database = plugin.getPlayerDatabase();
-		switch (type){
-			case "MYSQL":
-				if(database instanceof MySQLPlayerDatabase) return database;
+		switch (type) {
+			case "MYSQL" -> {
+				if (database instanceof MySQLPlayerDatabase) return database;
 				else return new MySQLPlayerDatabase();
-			case "YAML":
-				if(database instanceof YamlPlayerDatabase) return database;
+			}
+			case "YAML" -> {
+				if (database instanceof YamlPlayerDatabase) return database;
 				else return new YamlPlayerDatabase();
-			default:
+			}
+			default -> {
 				return null;
+			}
 		}
 	}
 }

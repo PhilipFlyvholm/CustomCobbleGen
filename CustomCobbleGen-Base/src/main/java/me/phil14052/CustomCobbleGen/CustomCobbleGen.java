@@ -21,11 +21,11 @@ import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Signs.SignManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
 import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
+import me.phil14052.CustomCobbleGen.Utils.Response;
 import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.databases.MySQLPlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
-import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
@@ -192,14 +192,10 @@ public class CustomCobbleGen extends JavaPlugin {
 			}
 		}
 		plugin.debug("Setting up a " + this.playerDatabase.getType() + " player database");
-		try {
-			this.playerDatabase.establishConnection();
-		}catch(Exception e) {
+		Response<String> response = this.playerDatabase.establishConnection();
+		if(response.isError()){
 			plugin.error("FAILED SETTING UP " + this.playerDatabase.getType() + " PLAYER DATABASE. DISABLING PLUGIN!");
-			plugin.error(e.getLocalizedMessage());
-			for(StackTraceElement s : e.getCause().getStackTrace()) {
-				plugin.error(s.toString());
-			}
+			plugin.error(response.getResult());
 			Bukkit.getServer().getPluginManager().disablePlugin(this);
 		}
 	}
