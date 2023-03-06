@@ -33,6 +33,8 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -76,7 +78,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		reloadConfig();
 		plugin.debug("Enabling CustomCobbleGen plugin");
 		plugin.log("&cIF YOU ENCOUNTER ANY BUGS OR ERRORS PLEASE REPORT THEM ON SPIGOT!");
-		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub), Fang_Zhijian (Chinese translation) and Xitrine (testing)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
+		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub), Fang_Zhijian (Chinese translation), Xitrine (testing), petulikan1 (SQL Saving)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
 		// Setup config
 		generatorModeManager = GeneratorModeManager.getInstance();
 		generatorModeManager.loadFromConfig();
@@ -140,6 +142,8 @@ public class CustomCobbleGen extends JavaPlugin {
 			plugin.log("Saving player data&2 \u2713");
 			this.getPlayerDatabase().saveEverythingToDatabase(false);
 		}
+		for(Listener l:listeners)
+			HandlerList.unregisterAll(l);
     	signManager.saveSignsToFile();
 		tierManager = null;
 		signManager = null;
@@ -330,12 +334,16 @@ public class CustomCobbleGen extends JavaPlugin {
     	}
     }
     
-    
+	List<Listener>listeners=new ArrayList<>();
 	private void registerEvents(){
 	    PluginManager pm = Bukkit.getPluginManager();
-		pm.registerEvents(new BlockEvents(), this);
-		pm.registerEvents(new InventoryEvents(), this);
-		pm.registerEvents(new PlayerEvents(), this);
+		Listener l;
+		pm.registerEvents(l=new BlockEvents(), this);
+		listeners.add(l);
+		pm.registerEvents(l=new InventoryEvents(), this);
+		listeners.add(l);
+		pm.registerEvents(l=new PlayerEvents(), this);
+		listeners.add(l);
 	}
 	
 	public void debug(boolean overrideConfigOption, Object... objects) {

@@ -13,12 +13,11 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-import java.math.BigDecimal;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.*;
 
 public class MySQLPlayerDatabase extends PlayerDatabase{
 
@@ -315,6 +314,27 @@ public class MySQLPlayerDatabase extends PlayerDatabase{
         return "MYSQL";
     }
 
+    @Override
+    public void sqlMassDataSave(Collection<PlayerData> data) {
+        if (!sqlapi.isConnected()) {
+            plugin.error("Failed to save data. Not connected to database.");
+            return;
+        }
+        new Thread(() -> {
+            List<String> queries = new ArrayList<>();
+            for (PlayerData d : data) {
+                String selectedTiers = getSelectedTiersString(d);
+                String purchasedTiers = getPurchasedTiers(d);
+                UUID uuid = d.getUUID();
+                String pistons = getPistonString(uuid);
+                queries.add("UPDATE " + table + " SET selected_tiers = '" + selectedTiers + "', purchased_tiers = '" + purchasedTiers + "', pistons = '" + pistons + "'");
+                plugin.debug("Mass saved player data to database for UUID: " + uuid);
+            }
+            for (String query : queries)
+                sqlapi.execute(query);
+        }).start();
+    }
+
 
     class SQLAPI {
 
@@ -505,6 +525,9 @@ public class MySQLPlayerDatabase extends PlayerDatabase{
         }
 
     }
+
+
+
 
 
 }

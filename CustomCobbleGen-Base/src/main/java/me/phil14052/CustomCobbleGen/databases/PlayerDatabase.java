@@ -9,6 +9,7 @@ import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Utils.Response;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -111,6 +112,10 @@ public abstract class PlayerDatabase {
 
     public void saveEverythingToDatabase(boolean async) {
         if (this.isConnectionClosed()) return;
+        if(getType().equals("MYSQL")){
+            this.sqlMassDataSave(this.getAllPlayerData().values());
+            return;
+        }
         for (PlayerData data : this.getAllPlayerData().values()) {
             this.saveToDatabase(data, async);
         }
@@ -121,5 +126,7 @@ public abstract class PlayerDatabase {
     public abstract void loadPistonsFromDatabase(UUID uuid);
 
     public abstract String getType();
+
+    public abstract void sqlMassDataSave(Collection<PlayerData> data);
 
 }
