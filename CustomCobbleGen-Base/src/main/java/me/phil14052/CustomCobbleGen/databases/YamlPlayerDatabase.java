@@ -325,5 +325,10 @@ public class YamlPlayerDatabase extends PlayerDatabase {
         return "YAML";
     }
 
+    @Override
+    public void sqlMassDataSave(Collection<PlayerData> data) {
+        //Not needed
+    }
+
 
 }

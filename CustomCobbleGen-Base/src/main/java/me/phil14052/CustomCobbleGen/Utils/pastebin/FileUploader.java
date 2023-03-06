@@ -1,11 +1,10 @@
 
 package me.phil14052.CustomCobbleGen.Utils.pastebin;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import me.phil14052.CustomCobbleGen.CustomCobbleGen;
 import me.phil14052.CustomCobbleGen.Utils.Response;
 import org.jetbrains.annotations.NotNull;
-
-import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.*;
 import java.net.HttpURLConnection;

@@ -14,6 +14,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -34,13 +35,13 @@ public class MainTabComplete implements TabCompleter{
 			if(pm.hasPermission(sender, "customcobblegen.tier", false)) subCommands.add("tier");
 			if(pm.hasPermission(sender, "customcobblegen.admin", false)) subCommands.add("admin");
 			if(pm.hasPermission(sender, "customcobblegen.upgrade", false)) subCommands.add("upgrade");
-			return subCommands;	
+			return copyPartialMatches(args[0],subCommands);
 		} else if(args.length < 3 && args[0].equalsIgnoreCase("tier") && pm.hasPermission(sender, "customcobblegen.tier.other", false)) {
 			List<String> subArgs = new ArrayList<>();
 			for(Player p : Bukkit.getOnlinePlayers()) {
 				subArgs.add(p.getName());
 			}
-			return subArgs;	
+			return copyPartialMatches(args[1],subArgs);
 		} else if(args.length < 3 && args[0].equalsIgnoreCase("admin")) {
 			List<String> subArgs = new ArrayList<>();
 			if(pm.hasPermission(sender, "customcobblegen.admin.reload", false)) subArgs.add("reload");
@@ -51,20 +52,20 @@ public class MainTabComplete implements TabCompleter{
 			if(pm.hasPermission(sender, "customcobblegen.admin.pastebin", false)) subArgs.add("pastebin");
 			if(pm.hasPermission(sender, "customcobblegen.admin.database", false)) subArgs.add("database");
 			subArgs.add("support");
-			return subArgs;	
+			return copyPartialMatches(args[1],subArgs);
 		} else if(args.length < 4 && args[0].equalsIgnoreCase("admin")) {
 			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")  || args[1].equalsIgnoreCase("withdraw")) {
 				List<String> subArgs = new ArrayList<>();
 				for(Player p : Bukkit.getOnlinePlayers()) {
 					subArgs.add(p.getName());
 				}
-				return subArgs;	
+				return copyPartialMatches(args[2],subArgs);
 			}else if(args[1].equalsIgnoreCase("database")){
 				List<String> subArgs = new ArrayList<>();
 				if(pm.hasPermission(sender, "customcobblegen.admin.database.forcesave", false)) subArgs.add("forcesave");
 				if(pm.hasPermission(sender, "customcobblegen.admin.database.migrate", false)) subArgs.add("migrate");
 
-				return subArgs;
+				return copyPartialMatches(args[2], subArgs);
 			}
 		} else if(args.length < 5 && args[0].equalsIgnoreCase("admin")) {
 			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")  || args[1].equalsIgnoreCase("withdraw")) {
@@ -74,7 +75,7 @@ public class MainTabComplete implements TabCompleter{
 					className = className.toLowerCase();
 					subArgs.add(className);
 				}
-				return subArgs;	
+				return copyPartialMatches(args[3], subArgs);
 			}
 		} else if(args.length < 6 && args[0].equalsIgnoreCase("admin")) {
 			if(args[1].equalsIgnoreCase("settier") || args[1].equalsIgnoreCase("givetier") || args[1].equalsIgnoreCase("forcebuy")  || args[1].equalsIgnoreCase("withdraw")) {
@@ -84,11 +85,32 @@ public class MainTabComplete implements TabCompleter{
 				for(Tier tier : tiers) {
 					subArgs.add("" + tier.getLevel());
 				}
-				return subArgs;	
+				return copyPartialMatches(args[4], subArgs);
 			}
 		}
 	
 		
 		return new ArrayList<>();
 	}
+
+	public static List<String> copyPartialMatches(String prefix, Iterable<String> originals) {
+		List<String> collection = new ArrayList();
+		Iterator var4 = originals.iterator();
+
+		while (true) {
+			String string;
+			do {
+				if (!var4.hasNext()) {
+					return collection;
+				}
+
+				string = (String) var4.next();
+			} while (string != null && string.length() < prefix.length());
+
+			if (string.regionMatches(true, 0, prefix, 0, prefix.length())) {
+				collection.add(string);
+			}
+		}
+	}
+
 }

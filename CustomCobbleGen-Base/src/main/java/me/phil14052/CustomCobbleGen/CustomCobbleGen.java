@@ -21,11 +21,11 @@ import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Signs.SignManager;
 import me.phil14052.CustomCobbleGen.Utils.GlowEnchant;
 import me.phil14052.CustomCobbleGen.Utils.Metrics.Metrics;
+import me.phil14052.CustomCobbleGen.Utils.Response;
 import me.phil14052.CustomCobbleGen.Utils.TierPlaceholderExpansion;
 import me.phil14052.CustomCobbleGen.databases.MySQLPlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.PlayerDatabase;
 import me.phil14052.CustomCobbleGen.databases.YamlPlayerDatabase;
-import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
@@ -33,6 +33,8 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -76,7 +78,7 @@ public class CustomCobbleGen extends JavaPlugin {
 		reloadConfig();
 		plugin.debug("Enabling CustomCobbleGen plugin");
 		plugin.log("&cIF YOU ENCOUNTER ANY BUGS OR ERRORS PLEASE REPORT THEM ON SPIGOT!");
-		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub), Fang_Zhijian (Chinese translation) and Xitrine (testing)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
+		plugin.log("&8Special thanks to lelesape (Idea), AddstarMC (Contribution on GitHub), Fang_Zhijian (Chinese translation), Xitrine (testing), petulikan1 (SQL Saving)"); // If you contribute to the plugin please add yourself here :D (As a thank you from me)
 		// Setup config
 		generatorModeManager = GeneratorModeManager.getInstance();
 		generatorModeManager.loadFromConfig();
@@ -140,6 +142,8 @@ public class CustomCobbleGen extends JavaPlugin {
 			plugin.log("Saving player data&2 \u2713");
 			this.getPlayerDatabase().saveEverythingToDatabase(false);
 		}
+		for(Listener l:listeners)
+			HandlerList.unregisterAll(l);
     	signManager.saveSignsToFile();
 		tierManager = null;
 		signManager = null;
@@ -192,14 +196,10 @@ public class CustomCobbleGen extends JavaPlugin {
 			}
 		}
 		plugin.debug("Setting up a " + this.playerDatabase.getType() + " player database");
-		try {
-			this.playerDatabase.establishConnection();
-		}catch(Exception e) {
+		Response<String> response = this.playerDatabase.establishConnection();
+		if(response.isError()){
 			plugin.error("FAILED SETTING UP " + this.playerDatabase.getType() + " PLAYER DATABASE. DISABLING PLUGIN!");
-			plugin.error(e.getLocalizedMessage());
-			for(StackTraceElement s : e.getCause().getStackTrace()) {
-				plugin.error(s.toString());
-			}
+			plugin.error(response.getResult());
 			Bukkit.getServer().getPluginManager().disablePlugin(this);
 		}
 	}
@@ -334,12 +334,16 @@ public class CustomCobbleGen extends JavaPlugin {
     	}
     }
     
-    
+	List<Listener>listeners=new ArrayList<>();
 	private void registerEvents(){
 	    PluginManager pm = Bukkit.getPluginManager();
-		pm.registerEvents(new BlockEvents(), this);
-		pm.registerEvents(new InventoryEvents(), this);
-		pm.registerEvents(new PlayerEvents(), this);
+		Listener l;
+		pm.registerEvents(l=new BlockEvents(), this);
+		listeners.add(l);
+		pm.registerEvents(l=new InventoryEvents(), this);
+		listeners.add(l);
+		pm.registerEvents(l=new PlayerEvents(), this);
+		listeners.add(l);
 	}
 	
 	public void debug(boolean overrideConfigOption, Object... objects) {

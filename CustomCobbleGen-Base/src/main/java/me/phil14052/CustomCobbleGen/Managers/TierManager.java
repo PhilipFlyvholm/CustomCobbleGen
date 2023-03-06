@@ -240,10 +240,10 @@ public class TierManager {
 	}
 	
 	public boolean purchaseTier(Player p, Tier tier) {
-		return this.purchaseTier(p, tier, false);
+		return this.purchaseTier(p, tier, false,false);
 	}
 	
-	public boolean purchaseTier(Player p, Tier tier, boolean forceBuy) {
+	public boolean purchaseTier(Player p, Tier tier, boolean forceBuy,boolean onJoin) {
 		//Check if player can afford the tier and check if they have bought the previous level
 		if(!forceBuy && !canPlayerBuyTier(p, tier)) return false;
 		if(!forceBuy && !hasPlayerPurchasedPreviousLevel(p, tier)) return false;
@@ -251,7 +251,10 @@ public class TierManager {
 			r.onPurchase(p);
 		}
 		//Buy the tier
-		if(this.hasPlayerPurchasedLevel(p, tier)) return false;
+		if(!onJoin) {
+			if (this.hasPlayerPurchasedLevel(p, tier))
+				return false;
+		}
 		UUID uuid = p.getUniqueId();
 		if(Setting.ISLANDS_USEPERISLANDUNLOCKEDGENERATORS.getBoolean() && plugin.isConnectedToIslandPlugin()) {
 			UUID ownerUUID = plugin.getIslandHook().getIslandLeaderFromPlayer(uuid);
@@ -271,10 +274,10 @@ public class TierManager {
 	}
 
 	public boolean hasPlayerPurchasedLevel(Player p, Tier tier) {
-		if(plugin.getPlayerDatabase().getPlayerData(p.getUniqueId()).getPurchasedTiers().isEmpty()) {
-			this.givePlayerStartPurchases(p);
+		/*if(plugin.getPlayerDatabase().getPlayerData(p.getUniqueId()).getPurchasedTiers().isEmpty()) {
+			this.givePlayerStartPurchases(p,false);
 			return hasPlayerPurchasedLevel(p, tier);
-		}
+		}*/
 		if(tier == null) return false;
 		if(tier.getLevel() <= 0 && tier.getTierClass().equals("DEFAULT")) return true;
 		UUID uuid = p.getUniqueId();
@@ -301,7 +304,7 @@ public class TierManager {
 			if(ownerUUID != null) uuid = ownerUUID;
 		}
 		if(plugin.getPlayerDatabase().getPlayerData(p.getUniqueId()).getPurchasedTiers().isEmpty()) {
-			this.givePlayerStartPurchases(p);
+			this.givePlayerStartPurchases(p,false);
 			return hasPlayerPurchasedPreviousLevel(p, nextTier);
 		}
 		if(nextTier.getLevel() <= 0) return true;
@@ -316,18 +319,17 @@ public class TierManager {
 	
 	public void givePlayerStartSelect(UUID uuid) {
 		Tier tier = this.getTierByLevel("DEFAULT", 0);
-		SelectedTiers selectedTiers = new SelectedTiers(uuid, tier);
-		this.setPlayerSelectedTiers(uuid, selectedTiers);
+		this.setPlayerSelectedTiers(uuid, new SelectedTiers(uuid, tier));
 	}
 	
 	//If the Player  is new then the Player needs to have a tier they can use. So we give them the default 0
-	public void givePlayerStartPurchases(Player p) {
+	public void givePlayerStartPurchases(Player p,boolean onJoin) {
 		Tier tier = this.getTierByLevel("DEFAULT", 0);
 		UUID uuid = p.getUniqueId();
 		List<Tier> startList = new ArrayList<>();
 		startList.add(tier);
 		plugin.getPlayerDatabase().getPlayerData(uuid).setPurchasedTiers(startList);
-		this.purchaseTier(p, tier, true);
+		this.purchaseTier(p, tier, true,onJoin);
 	}
 	
 	public void unload() {

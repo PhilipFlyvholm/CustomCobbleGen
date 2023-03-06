@@ -9,6 +9,7 @@ import me.phil14052.CustomCobbleGen.Managers.BlockManager;
 import me.phil14052.CustomCobbleGen.Managers.TierManager;
 import me.phil14052.CustomCobbleGen.Utils.Response;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -48,7 +49,7 @@ public abstract class PlayerDatabase {
 
     protected abstract void addToDatabase(PlayerData data, boolean async);
 
-    public PlayerData getPlayerData(UUID uuid) {
+    public PlayerData getPlayerData(UUID uuid){
         return this.getPlayerData(uuid, true, true);
     }
 
@@ -56,11 +57,9 @@ public abstract class PlayerDatabase {
         PlayerData playerData = this.getAllPlayerData().getOrDefault(uuid, null);
         if (playerData == null) {
             if (loadFromDatabase) {
-                this.loadFromDatabase(uuid);
+                this.loadFromDatabase(uuid,false);
                 return this.getPlayerData(uuid, false, saveToDatabaseIfNull);
             }
-            playerData = new PlayerData(uuid);
-            if (saveToDatabaseIfNull) this.addToDatabase(playerData);
         }
         return playerData;
     }
@@ -75,7 +74,7 @@ public abstract class PlayerDatabase {
 
     public void setPlayerData(PlayerData data) {
         if (data == null) return;
-        if (!this.containsPlayerData(data.getUUID())) {
+        if (!this.playerData.containsKey(data.getUUID())) {
             this.addToDatabase(data);
         }
         this.playerData.put(data.getUUID(), data);
@@ -95,6 +94,7 @@ public abstract class PlayerDatabase {
         loadFromDatabase(uuid, true);
     }
 
+
     public abstract void loadFromDatabase(UUID uuid, boolean async);
 
     public void saveToDatabase(UUID uuid) {
@@ -112,6 +112,10 @@ public abstract class PlayerDatabase {
 
     public void saveEverythingToDatabase(boolean async) {
         if (this.isConnectionClosed()) return;
+        if(getType().equals("MYSQL")){
+            this.sqlMassDataSave(this.getAllPlayerData().values());
+            return;
+        }
         for (PlayerData data : this.getAllPlayerData().values()) {
             this.saveToDatabase(data, async);
         }
@@ -122,5 +126,7 @@ public abstract class PlayerDatabase {
     public abstract void loadPistonsFromDatabase(UUID uuid);
 
     public abstract String getType();
+
+    public abstract void sqlMassDataSave(Collection<PlayerData> data);
 
 }
